@@ -90,8 +90,11 @@ class _LoginPageState extends State<LoginPage> {
         isLoggedIn = true;
       });
 
-      Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+      //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
     }
+
+    //TODO
+    Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
   }
 
   @override

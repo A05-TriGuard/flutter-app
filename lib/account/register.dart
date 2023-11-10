@@ -87,16 +87,29 @@ class _RegisterAccountState extends State<RegisterAccount> {
       });
 
       //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
-
+      //弹出注册成功的对话框
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+            backgroundColor: Colors.white,
             title: Container(
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("注册成功"),
+                  Text(
+                    "注册成功",
+                    style: TextStyle(
+                        fontSize: 25,
+                        //文字阴影
+                        shadows: <Shadow>[
+                          Shadow(
+                            offset: Offset(0.0, 1),
+                            blurRadius: 5.0,
+                            color: Color.fromARGB(100, 0, 0, 0),
+                          ),
+                        ]),
+                  ),
                   Icon(
                     Icons.check_circle,
                     color: Colors.greenAccent,
@@ -105,30 +118,137 @@ class _RegisterAccountState extends State<RegisterAccount> {
                 ],
               ),
             ),
-            //icon: Icon(Icons.check_circle, color: Colors.greenAccent),
+            content: const Text("欢迎使用TriGuard！让我们一切打造幸福健康的生活吧！"),
+
+            // 立即登录按钮
             actions: <Widget>[
               TextButton(
-                //width: 100,
-                child: Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.greenAccent),
-                      Text("立即登录")
-                    ],
-                  ),
-                ),
                 onPressed: () {
                   Navigator.of(context).pop(); // 关闭对话框
                   // 导航到登录页面
                   Navigator.pushNamed(context, '/');
                 },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 211, 211, 211),
+                  textStyle: const TextStyle(
+                    fontSize: 16.0,
+                  ),
+                ),
+                child: Container(
+                  width: 90,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        "立即登录",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      Icon(Icons.login, color: Colors.black),
+                    ],
+                  ),
+                ),
               ),
             ],
           );
         },
       );
       print("signup ok");
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: Container(
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "注册失败",
+                    style: TextStyle(
+                        fontSize: 25,
+                        //文字阴影
+                        shadows: <Shadow>[
+                          Shadow(
+                            offset: Offset(0.0, 1),
+                            blurRadius: 5.0,
+                            color: Color.fromARGB(100, 0, 0, 0),
+                          ),
+                        ]),
+                  ),
+                  Icon(
+                    Icons.cancel,
+                    color: Colors.red,
+                    size: 30,
+                  ),
+                ],
+              ),
+            ),
+            content: const Text("注册失败，您可能已经注册过了！"),
+
+            // 尝试登录按钮
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // 关闭对话框
+                  // 导航到登录页面
+                  Navigator.pushNamed(context, '/');
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 211, 211, 211),
+                  textStyle: const TextStyle(
+                    fontSize: 16.0,
+                  ),
+                ),
+                /* style: FilledButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 211, 211, 211),
+                  textStyle: const TextStyle(),
+                ), */
+                child: Container(
+                  width: 90,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        "尝试登录",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      Icon(Icons.login, color: Colors.black),
+                    ],
+                  ),
+                ),
+              ),
+              // 再试一次按钮
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // 关闭对话框
+                  // 导航到登录页面
+                  //Navigator.pushNamed(context, '/');
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 211, 211, 211),
+                  textStyle: const TextStyle(
+                    fontSize: 16.0,
+                  ),
+                ),
+                child: Container(
+                  width: 90,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        "再试一次",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      Icon(Icons.subdirectory_arrow_left, color: Colors.black),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 

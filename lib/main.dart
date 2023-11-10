@@ -36,10 +36,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      //home: LoginPage(),
-      //home: const MainPages(),
-      // home: HomePage(),
-      //initialRoute: "/homePage",
       initialRoute: "/",
       onGenerateRoute: onGenerateRoute,
     );
