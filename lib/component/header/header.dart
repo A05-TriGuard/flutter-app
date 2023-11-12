@@ -31,7 +31,21 @@ Widget getHeader(double width, double height) {
           ),
         ),
       ),
-      SizedBox(height: 10),
+      //SizedBox(height: 10),
+      Container(
+        width: width,
+        height: 9,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 255, 255, 255),
+              Color.fromARGB(255, 255, 255, 255),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+      ),
       const Divider(
         //height: 1, // 设置分割线的高度
         height: 1,

@@ -24,15 +24,15 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
+  The "flutter_lints" package below contains a set of recommended lints to
+  encourage good coding practices. The lint set provided by the package is
+  activated in the `analysis_options.yaml` file located at the root of your
+  package. See that file for information about deactivating specific lint
+  rules and activating additional ones.
   flutter_lints: ^2.0.0
-  # flutter_echart: 
-  #   git:
-  #     url: git://github.com/furuiCQ/flutter_echart.git
+   flutter_echart: 
+     git:
+       url: git://github.com/furuiCQ/flutter_echart.git
   flutter_echarts: ^2.5.0
 
 然后终端执行
@@ -44,3 +44,10 @@ flutter pub get
 终端执行
 flutter channel master
 flutter pub upgrade
+
+
+### GradientBorder
+"lib\other\gradientBorder\gradient_borders.dart"
+https://stackoverflow.com/questions/55395641/outlined-transparent-button-with-gradient-border-in-flutter
+https://github.com/obiwanzenobi/gradient-borders/tree/master/lib
+https://pub.dev/packages/gradient_borders

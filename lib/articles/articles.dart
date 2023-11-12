@@ -20,7 +20,7 @@ class _ArticleState extends State<Article> {
               fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
         ),
         // flexibleSpace: header,
-        // toolbarHeight: 45,
+        //toolbarHeight: MediaQuery.of(context).size.height * 0.1 + 11,
 
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
