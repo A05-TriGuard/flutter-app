@@ -169,7 +169,7 @@ class _HomePageState extends State<HomePage> {
                             ]),
                       ),
                       Container(
-                        child: const Row(
+                        child: Row(
                             //mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Text(
@@ -184,7 +184,20 @@ class _HomePageState extends State<HomePage> {
                                   style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold)),
-                              Icon(Icons.edit),
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: IconButton(
+                                  padding: EdgeInsets.all(0),
+                                  icon: Icon(Icons.edit),
+                                  iconSize: 25,
+                                  onPressed: () {
+                                    print("edit");
+                                    Navigator.pushNamed(context,
+                                        '/homePage/BloodPressure/Edit');
+                                  },
+                                ),
+                              )
                             ]),
                       )
                     ],
@@ -355,6 +368,21 @@ class _HomePageState extends State<HomePage> {
               // 血糖图表
               UnconstrainedBox(
                 child: Container(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  height: MediaQuery.of(context).size.height * 0.25,
+                  decoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 255, 255, 255),
+                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromARGB(255, 95, 95, 95),
+                        offset: Offset(0, 0),
+                        blurRadius: 5.0,
+                        spreadRadius: 0.0,
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.centerRight,
                   child: Echarts(
                     option: '''
               {
@@ -405,21 +433,6 @@ class _HomePageState extends State<HomePage> {
               }
             ''',
                   ),
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  height: MediaQuery.of(context).size.height * 0.25,
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromARGB(255, 95, 95, 95),
-                        offset: Offset(0, 0),
-                        blurRadius: 5.0,
-                        spreadRadius: 0.0,
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.centerRight,
                 ),
               ),
 
@@ -577,7 +590,7 @@ class _HomePageState extends State<HomePage> {
             height: 5,
           ), */
 
-              // 今日血糖
+              // 今日活动
               Center(
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.85,
@@ -589,7 +602,7 @@ class _HomePageState extends State<HomePage> {
                             //mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               const Text(
-                                "今日运动",
+                                "今日活动",
                                 style: TextStyle(
                                     fontSize: 22, fontWeight: FontWeight.bold),
                               ),
@@ -603,14 +616,14 @@ class _HomePageState extends State<HomePage> {
                             //mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               const Text(
-                                "3.4",
+                                "45",
                                 style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
                                     color: Color.fromRGBO(165, 51, 51, 1)),
                               ),
                               const SizedBox(width: 5),
-                              const Text("mmol/L",
+                              const Text("分钟",
                                   style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold)),
@@ -626,7 +639,7 @@ class _HomePageState extends State<HomePage> {
                 height: 5,
               ),
 
-              // 血脂图表
+              // 活动图表
               UnconstrainedBox(
                 child: Container(
                   alignment: Alignment.centerRight,
@@ -671,6 +684,7 @@ class _HomePageState extends State<HomePage> {
   },
 
   grid: {
+                //top: '15%',
                 left: '3%',
                 right: '4%',
                 bottom: '5%',
@@ -689,6 +703,7 @@ class _HomePageState extends State<HomePage> {
     {
       type: 'value',
       name: '步数',
+      nameGap: 10, 
       axisLabel: {
         formatter: '{value}'
       }
@@ -696,6 +711,7 @@ class _HomePageState extends State<HomePage> {
     {
       type: 'value',
       name: '运动时长',
+      nameGap: 10,
       axisLabel: {
         formatter: '{value}'
       },
@@ -769,14 +785,14 @@ class _HomePageState extends State<HomePage> {
                             //mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               const Text(
-                                "3.4",
+                                "1723",
                                 style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
                                     color: Color.fromRGBO(165, 51, 51, 1)),
                               ),
                               const SizedBox(width: 5),
-                              const Text("mmol/L",
+                              const Text("千卡",
                                   style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold)),
@@ -792,12 +808,13 @@ class _HomePageState extends State<HomePage> {
                 height: 5,
               ),
 
-              // 血脂图表
+              // 饮食图表
               UnconstrainedBox(
                 child: Container(
                   alignment: Alignment.centerRight,
                   width: MediaQuery.of(context).size.width * 0.85,
-                  height: MediaQuery.of(context).size.height * 0.25,
+                  // height: MediaQuery.of(context).size.height * 0.25,
+                  height: MediaQuery.of(context).size.height * 0.50,
                   decoration: const BoxDecoration(
                     color: Color.fromARGB(255, 255, 255, 255),
                     borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -811,67 +828,130 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   child: Echarts(
-                    option: '''
-             {
-            title:{
-text: '饮食',
-    top:'5%',
-    left:'2%',
-            },
-  tooltip: {
-    trigger: 'item'
-  },
-
-  grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '5%',
-                containLabel: true
-              },
-  legend: {
-    top: '5%',
-    left: '40%',
-    // doesn't perfectly work with our tricks, disable it
-    selectedMode: false
-  },
-  series: [
-    {
-      name: 'Meal Calories',
-      type: 'pie',
-      radius: ['40%', '70%'],
-      center: ['50%', '70%'],
-      // adjust the start angle
-      startAngle: 180,
-      label: {
-        show: true,
-        formatter(param) {
-          // correct the percentage
-          return param.value+'千卡';
-        }
-      },
-      data: [
-        { value: 400, name: '早餐' },
-        { value: 600, name: '午餐' },
-        { value: 500, name: '晚餐' },
-        { value: 300, name: '其他' },
-        {
-          // make a record to fill the bottom 50%
-          value: 400 + 600 + 500 + 300,
-          itemStyle: {
-            // stop the chart from rendering this piece
-            color: 'none',
-            decal: {
-              symbol: 'none'
-            }
-          },
+                    extraScript: '''
+chart.on('updateAxisPointer', function (event) {
+    const xAxisInfo = event.axesInfo[0];
+    if (xAxisInfo) {
+      const dimension = xAxisInfo.value + 1;
+      chart.setOption({
+        series: {
+          id: 'pie',
           label: {
-            show: false
+            formatter: '{b} {@[' + dimension + ']}'
+          },
+          encode: {
+            value: dimension,
+            tooltip: dimension
           }
         }
-      ]
+      });
     }
-  ]
-}
+  });
+''',
+                    option: '''
+ {
+   // title:'饮食',
+     title: {
+    text: '饮食',
+    top:'5%',
+    left:'2%',
+  },
+    legend: {data:['早餐','午餐','晚餐','其他','卡路里总和'],
+     orient: 'vertical',
+    top:'15%',
+      left:'5%'
+    },
+    tooltip: {
+      trigger: 'axis',
+      showContent: true
+    },
+    dataset: {
+      source: [
+        ['product', '8/11', '9/11', '10/11','11/11'],
+        ['早餐', 400, 500, 550, 480],
+        ['午餐', 600, 620, 650, 580],
+        ['晚餐', 300, 350, 380, 360],
+        ['其他', 200, 180, 160, 190],
+      //  ['卡路里总和', 1500, 1650, 1740, 1610, 1740, 1700]
+      ]
+    },
+    xAxis: { type: 'category',data: ['8/11', '9/11', '10/11','11/11']},
+    yAxis: { gridIndex: 0 },
+    grid: { 
+      top: '55%',
+      left:'3',
+      right: '4%', 
+      bottom: '5%',
+      containLabel: true
+    },
+    series: [
+      {
+        type: 'line',
+        //name: '早餐',
+        smooth: true,
+        seriesLayoutBy: 'row',
+        //emphasis: { focus: 'series' }
+      },
+      {
+        type: 'line',
+        //name: '午餐',
+        smooth: true,
+        seriesLayoutBy: 'row',
+        //emphasis: { focus: 'series' }
+      },
+      {
+        type: 'line',
+        //name: '晚餐',
+        smooth: true,
+        seriesLayoutBy: 'row',
+        //emphasis: { focus: 'series' }
+      },
+      {
+        type: 'line',
+        //name: '其他',
+        smooth: true,
+        seriesLayoutBy: 'row',
+       //emphasis: { focus: 'series' }
+      },
+      {
+        type: 'pie',
+        id: 'pie',
+        radius: '30%',
+        center: ['62%', '30%'],
+        emphasis: {
+          focus: 'self'
+        },
+        label: {
+          formatter: '{b} {@11/11}'
+        },
+        encode: {
+          itemName: 'product', // 修改为卡路里总和的对应项
+          value: '11/11',
+          tooltip: '11/11'
+        },
+        labelLine:{  
+        normal:{  
+          length: 5, // 修改引导线第一段的长度
+          length2: 2, // 修改引导线第二段的长度
+          //lineStyle: {
+          //  color: "red" // 修改引导线的颜色
+          //}
+        },
+        },
+
+       
+       
+        
+      },
+      {
+        type: 'line', // 柱状图显示总卡路里数据
+        name: '卡路里总和',
+        smooth: true,
+        data: [1500, 1650, 1740, 1610],
+        emphasis: { focus: 'series' }
+      },
+    ]
+  }
             ''',
                   ),
                 ),

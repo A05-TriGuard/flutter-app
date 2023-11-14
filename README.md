@@ -51,3 +51,17 @@ flutter pub upgrade
 https://stackoverflow.com/questions/55395641/outlined-transparent-button-with-gradient-border-in-flutter
 https://github.com/obiwanzenobi/gradient-borders/tree/master/lib
 https://pub.dev/packages/gradient_borders
+
+
+### 更新echart
+https://medium.com/analytics-vidhya/reactive-echarts-flutter-widget-fedab7f3c52f
+
+#### ExpansionTile button 
+https://stackoverflow.com/questions/51697901/programmatically-expand-expansiontile-in-flutter
+
+#### How to Create Image Buttons in Flutter
+https://www.kindacode.com/article/ways-to-create-image-buttons-in-flutter/
+
+#### AnimatedContainer切换瞬间overflow
+https://stackoverflow.com/questions/56298325/overflow-warning-in-animatedcontainer-adjusting-height
+解决：用SingleChildScrollView包裹

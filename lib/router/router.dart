@@ -7,10 +7,13 @@ import '../moment/moment.dart';
 import '../user/user.dart';
 import '../component/mainPagesBar/mainPagesBar.dart';
 import '../account/register.dart';
+import '../homePage/bloodPressure/bloodPressureEdit.dart';
 
 Map routes = {
   '/': (context) => const LoginPage(),
   '/homePage': (context) => const HomePage(),
+  //'/homePage/BloodPressure/Edit': (context) => const bloodPressureEdit(),
+  '/homePage/BloodPressure/Edit': (context) => BloodPressureEdit(),
   '/articles': (context) => const Article(),
   '/supervisor': (context) => const Supervisor(),
   '/moment': (context) => const Moment(),
