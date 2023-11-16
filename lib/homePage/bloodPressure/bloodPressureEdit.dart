@@ -158,6 +158,11 @@ List<Color> functionButtonColors = const [
   Color.fromRGBO(173, 255, 144, 1),
 ];
 
+late List<Widget> dataWidget;
+late Widget titleDateWidget;
+Widget addDataButtonWidget = addDataButton();
+int randomId = 100;
+
 class newValue {
   int id = 0;
   int hour = 0;
@@ -217,6 +222,416 @@ void setDataById(int id, String type, int value) {
 
 late newValue afterEditedValue; //= newValue(0, "0", "0", "0", "0", "0", 0, 0);
 bool deleteDataMark = false;
+
+// =================================================================================
+
+class addDataButton extends StatefulWidget {
+  const addDataButton({super.key});
+
+  @override
+  State<addDataButton> createState() => _addDataButtonState();
+}
+
+class _addDataButtonState extends State<addDataButton> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        print("我要添加数据");
+      },
+      child: UnconstrainedBox(
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.15,
+          width: MediaQuery.of(context).size.width * 0.85,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            //color: Colors.white,
+            color: Color.fromARGB(255, 167, 167, 167),
+            borderRadius: BorderRadius.circular(20.0),
+            boxShadow: const [
+              BoxShadow(
+                color: Color.fromARGB(120, 151, 151, 151),
+                offset: Offset(0, 5),
+                blurRadius: 5.0,
+                spreadRadius: 0.0,
+              ),
+            ],
+          ),
+          child: Icon(
+            Icons.add,
+            size: 50,
+            color: const Color.fromARGB(255, 17, 17, 17),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class addDataWidget extends StatefulWidget {
+  final VoidCallback updateParent;
+
+  const addDataWidget({Key? key, required this.updateParent}) : super(key: key);
+
+  @override
+  State<addDataWidget> createState() => _addDataWidgetState();
+}
+
+class _addDataWidgetState extends State<addDataWidget> {
+  final TextEditingController hourController = TextEditingController();
+  final TextEditingController minuteController = TextEditingController();
+  final TextEditingController SBloodpressureController =
+      TextEditingController();
+  final TextEditingController DBloodpressureController =
+      TextEditingController();
+  final TextEditingController heartRateController = TextEditingController();
+  CustomButtonRow armButtons = CustomButtonRow(
+    selectedIndex: 2,
+  );
+  CustomIconButtonRow feelingsButtons = CustomIconButtonRow(
+    selectedIndex: 1,
+  );
+
+  Widget getTitle(String TitleChn, String TitleEng) {
+    return Column(
+      //crossAxisAlignment: CrossAxisAlignment.center,
+      //mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "${TitleChn}",
+          style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
+        ),
+        Text(
+          "${TitleEng}",
+          style: const TextStyle(
+              fontSize: 14,
+              fontFamily: "Blinker",
+              color: Color.fromARGB(255, 109, 109, 109)),
+        )
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return UnconstrainedBox(
+      child: Column(children: [
+        Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          height: MediaQuery.of(context).size.height * 0.55,
+          decoration: BoxDecoration(
+            //color: Colors.white,
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20.0),
+            boxShadow: const [
+              BoxShadow(
+                color: Color.fromARGB(120, 151, 151, 151),
+                offset: Offset(0, 5),
+                blurRadius: 5.0,
+                spreadRadius: 0.0,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      //color: Colors.blue, // 左边容器的颜色
+
+                      child: Column(
+                        children: [
+                          getTitle("时间", "TIME"),
+                          getTitle("收缩压", "SBP"),
+                          getTitle("舒张压", "DBP"),
+                          getTitle("心率", "PULSE"),
+                          getTitle("手臂", "ARM"),
+                          getTitle("感觉", "FEELINGS"),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 5),
+
+                    // 右边的子容器
+                    Container(
+                      //height: 100,
+                      //width: MediaQuery.of(context).size.width * 0.85 * 0.4,
+                      //color: Colors.green, // 右边容器的颜色
+                      child: Column(
+                        children: [
+                          // 时间
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.start,
+                            //crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 50,
+                                height: 50,
+                                child: TextField(
+                                  maxLength: 2,
+                                  controller: hourController,
+                                  //initialValue: widget.hour,
+                                  decoration: InputDecoration(
+                                      counterText: "",
+                                      hintText: "${DateTime.now().hour}",
+                                      contentPadding:
+                                          EdgeInsets.fromLTRB(0, 0, 0, 2)),
+                                  textAlign: TextAlign.center,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  style: const TextStyle(
+                                      fontSize: 30, fontFamily: "BalooBhai"),
+                                ),
+                              ),
+                              SizedBox(width: 2),
+                              const Text(
+                                "时",
+                                style: const TextStyle(
+                                    fontSize: 16, fontFamily: "BalooBhai"),
+                              ),
+                              SizedBox(
+                                width: 50,
+                                child: TextField(
+                                  maxLength: 2,
+                                  controller: minuteController,
+                                  //initialValue: widget.minute,
+                                  decoration: InputDecoration(
+                                      counterText: "",
+                                      hintText: "${DateTime.now().minute}",
+                                      contentPadding:
+                                          EdgeInsets.fromLTRB(0, 0, 0, 2)),
+                                  textAlign: TextAlign.center,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  style: const TextStyle(
+                                      fontSize: 30, fontFamily: "BalooBhai"),
+                                ),
+                              ),
+                              const Text(
+                                "分",
+                                style: const TextStyle(
+                                    fontSize: 16, fontFamily: "BalooBhai"),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          // 修改收缩压
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.start,
+                            //crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 75,
+                                height: 40,
+                                child: TextField(
+                                  maxLength: 3,
+                                  controller: SBloodpressureController,
+                                  //initialValue: widget.SBloodpressure,
+                                  decoration: InputDecoration(
+                                      counterText: "",
+                                      hintText: "100",
+                                      contentPadding:
+                                          EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                                  textAlign: TextAlign.center,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  style: const TextStyle(
+                                      fontSize: 30, fontFamily: "BalooBhai"),
+                                ),
+                              ),
+                              SizedBox(width: 2),
+                              const Text(
+                                "mmHg",
+                                style: const TextStyle(
+                                    fontSize: 16, fontFamily: "Blinker"),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          // 修改舒张压
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.start,
+                            //crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 75,
+                                height: 40,
+                                child: TextField(
+                                  maxLength: 3,
+                                  controller: DBloodpressureController,
+                                  //initialValue: widget.DBloodpressure,
+                                  decoration: InputDecoration(
+                                      counterText: "",
+                                      hintText: "80",
+                                      contentPadding:
+                                          EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                                  textAlign: TextAlign.center,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  style: const TextStyle(
+                                      fontSize: 30, fontFamily: "BalooBhai"),
+                                ),
+                              ),
+                              SizedBox(width: 2),
+                              const Text(
+                                "mmHg",
+                                style: const TextStyle(
+                                    fontSize: 16, fontFamily: "Blinker"),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          // 修改心率
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            //crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 75,
+                                height: 40,
+                                child: TextField(
+                                  maxLength: 3,
+                                  controller: heartRateController,
+                                  //initialValue: widget.heartRate,
+                                  decoration: InputDecoration(
+                                      counterText: "",
+                                      hintText: "90",
+                                      contentPadding:
+                                          EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                                  textAlign: TextAlign.center,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  style: const TextStyle(
+                                      fontSize: 30, fontFamily: "BalooBhai"),
+                                ),
+                              ),
+                              SizedBox(width: 2),
+                              const Text(
+                                "次/分",
+                                style: const TextStyle(
+                                    fontSize: 16, fontFamily: "Blinker"),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          // 修改手臂
+                          armButtons,
+                          /* CustomButtonRow(
+                        initialSelectedIndex: widget.arm,
+                      ), */
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          //修改感觉
+
+                          /* CustomIconButtonRow(
+                        initialSelectedIndex: widget.feeling,
+                      ), */
+                          feelingsButtons,
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                //删除，取消，确定
+
+                Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      //取消
+                      OtherButton(
+                          onPressed: () {
+                            print("取消添加数据");
+                            setState(() {
+                              dataWidget.removeAt(1);
+                              widget.updateParent();
+                            });
+                          },
+                          type: 1),
+                      const SizedBox(width: 5),
+                      OtherButton(
+                          onPressed: () {
+                            randomId += 1;
+                            bpdata.insert(0, {
+                              "id": randomId,
+                              "hour": int.parse(hourController.text),
+                              "minute": int.parse(minuteController.text),
+                              "sbp": int.parse(SBloodpressureController.text),
+                              "dbp": int.parse(DBloodpressureController.text),
+                              "heartRate": int.parse(heartRateController.text),
+                              "arm": armButtons.getSelectedButtonIndex(),
+                              "feeling":
+                                  feelingsButtons.getSelectedButtonIndex(),
+                              "isExpanded": 0,
+                            });
+
+                            Widget newWidget = BloodPressureEditWidgetLess(
+                              id: randomId,
+                              hour: int.parse(hourController.text),
+                              minute: int.parse(minuteController.text),
+                              SBloodpressure:
+                                  int.parse(SBloodpressureController.text),
+                              DBloodpressure:
+                                  int.parse(DBloodpressureController.text),
+                              heartRate: int.parse(heartRateController.text),
+                              arm: armButtons.getSelectedButtonIndex(),
+                              feeling: feelingsButtons.getSelectedButtonIndex(),
+                            );
+
+                            setState(() {
+                              dataWidget.removeAt(1);
+                              dataWidget.insert(1, newWidget);
+                              widget.updateParent();
+                            });
+
+                            /* print(widget.id);
+                            print(hourController.text);
+                            print(minuteController.text);
+                            print(SBloodpressureController.text);
+                            print(DBloodpressureController.text);
+                            print(heartRateController.text);
+                            print(armButtons.getSelectedButtonIndex());
+                            print(feelingsButtons.getSelectedButtonIndex());
+                            //armButtons
+
+                            afterEditedValue = newValue(
+                                widget.id,
+                                int.parse(hourController.text),
+                                int.parse(minuteController.text),
+                                int.parse(SBloodpressureController.text),
+                                int.parse(DBloodpressureController.text),
+                                int.parse(heartRateController.text),
+                                armButtons.getSelectedButtonIndex(),
+                                feelingsButtons.getSelectedButtonIndex());
+                            widget.confirmEditData(); */
+                          },
+                          type: 2),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        )
+      ]),
+    );
+  }
+}
 
 class OtherButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -500,9 +915,6 @@ class _CustomIconButtonRowState extends State<CustomIconButtonRow> {
 // ----------------------------------------------------------------------------------
 // 页面模块
 
-late List<Widget> dataWidget;
-late Widget titleDateWidget;
-
 class BloodPressureEdit extends StatefulWidget {
   //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
   @override
@@ -538,6 +950,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
     }
 
     // TODO 添加的模块
+    //dataWidget.add(addDataButtonWidget);
   }
 
   void updateView() {
@@ -569,6 +982,8 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
           ),
         ));
       }
+
+      //dataWidget.add(addDataButtonWidget);
     });
   }
 
@@ -588,12 +1003,25 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
             (MediaQuery.of(context).size.height * 0.1 + 11)),
       ),
       body: ListView.builder(
-        //key: UniqueKey(),
         itemCount: dataWidget.length,
-        //itemCount: bpdata.length + 1,
         itemBuilder: (BuildContext context, int index) {
           return dataWidget[index];
         },
+      ),
+
+      // 添加数据的按钮
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          print("我要添加数据");
+          setState(() {
+            //dataWidget.add(addDataButtonWidget);
+            //dataWidget.insert(1, addDataButtonWidget);
+            dataWidget.insert(1, addDataWidget(updateParent: updateView));
+          });
+        },
+        shape: CircleBorder(),
+        backgroundColor: Color.fromARGB(255, 237, 136, 247),
+        child: Icon(Icons.add, size: 30, color: Colors.white),
       ),
     );
   }
