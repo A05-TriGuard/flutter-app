@@ -237,6 +237,8 @@ class _HomePageState extends State<HomePage> {
                   child: Echarts(
                     option: '''
               {
+                animation:false,
+
                 title: {
                 text: '血压',
                 top:'5%',
@@ -386,6 +388,7 @@ class _HomePageState extends State<HomePage> {
                   child: Echarts(
                     option: '''
               {
+                animation:false,
                 title: {
     text: '血糖',
     top:'5%',
@@ -849,7 +852,10 @@ chart.on('updateAxisPointer', function (event) {
   });
 ''',
                     option: '''
+
  {
+  animation:false,
+
    // title:'饮食',
      title: {
     text: '饮食',

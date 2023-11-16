@@ -1,0 +1,48 @@
+import 'package:flutter/material.dart';
+
+List<Map> bpdata = [
+  {
+    "id": 0,
+    "hour": 9,
+    "minute": 32,
+    "sbp": 101,
+    "dbp": 97,
+    "heartRate": 88,
+    "arm": 0,
+    "feeling": 1,
+    "isExpanded": 0,
+  },
+  {
+    "id": 1,
+    "hour": 12,
+    "minute": 12,
+    "sbp": 103,
+    "dbp": 95,
+    "heartRate": 93,
+    "arm": 1,
+    "feeling": 1,
+    "isExpanded": 0,
+  },
+  {
+    "id": 2,
+    "hour": 15,
+    "minute": 45,
+    "sbp": 106,
+    "dbp": 99,
+    "heartRate": 89,
+    "arm": 2,
+    "feeling": 0,
+    "isExpanded": 0,
+  },
+  {
+    "id": 3,
+    "hour": 22,
+    "minute": 6,
+    "sbp": 99,
+    "dbp": 91,
+    "heartRate": 87,
+    "arm": 2,
+    "feeling": 1,
+    "isExpanded": 0,
+  },
+];

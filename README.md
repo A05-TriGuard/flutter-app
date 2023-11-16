@@ -56,6 +56,12 @@ https://pub.dev/packages/gradient_borders
 ### 更新echart
 https://medium.com/analytics-vidhya/reactive-echarts-flutter-widget-fedab7f3c52f
 
+#### 取消echart动画
+https://blog.csdn.net/qq_30841657/article/details/111168671
+
+#### 坐标轴对齐
+https://blog.csdn.net/yuzhiqiang_1993/article/details/86496145
+
 #### ExpansionTile button 
 https://stackoverflow.com/questions/51697901/programmatically-expand-expansiontile-in-flutter
 
@@ -65,3 +71,11 @@ https://www.kindacode.com/article/ways-to-create-image-buttons-in-flutter/
 #### AnimatedContainer切换瞬间overflow
 https://stackoverflow.com/questions/56298325/overflow-warning-in-animatedcontainer-adjusting-height
 解决：用SingleChildScrollView包裹
+
+#### Pass a function with parameters to a VoidCallback
+https://stackoverflow.com/questions/50085748/pass-a-function-with-parameters-to-a-voidcallback
+
+
+#### string转int
+https://stackoverflow.com/questions/56207275/how-can-i-get-int-data-from-texteditingcontroller-in-flutter
+例如： `int.parse(hourController.text)`,
