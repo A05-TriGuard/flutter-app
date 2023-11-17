@@ -8,12 +8,15 @@ import '../user/user.dart';
 import '../component/mainPagesBar/mainPagesBar.dart';
 import '../account/register.dart';
 import '../homePage/bloodPressure/bloodPressureEdit.dart';
+import '../homePage/bloodPressure/bloodPressureDetails.dart';
 
 Map routes = {
   '/': (context) => const LoginPage(),
   '/homePage': (context) => const HomePage(),
   //'/homePage/BloodPressure/Edit': (context) => const bloodPressureEdit(),
   '/homePage/BloodPressure/Edit': (context) => BloodPressureEdit(),
+  '/homePage/BloodPressure/Details': (context) => BloodPressureDetails(
+      arguments: {"userId": 1, "date": DateTime(2023, 11, 11)}),
   '/articles': (context) => const Article(),
   '/supervisor': (context) => const Supervisor(),
   '/moment': (context) => const Moment(),

@@ -89,10 +89,18 @@ class _SupervisorState extends State<Supervisor> {
                 child: Echarts(
                   option: '''
               {
+                animation:false,
+
+                title: {
+                text: '血压',
+                top:'5%',
+                left:'2%',
+                },
+
                 legend: {
                   data: ['收缩压', '舒张压', '心率'],
                   top:'10%',
-                  left:'5%',
+                  left:'10%',
                 },
 
                   grid: {

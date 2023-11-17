@@ -145,6 +145,7 @@ class _bloodPressureEditState extends State<bloodPressureEdit> {
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../component/header/header.dart';
 import "bpData.dart";
 
@@ -378,18 +379,18 @@ class _addDataWidgetState extends State<addDataWidget> {
                                   decoration: InputDecoration(
                                       counterText: "",
                                       hintText: "${DateTime.now().hour}",
-                                      contentPadding:
-                                          EdgeInsets.fromLTRB(0, 0, 0, 2)),
+                                      contentPadding: const EdgeInsets.fromLTRB(
+                                          0, 0, 0, 2)),
                                   textAlign: TextAlign.center,
                                   textAlignVertical: TextAlignVertical.bottom,
                                   style: const TextStyle(
                                       fontSize: 30, fontFamily: "BalooBhai"),
                                 ),
                               ),
-                              SizedBox(width: 2),
+                              const SizedBox(width: 2),
                               const Text(
                                 "时",
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 16, fontFamily: "BalooBhai"),
                               ),
                               SizedBox(
@@ -550,7 +551,7 @@ class _addDataWidgetState extends State<addDataWidget> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      //取消
+                      //取消添加数据
                       OtherButton(
                           onPressed: () {
                             print("取消添加数据");
@@ -561,6 +562,8 @@ class _addDataWidgetState extends State<addDataWidget> {
                           },
                           type: 1),
                       const SizedBox(width: 5),
+
+                      //确定添加
                       OtherButton(
                           onPressed: () {
                             randomId += 1;
@@ -1002,11 +1005,14 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
       ),
-      body: ListView.builder(
-        itemCount: dataWidget.length,
-        itemBuilder: (BuildContext context, int index) {
-          return dataWidget[index];
-        },
+      body: Container(
+        color: Colors.white,
+        child: ListView.builder(
+          itemCount: dataWidget.length,
+          itemBuilder: (BuildContext context, int index) {
+            return dataWidget[index];
+          },
+        ),
       ),
 
       // 添加数据的按钮
@@ -1027,6 +1033,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
   }
 }
 
+// “修改血压”标题 与 日期选择
 class TitleDate extends StatefulWidget {
   final DateTime date;
   const TitleDate({Key? key, required this.date}) : super(key: key);
@@ -1036,6 +1043,35 @@ class TitleDate extends StatefulWidget {
 }
 
 class _TitleDateState extends State<TitleDate> {
+  DateTime date = DateTime(2023, 11, 11);
+  DateTime oldDate =
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  //DateTime newDate = DateTime(2023, 11, 11);
+
+  // This function displays a CupertinoModalPopup with a reasonable fixed height
+  // which hosts CupertinoDatePicker.
+  void _showDialog(Widget child) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 250,
+        padding: const EdgeInsets.only(top: 6.0),
+        // The Bottom margin is provided to align the popup above the system
+        // navigation bar.
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        // Provide a background color for the popup.
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        // Use a SafeArea widget to avoid system overlaps.
+        child: SafeArea(
+          top: false,
+          child: child,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -1065,7 +1101,8 @@ class _TitleDateState extends State<TitleDate> {
                     //mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        "${widget.date.year}年${widget.date.month}月${widget.date.day}日",
+                        //"${widget.date.year}年${widget.date.month}月${widget.date.day}日",
+                        '${date.year}年${date.month}月${date.day}日',
                         style: const TextStyle(
                             fontSize: 18,
                             fontFamily: "BalooBhai",
@@ -1079,9 +1116,90 @@ class _TitleDateState extends State<TitleDate> {
                           padding: EdgeInsets.all(0),
                           icon: const Icon(Icons.calendar_month),
                           iconSize: 25,
-                          onPressed: () {
+                          /* onPressed: () {
                             print("editDate");
-                          },
+                          }, */
+
+                          onPressed: () => _showDialog(Column(
+                            children: [
+                              Expanded(
+                                //height: 220,
+                                child: CupertinoDatePicker(
+                                  initialDateTime: date,
+                                  maximumDate: DateTime.now(),
+                                  mode: CupertinoDatePickerMode.date,
+                                  use24hFormat: true,
+                                  // This shows day of week alongside day of month
+                                  showDayOfWeek: true,
+                                  // This is called when the user changes the date.
+                                  onDateTimeChanged: (DateTime newDate) {
+                                    // setState(() => date = newDate);
+                                    date = newDate;
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                height: 40,
+                                width: 320,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Container(
+                                      width: 120,
+                                      child: TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            date = oldDate;
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                        style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                            Color.fromARGB(255, 221, 223, 223),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          '取消',
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 15),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 120,
+                                      child: TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            oldDate = date;
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                        style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty
+                                                    .all<Color>(Color.fromARGB(
+                                                        255, 118, 241, 250))),
+                                        child: const Text(
+                                          '确定',
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 15),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                            ],
+                          )),
                         ),
                       )
                     ]),
@@ -1094,7 +1212,7 @@ class _TitleDateState extends State<TitleDate> {
   }
 }
 
-//@immutable
+// 生成血压数据的显示模块
 class BloodPressureEditWidget extends StatefulWidget {
   final int id;
   final int hour;
@@ -1141,14 +1259,11 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
               setDataById(widget.id, "isExpanded", 1);
 
               // 其他的一律收起
-              print("收起");
               for (int i = 0; i < bpdata.length; i++) {
                 if (bpdata[i]["id"] != widget.id) {
                   setDataById(bpdata[i]["id"], "isExpanded", 0);
                 }
               }
-
-              print(bpdata);
 
               widget.updateParent();
             });
@@ -1168,6 +1283,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
               decoration: BoxDecoration(
                 //color: Colors.white,
                 color: Colors.white,
+                border: Border.all(color: const Color.fromRGBO(0, 0, 0, 0.2)),
                 borderRadius: BorderRadius.circular(20.0),
                 boxShadow: const [
                   BoxShadow(
@@ -1194,8 +1310,6 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                         feeling: widget.feeling,
                         deleteData: () {
                           setState(() {
-                            //widget.isExpanded = false;
-                            //bpdata[widget.id]["isExpanded"] = 0;
                             setDataById(widget.id, "isExpanded", 0);
                             print('删除 ${widget.id}');
                             // 删除id为widget.id的数据
@@ -1207,17 +1321,13 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                         },
                         cancelEditData: () {
                           setState(() {
-                            //widget.isExpanded = false;
-                            //bpdata[widget.id]["isExpanded"] = 0;
                             setDataById(widget.id, "isExpanded", 0);
                             print('取消修改 ${widget.id}');
                           });
                         },
                         confirmEditData: () {
-                          print("接收！！");
                           afterEditedValue.printValue();
                           setState(() {
-                            //widget.isExpanded = false;
                             setDataById(widget.id, "isExpanded", 0);
                             setDataById(
                                 widget.id, "hour", afterEditedValue.hour);
@@ -1233,18 +1343,6 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                                 widget.id, "arm", afterEditedValue.armIndex);
                             setDataById(widget.id, "feeling",
                                 afterEditedValue.feelingIndex);
-                            // bpdata[widget.id]["minute"] =
-                            //     afterEditedValue.minute;
-                            // bpdata[widget.id]["sbp"] =
-                            //     afterEditedValue.SBloodpressure;
-                            // bpdata[widget.id]["dbp"] =
-                            //     afterEditedValue.DBloodpressure;
-                            // bpdata[widget.id]["heartRate"] =
-                            //     afterEditedValue.heartRate;
-                            // bpdata[widget.id]["arm"] =
-                            //     afterEditedValue.armIndex;
-                            // bpdata[widget.id]["feeling"] =
-                            //     afterEditedValue.feelingIndex;
                             print('确定修改 ${widget.id}');
                             afterEditedValue.clear();
                           });
@@ -1302,27 +1400,38 @@ class _BloodPressureEditWidgetLessState
   @override
   Widget build(BuildContext context) {
     return Container(
-      /* child: Center(
-        child: Text(
-            'Time: ${widget.time}, Pressure: ${widget.SBloodpressure + '/' + widget.DBloodpressure}, Heart Rate: ${widget.heartRate}, Feeling: ${widget.feeling}'),
-      ), */
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              '时间: ${widget.hour}:${widget.minute}',
-              style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
-            ),
-            Text(
-              '血压: ${widget.SBloodpressure} / ${widget.DBloodpressure}    心率: ${widget.heartRate} ',
-              style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
-            ),
-            Text(
-              '手臂: ${armButtonTypes[widget.arm]}            感觉: ${feelingButtonTypes[widget.feeling]}',
-              style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
-            ),
-          ]),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Text(
+              '${widget.hour < 10 ? "0${widget.hour}" : widget.hour}:${widget.minute < 10 ? "0${widget.minute}" : widget.minute}',
+              style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('血压: ${widget.SBloodpressure} / ${widget.DBloodpressure}',
+                  style:
+                      const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+              Text('心率: ${widget.heartRate} ',
+                  style:
+                      const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+            ],
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('手臂: ${armButtonTypes[widget.arm]}',
+                  style:
+                      const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+              Text('感觉: ${feelingButtonTypes[widget.feeling]}',
+                  style:
+                      const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1409,7 +1518,7 @@ class _BloodPressureEditWidgetMoreState
         child: Column(
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Container(
                   //color: Colors.blue, // 左边容器的颜色
@@ -1434,6 +1543,8 @@ class _BloodPressureEditWidgetMoreState
                   //width: MediaQuery.of(context).size.width * 0.85 * 0.4,
                   //color: Colors.green, // 右边容器的颜色
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 时间
                       Row(
@@ -1562,7 +1673,7 @@ class _BloodPressureEditWidgetMoreState
                       ),
                       // 修改心率
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                        //mainAxisAlignment: MainAxisAlignment.start,
                         //crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(

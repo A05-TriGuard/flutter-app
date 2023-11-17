@@ -79,3 +79,30 @@ https://stackoverflow.com/questions/50085748/pass-a-function-with-parameters-to-
 #### string转int
 https://stackoverflow.com/questions/56207275/how-can-i-get-int-data-from-texteditingcontroller-in-flutter
 例如： `int.parse(hourController.text)`,
+
+#### ios DateTime Picker
+https://api.flutter.dev/flutter/cupertino/CupertinoDatePicker-class.html
+
+
+#### 关于updateAcquireFence: Did not find frame.
+https://github.com/flutter/flutter/issues/104268
+The message updateAcquireFence: Did not find frame. isn't something to be worried about.
+The Android team told us that this is likely a bug in HWUI and doesn't signal an error.
+
+For the time being we should consider filtering this out from flutter run output since I agree it can be a lot of spam.
+
+#### 关于logger包
+https://pub.dev/packages/logger
+
+
+### dropdown_button
+https://pub.dev/packages/dropdown_button2
+
+`dependencies: dropdown_button2: ^2.3.8`
+
+`flutter pub get`
+
+`import 'package:dropdown_button2/dropdown_button2.dart';`
+
+
+### 无语的js
