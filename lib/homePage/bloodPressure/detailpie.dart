@@ -899,7 +899,7 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
     print("血压统计饼图更新 ${widget.date} ${widget.selectedDays}");
     return Container(
       width: MediaQuery.of(context).size.width * 0.85,
-      height: MediaQuery.of(context).size.height * 0.25,
+      height: 150,
       alignment: Alignment.center,
       //color: const Color.fromARGB(255, 170, 170, 170),
       child: Echarts(
@@ -971,7 +971,7 @@ class BloodPressureStaticWidget extends StatefulWidget {
 
 class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   String title = "";
-  int pageNum = 0;
+  int showMore = 1;
   List<String> buttonText = ["展开", "收起"];
   List<String> buttonIcon = [
     "assets/icons/down-arrow.png",
@@ -989,37 +989,13 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   void initState() {
     // TODO: 从后端请求数据
     super.initState();
+
     bloodPressureTimes = [3, 13, 5, 1];
     heartRateTimes = [4, 12, 6, 0];
     totalTimes = 22;
     averageSbp = 120;
     averageDbp = 99;
     averageHr = 95;
-  }
-
-  void updateData() {
-    if (widget.date == DateTime(2023, 11, 18)) {
-      bloodPressureTimes = [3, 13, 5, 1];
-      heartRateTimes = [4, 12, 6, 0];
-      totalTimes = 22;
-      averageSbp = 120;
-      averageDbp = 99;
-      averageHr = 95;
-    } else if (widget.date == DateTime(2023, 11, 11)) {
-      bloodPressureTimes = [2, 20, 5, 3];
-      heartRateTimes = [4, 17, 8, 1];
-      totalTimes = 30;
-      averageSbp = 111;
-      averageDbp = 100;
-      averageHr = 88;
-    } else {
-      bloodPressureTimes = [1, 7, 2, 1];
-      heartRateTimes = [0, 10, 1, 0];
-      totalTimes = 11;
-      averageSbp = 97;
-      averageDbp = 88;
-      averageHr = 96;
-    }
   }
 
   void setTitle() {
@@ -1032,7 +1008,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     }
   }
 
-  Widget getDataStaticWidget() {
+  Widget getStaticTextWidget() {
     return Column(
       //mainAxisAlignment: MainAxisAlignment.start,
       //crossAxisAlignment: CrossAxisAlignment.start,
@@ -1101,23 +1077,23 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
           crossAxisAlignment: CrossAxisAlignment.center,
           //mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              pageNum == 0 ? '血压平均值：' : '心率平均值：',
-              style: const TextStyle(
+            const Text(
+              '血压平均值：',
+              style: TextStyle(
                   fontSize: 14,
                   fontFamily: "BalooBhai",
                   fontWeight: FontWeight.bold),
             ),
             Text(
-              pageNum == 0 ? '${averageSbp} / ${averageDbp} ' : '${averageHr}',
+              '${averageSbp} / ${averageDbp} ',
               style: const TextStyle(
                   fontSize: 18,
                   fontFamily: "BalooBhai",
                   fontWeight: FontWeight.bold),
             ),
-            Text(
-              pageNum == 0 ? 'mmHg' : '次/分',
-              style: const TextStyle(
+            const Text(
+              'mmHg',
+              style: TextStyle(
                   fontSize: 12,
                   fontFamily: "Blinker",
                   fontWeight: FontWeight.bold),
@@ -1145,9 +1121,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      pageNum == 0
-                          ? '${bloodPressureTimes[0]} '
-                          : '${heartRateTimes[0]} ',
+                      '${bloodPressureTimes[0]} ',
                       style: const TextStyle(
                           fontSize: 18,
                           fontFamily: "BalooBhai",
@@ -1175,9 +1149,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      pageNum == 0
-                          ? '${bloodPressureTimes[1]} '
-                          : '${heartRateTimes[1]} ',
+                      '${bloodPressureTimes[1]} ',
                       style: const TextStyle(
                           fontSize: 18,
                           fontFamily: "BalooBhai",
@@ -1211,9 +1183,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      pageNum == 0
-                          ? '${bloodPressureTimes[2]} '
-                          : '${heartRateTimes[2]} ',
+                      '${bloodPressureTimes[2]} ',
                       style: const TextStyle(
                           fontSize: 18,
                           fontFamily: "BalooBhai",
@@ -1241,9 +1211,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      pageNum == 0
-                          ? '${bloodPressureTimes[3]} '
-                          : '${heartRateTimes[3]} ',
+                      '${bloodPressureTimes[3]} ',
                       style: const TextStyle(
                           fontSize: 18,
                           fontFamily: "BalooBhai",
@@ -1263,117 +1231,106 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
           ],
         ),
 
-        // 血压/心率图表
-        pageNum == 0
-            ? BloodPressureStaticGraph(
-                date: widget.date,
-                selectedDays: widget.selectedDays,
-                dataTimes: bloodPressureTimes,
-                updateDate: widget.updateDate)
-            : BloodPressureStaticGraph(
-                date: widget.date,
-                selectedDays: widget.selectedDays,
-                dataTimes: heartRateTimes,
-                updateDate: widget.updateDate),
+        // 血压图表
+        BloodPressureStaticGraph(
+            date: widget.date,
+            selectedDays: widget.selectedDays,
+            dataTimes: bloodPressureTimes,
+            updateDate: widget.updateDate),
       ],
-    );
-  }
-
-  Widget getPageNum() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: pageNum == 0 ? Colors.blue : Colors.grey,
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
-          const SizedBox(
-            width: 5,
-          ),
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: pageNum == 0 ? Colors.grey : Colors.blue,
-              borderRadius: BorderRadius.circular(5),
-            ),
-          )
-        ],
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     setTitle();
-    updateData();
 
     return Center(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(
           children: [
-            // 标题
-            PageTitle(title: "血压心率统计", icons: "assets/icons/graph.png"),
-
-            Stack(
-              alignment: Alignment.bottomCenter,
+            // 当日血压数据 与 展开收起按钮
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onHorizontalDragUpdate: (details) {
-                    if (details.primaryDelta! > 10) {
-                      setState(() {
-                        pageNum = 0;
-                      });
-                    } else if (details.primaryDelta! < -10) {
-                      setState(() {
-                        pageNum = 1;
-                      });
-                    }
-                  },
+                PageTitle(title: "血压统计", icons: "assets/icons/graph.png"),
 
-                  // 血压统计图表文字
+                //展开按钮 -> 显示当天所有的血压数据
+                GestureDetector(
+                  onTap: () {
+                    if (showMore == 0) {
+                      print("展开");
+                      showMore = 1;
+                    } else {
+                      print("收起");
+                      showMore = 0;
+                    }
+                    setState(() {});
+                  },
                   child: Container(
-                    width: MediaQuery.of(context).size.width * 0.85,
-                    //height: MediaQuery.of(context).size.height * 0.55,
-                    //height: 300,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(
-                        color: const Color.fromRGBO(0, 0, 0, 0.2),
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color.fromRGBO(0, 0, 0, 0.2),
-                          offset: Offset(0, 5),
-                          blurRadius: 5.0,
-                          spreadRadius: 0.0,
+                    //alignment: Alignment.bottomCenter,
+                    // color: Colors.yellow,
+                    alignment: Alignment.center,
+                    child: Row(
+                      children: [
+                        Text(
+                          buttonText[showMore],
+                          style: const TextStyle(
+                              fontSize: 15,
+                              fontFamily: "BalooBhai",
+                              color: Colors.black),
+                          textAlign: TextAlign.center,
                         ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        Image.asset(buttonIcon[showMore],
+                            width: 15, height: 15),
                       ],
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(10, 20, 10, 20),
-                      child: AnimatedCrossFade(
-                        duration: const Duration(milliseconds: 300),
-                        firstChild: getDataStaticWidget(),
-                        secondChild: getDataStaticWidget(),
-                        crossFadeState: pageNum == 0
-                            ? CrossFadeState.showSecond
-                            : CrossFadeState.showFirst,
-                      ),
                     ),
                   ),
                 ),
-                getPageNum(),
               ],
             ),
+
+            // 血压统计图表文字
+            AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                width: MediaQuery.of(context).size.width * 0.85,
+                height: showMore == 0
+                    ? MediaQuery.of(context).size.height * 0.35
+                    : MediaQuery.of(context).size.height * 0.55,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(
+                    color: const Color.fromRGBO(0, 0, 0, 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color.fromRGBO(0, 0, 0, 0.2),
+                      offset: Offset(0, 5),
+                      blurRadius: 5.0,
+                      spreadRadius: 0.0,
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(10, 20, 10, 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      getStaticTextWidget(),
+                      //Text("ahaha"),
+                      //Text("ahaha"),
+                      //Text("ahaha"),
+                    ],
+                  ),
+                )),
 
             const SizedBox(
               height: 20,
