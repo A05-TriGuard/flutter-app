@@ -8,13 +8,12 @@ import './bpData.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
 typedef UpdateDateCallback = void Function(DateTime newDate);
-typedef UpdateDaysCallback = void Function(String newDays);
 
 // 图表天数选择
 class GraphDayDropdownButton extends StatefulWidget {
   //final UpdateDateCallback updateDate;
   final VoidCallback updateView;
-  final UpdateDaysCallback updateDays;
+  final Function(String) updateDays;
   String? selectedValue = '最近7天';
   //const GraphDayDropdownButton({Key? key, required this.updateDate}):super(key: key);
   GraphDayDropdownButton(
@@ -286,15 +285,13 @@ class BloodPressureGraphWidget extends StatefulWidget {
   DateTime date;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
-  final UpdateDaysCallback updateDays;
   String selectedDays = "最近7天";
   BloodPressureGraphWidget(
       {Key? key,
       required this.date,
       required this.selectedDays,
       required this.updateView,
-      required this.updateDate,
-      required this.updateDays})
+      required this.updateDate})
       : super(key: key);
 
   @override
@@ -312,9 +309,17 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
     //setState(() {});
   }
 
+  void updateDays(String newDays) {
+    print("更新天数 ${newDays}");
+    setState(() {
+      selectedDays2 = newDays;
+      widget.selectedDays = newDays;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
+    print('血压图表组件更新（日期与图表） ${widget.date}, ${selectedDays2}');
 
     /* BloodPressureGraph graph =  BloodPressureGraph(
       date: widget.date,
@@ -324,9 +329,9 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 
     GraphDayDropdownButton selectDaysButton = GraphDayDropdownButton(
       updateView: widget.updateView,
-      updateDays: widget.updateDays,
-      //selectedValue: selectedDays2,
-      selectedValue: widget.selectedDays,
+      updateDays: updateDays,
+      selectedValue: selectedDays2,
+      //selectedValue: widget.selectedDays,
     );
 
     return UnconstrainedBox(
@@ -344,8 +349,8 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
           //graph,
           BloodPressureGraph(
             date: widget.date,
-            //selectedDays: selectedDays2,
-            selectedDays: widget.selectedDays,
+            selectedDays: selectedDays2,
+            //selectedDays: widget.selectedDays,
             updateDate: widget.updateDate,
           ),
         ]),
@@ -799,7 +804,7 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                PageTitle(title: "当日血压数据", icons: "assets/icons/list.png"),
+                PageTitle(title: "当日血压数据", icons: "assets/icons/graph.png"),
 
                 //展开按钮 -> 显示当天所有的血压数据
                 GestureDetector(
@@ -874,15 +879,14 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
   }
 }
 
-// 统计血压次数图表
 class BloodPressureStaticGraph extends StatefulWidget {
   final DateTime date;
-  final String selectedDays;
+  //final String selectedDays;
   final UpdateDateCallback updateDate;
   const BloodPressureStaticGraph(
       {Key? key,
       required this.date,
-      required this.selectedDays,
+      //required this.selectedDays,
       required this.updateDate})
       : super(key: key);
 
@@ -895,8 +899,9 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Column(
-          children: [Text(widget.date.toString()), Text(widget.selectedDays)]),
+      child: Column(children: [
+        Text(widget.date.toString()), /* Text(widget.selectedDays) */
+      ]),
     );
   }
 }
@@ -904,13 +909,13 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
 // 血压的基础统计组件
 class BloodPressureStaticWidget extends StatefulWidget {
   final DateTime date;
-  final String selectedDays;
+  //final String selectedDays;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
   const BloodPressureStaticWidget(
       {Key? key,
       required this.date,
-      required this.selectedDays,
+      // required this.selectedDays,
       required this.updateView,
       required this.updateDate})
       : super(key: key);
@@ -921,348 +926,18 @@ class BloodPressureStaticWidget extends StatefulWidget {
 }
 
 class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
-  String title = "";
-  int showMore = 0;
-  List<String> buttonText = ["展开", "收起"];
-  List<String> buttonIcon = [
-    "assets/icons/down-arrow.png",
-    "assets/icons/up-arrow.png"
-  ];
-
-  List<int> bloodPressureTimes = [0, 0, 0, 0];
-  List<int> heartRateTimes = [0, 0, 0, 0];
-  int averageSbp = 0;
-  int averageDbp = 0;
-  int totalTimes = 0;
-  int averageHr = 0;
-
-  @override
-  void initState() {
-    // TODO: 从后端请求数据
-    super.initState();
-
-    bloodPressureTimes = [3, 13, 5, 1];
-    heartRateTimes = [4, 12, 6, 0];
-    totalTimes = 22;
-    averageSbp = 120;
-    averageDbp = 99;
-    averageHr = 95;
-  }
-
-  void setTitle() {
-    if (widget.selectedDays == "当前的天") {
-      title = "${widget.date.year}年${widget.date.month}月${widget.date.day}日";
-    } else if (widget.selectedDays == "当前的月") {
-      title = "${widget.date.year}年${widget.date.month}月";
-    } else {
-      title = widget.selectedDays;
-    }
-  }
-
-  Widget getStaticTextWidget() {
-    return Column(
-      //mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-              fontSize: 16,
-              fontFamily: "BalooBhai",
-              fontWeight: FontWeight.bold),
-        ),
-        //Text(widget.date.toString()),
-        //Text(widget.selectedDays),
-        /* Text(
-          '平均值：${averageSbp} / ${averageDbp} mmhg',
-          style: const TextStyle(
-              fontSize: 16,
-              fontFamily: "BalooBhai",
-              fontWeight: FontWeight.bold),
-        ), */
-
-        // 总次数
-        Row(
-          //crossAxisAlignment: CrossAxisAlignment.,
-          children: [
-            const Text(
-              '总次数：',
-              style: TextStyle(
-                  fontSize: 14,
-                  fontFamily: "BalooBhai",
-                  fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '${totalTimes} ',
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontFamily: "BalooBhai",
-                  fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              '次',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: "Blinker",
-                  fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-
-        const SizedBox(
-          height: 5,
-        ),
-        // 血压平均值
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          //mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              '血压平均值：',
-              style: TextStyle(
-                  fontSize: 14,
-                  fontFamily: "BalooBhai",
-                  fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '${averageSbp} / ${averageDbp} ',
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontFamily: "BalooBhai",
-                  fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              'mmHg',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: "Blinker",
-                  fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-
-        // 次数统计
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // 偏低
-            Row(
-              //crossAxisAlignment: CrossAxisAlignment.,
-              children: [
-                const Text(
-                  '偏低：',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${bloodPressureTimes[0]} ',
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                const Text(
-                  '次',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: "Blinker",
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-
-            // 正常
-            Row(
-              //crossAxisAlignment: CrossAxisAlignment.,
-              children: [
-                const Text(
-                  '正常：',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${bloodPressureTimes[1]} ',
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                const Text(
-                  '次',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: "Blinker",
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-
-            // 偏高
-            Row(
-              //crossAxisAlignment: CrossAxisAlignment.,
-              children: [
-                const Text(
-                  '偏高：',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${bloodPressureTimes[2]} ',
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                const Text(
-                  '次',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: "Blinker",
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-
-            // 异常
-            Row(
-              //crossAxisAlignment: CrossAxisAlignment.,
-              children: [
-                const Text(
-                  '异常：',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${bloodPressureTimes[3]} ',
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                const Text(
-                  '次',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: "Blinker",
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ],
-        )
-
-        /* BloodPressureStaticGraph(
-            date: widget.date,
-            selectedDays: widget.selectedDays,
-            updateDate: widget.updateDate) */
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    setTitle();
-
-    return Center(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.85,
-        child: Column(
-          children: [
-            // 当日血压数据 与 展开收起按钮
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                PageTitle(title: "血压统计", icons: "assets/icons/graph.png"),
-
-                //展开按钮 -> 显示当天所有的血压数据
-                GestureDetector(
-                  onTap: () {
-                    if (showMore == 0) {
-                      print("展开");
-                      showMore = 1;
-                    } else {
-                      print("收起");
-                      showMore = 0;
-                    }
-                    setState(() {});
-                  },
-                  child: Container(
-                    //alignment: Alignment.bottomCenter,
-                    // color: Colors.yellow,
-                    alignment: Alignment.center,
-                    child: Row(
-                      children: [
-                        Text(
-                          buttonText[showMore],
-                          style: const TextStyle(
-                              fontSize: 15,
-                              fontFamily: "BalooBhai",
-                              color: Colors.black),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        Image.asset(buttonIcon[showMore],
-                            width: 15, height: 15),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            // 血压统计图表文字
-            AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: showMore == 0
-                    ? MediaQuery.of(context).size.height * 0.35
-                    : MediaQuery.of(context).size.height * 0.55,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: const Color.fromRGBO(0, 0, 0, 0.2),
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, 0.2),
-                      offset: Offset(0, 5),
-                      blurRadius: 5.0,
-                      spreadRadius: 0.0,
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      getStaticTextWidget(),
-                      Text("ahaha"),
-                      //Text("ahaha"),
-                      //Text("ahaha"),
-                    ],
-                  ),
-                )),
-
-            const SizedBox(
-              height: 20,
-            ),
-          ],
-        ),
+    return Container(
+      child: Column(
+        children: [
+          Text(widget.date.toString()),
+          //Text(widget.selectedDays),
+          BloodPressureStaticGraph(
+              date: widget.date,
+              //selectedDays: widget.selectedDays,
+              updateDate: widget.updateDate)
+        ],
       ),
     );
   }
@@ -1294,7 +969,6 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
       selectedDays: selectedDays,
       updateView: updateView,
       updateDate: updateDate,
-      updateDays: updateDays,
     );
   }
 
@@ -1311,15 +985,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
         selectedDays: selectedDays,
         updateView: updateView,
         updateDate: updateDate,
-        updateDays: updateDays,
       );
-    });
-  }
-
-  void updateDays(String newDays) {
-    print("血压详情页面更新天数 ${newDays}");
-    setState(() {
-      selectedDays = newDays;
     });
   }
 
@@ -1364,10 +1030,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
             updateView: updateView,
           ),
           BloodPressureStaticWidget(
-              date: date,
-              selectedDays: selectedDays,
-              updateView: updateView,
-              updateDate: updateDate)
+              date: date, updateView: updateView, updateDate: updateDate)
         ]),
       ),
     );

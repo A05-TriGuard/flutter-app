@@ -356,11 +356,12 @@ class _DatePickerState extends State<DatePicker> {
 }
 
 // =======================================
+typedef UpdateDateCallback = void Function(DateTime newDate);
 
 class DatePicker2 extends StatefulWidget {
   DateTime date = DateTime(2023, 11, 11);
-  final VoidCallback updateView;
-  DatePicker2({super.key, required this.date, required this.updateView});
+  final UpdateDateCallback updateDate;
+  DatePicker2({super.key, required this.date, required this.updateDate});
 
   @override
   State<DatePicker2> createState() => _DatePicker2State();
@@ -432,7 +433,7 @@ class _DatePicker2State extends State<DatePicker2> {
                         onDateTimeChanged: (DateTime newDate) {
                           // setState(() => date = newDate);
                           widget.date = newDate;
-                          print("${widget.date} => ${newDate}");
+                          //print("${widget.date} => ${newDate}");
                           //widget.updateView();
                         },
                       ),
@@ -450,7 +451,7 @@ class _DatePicker2State extends State<DatePicker2> {
                               onPressed: () {
                                 setState(() {
                                   widget.date = oldDate;
-                                  widget.updateView();
+                                  widget.updateDate(widget.date);
                                 });
 
                                 Navigator.of(context).pop();
@@ -476,8 +477,8 @@ class _DatePicker2State extends State<DatePicker2> {
                               onPressed: () {
                                 setState(() {
                                   oldDate = widget.date;
-                                  print("确定 ${widget.date}");
-                                  widget.updateView();
+                                  print("确定更改日期为 ${widget.date}");
+                                  widget.updateDate(widget.date);
                                 });
 
                                 Navigator.of(context).pop();
