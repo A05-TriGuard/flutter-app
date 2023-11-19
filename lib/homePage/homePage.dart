@@ -825,7 +825,9 @@ class _HomePageState extends State<HomePage> {
         ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日"
         : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日";
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
         appBar: AppBar(
           title: const Text(
             "TriGuard",
@@ -849,7 +851,7 @@ class _HomePageState extends State<HomePage> {
           flexibleSpace: getHeader(MediaQuery.of(context).size.width,
               (MediaQuery.of(context).size.height * 0.1 + 11)),
 
-          //toolbarHeight: 45,
+          automaticallyImplyLeading: false, //toolbarHeight: 45, 不显示 ← 按钮
         ),
         /* body: const Center(
         child: Text("首页"),
@@ -942,6 +944,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

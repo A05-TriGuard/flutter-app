@@ -178,6 +178,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
   String methodLabelText = "手机号";
   String methodIconPath = "assets/icons/smartphone.png";
   String methodPrexifText = "+86";
+  String validCodeSentHintText = "验证码已经发送";
 
   final TextEditingController userController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
@@ -185,6 +186,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
   final TextEditingController validCodeController = TextEditingController();
 
   bool isSignedUp = false;
+  int sentValidCodeState = 0;
   Dio dio = Dio();
 
   // 成功注册对话框
@@ -353,9 +355,19 @@ class _RegisterAccountState extends State<RegisterAccount> {
 
     if (response.data["code"] == 200) {
       print("获取验证码成功");
+      validCodeSentHintText = "验证码已经发送";
+      sentValidCodeState = 1;
     } else {
       print("获取验证码失败");
+      validCodeSentHintText = response.data["message"];
+
+      if (response.data["message"] == "请求参数有误") {
+        validCodeSentHintText = "邮箱格式错误！";
+      }
+      sentValidCodeState = -1;
     }
+
+    setState(() {});
   }
 
   @override
@@ -658,7 +670,22 @@ class _RegisterAccountState extends State<RegisterAccount> {
             ),
           ]),
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          // 已经发送验证码的提示
+          sentValidCodeState != 0
+              ? Container(
+                  width: MediaQuery.of(context).size.width * 0.75,
+                  height: MediaQuery.of(context).size.width * 0.05,
+                  alignment: Alignment.topRight,
+                  child: Text(
+                    validCodeSentHintText,
+                    style: const TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.red,
+                      fontFamily: "BalooBhai",
+                    ),
+                  ),
+                )
+              : SizedBox(height: MediaQuery.of(context).size.width * 0.05),
 
           //注册按钮
           Container(

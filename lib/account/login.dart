@@ -28,19 +28,34 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!(username.isEmpty || password.isEmpty)) {
       const String loginApi = 'http://43.138.75.58:8080/api/auth/login';
-      Response response = await dio.post(loginApi, queryParameters: {
-        'username': username,
-        'password': password,
-      });
+      try {
+        Response response = await dio.post(loginApi, queryParameters: {
+          'username': username,
+          'password': password,
+        });
 
-      print(response.data);
+        print(response.data);
 
-      if (response.data['code'] == 200) {
-        print("登录成功");
-        Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
-      } else {
-        isLoginFailed = true;
-        setState(() {});
+        if (response.data['code'] == 200) {
+          print("登录成功");
+          Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+          //Navigator.pushReplacement(context, '/mainPages', arguments: {"id": 1});
+        } else {
+          isLoginFailed = true;
+          setState(() {});
+        }
+      } on DioException catch (error) {
+        final response = error.response;
+        //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+        if (response != null) {
+          print(response.data);
+          print("登录请求失败1");
+        } else {
+          // Something happened in setting up or sending the request that triggered an Error
+          print(error.requestOptions);
+          print(error.message);
+          print("登录请求失败2");
+        }
       }
     }
 

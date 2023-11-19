@@ -145,12 +145,14 @@ class _ResetPasswordState extends State<ResetPassword> {
   String methodLabelText = "手机号";
   String methodIconPath = "assets/icons/smartphone.png";
   String methodPrexifText = "+86";
+  String validCodeSentHintText = "验证码已经发送";
 
   final TextEditingController userController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController validCodeController = TextEditingController();
 
   bool isSignedUp = false;
+  int sentValidCodeState = 0;
   Dio dio = Dio();
 
   // 成功重置密码对话框
@@ -286,11 +288,39 @@ class _ResetPasswordState extends State<ResetPassword> {
     }
   }
 
-  void getValidCode() {
+  void getValidCode() async {
     print("获取验证码");
 
+    final String email = userController.text;
     final String emailGetValidCodeApi =
-        "http://43.138.75.58:8080/api/auth/email-code?email=mzx21@mails.tsinghua.edu.cn&type=register";
+        "http://43.138.75.58:8080/api/auth/email-code?email=${email}&type=register";
+
+    if (email.isEmpty) {
+      validCodeSentHintText = "邮箱不能为空！";
+      sentValidCodeState = -1;
+      setState(() {});
+      return;
+    }
+
+    Response response;
+    response = await dio.get(emailGetValidCodeApi);
+    print(response.data.toString());
+
+    if (response.data["code"] == 200) {
+      print("获取验证码成功");
+      validCodeSentHintText = "验证码已经发送";
+      sentValidCodeState = 1;
+    } else {
+      print("获取验证码失败");
+      validCodeSentHintText = response.data["message"];
+
+      if (response.data["message"] == "请求参数有误") {
+        validCodeSentHintText = "邮箱格式错误！";
+      }
+      sentValidCodeState = -1;
+    }
+
+    setState(() {});
   }
 
   @override
@@ -541,7 +571,22 @@ class _ResetPasswordState extends State<ResetPassword> {
             ),
           ]),
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          // 已经发送验证码的提示
+          sentValidCodeState != 0
+              ? Container(
+                  width: MediaQuery.of(context).size.width * 0.75,
+                  height: MediaQuery.of(context).size.width * 0.05,
+                  alignment: Alignment.topRight,
+                  child: Text(
+                    validCodeSentHintText,
+                    style: const TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.red,
+                      fontFamily: "BalooBhai",
+                    ),
+                  ),
+                )
+              : SizedBox(height: MediaQuery.of(context).size.width * 0.05),
 
           //注册按钮
           Container(

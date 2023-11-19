@@ -116,3 +116,11 @@ https://github.com/cfug/dio/blob/main/dio/README-ZH.md
 
 #### http库
 https://stackoverflow.com/questions/62012502/how-to-post-x-www-form-urlencoded-in-flutter
+
+
+### Flutter: Move to a new screen without providing navigate back to previous screen
+https://stackoverflow.com/questions/50037710/flutter-move-to-a-new-screen-without-providing-navigate-back-to-previous-screen
+
+### 返回的问题
+https://api.flutter.dev/flutter/widgets/PopScope-class.html
+https://www.flutterbeads.com/disable-override-back-button-in-flutter/

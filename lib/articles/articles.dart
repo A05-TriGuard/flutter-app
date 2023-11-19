@@ -12,7 +12,28 @@ class Article extends StatefulWidget {
 class _ArticleState extends State<Article> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    //return WillPopScope(child: child, onWillPop: onWillPop);
+    return PopScope(
+        canPop: false,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              "TriGuard",
+              style: TextStyle(
+                  fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
+            ),
+            // flexibleSpace: header,
+            //toolbarHeight: MediaQuery.of(context).size.height * 0.1 + 11,
+
+            flexibleSpace: getHeader(MediaQuery.of(context).size.width,
+                (MediaQuery.of(context).size.height * 0.1 + 11)),
+            automaticallyImplyLeading: false,
+          ),
+          body: const Center(
+            child: Text("文章/资讯"),
+          ),
+        ));
+    /*  return Scaffold(
       appBar: AppBar(
         title: const Text(
           "TriGuard",
@@ -24,10 +45,11 @@ class _ArticleState extends State<Article> {
 
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
+        automaticallyImplyLeading: false,
       ),
       body: const Center(
         child: Text("文章/资讯"),
       ),
-    );
+    ); */
   }
 }

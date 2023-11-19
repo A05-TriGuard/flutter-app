@@ -4,238 +4,140 @@ import '../component/header/header.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import '../other/gradientBorder/gradient_borders.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class MyTitle extends StatefulWidget {
+  final String title;
+  final String icon;
+  final String value;
+  final String unit;
+  final String route;
+
+  const MyTitle(
+      {Key? key,
+      required this.title,
+      required this.icon,
+      required this.value,
+      required this.unit,
+      required this.route})
+      : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<MyTitle> createState() => _MyTitleState();
 }
 
-class _HomePageState extends State<HomePage> {
-  DateTime? selectedDate;
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      // https://stackoverflow.com/questions/50321182/how-to-customize-a-date-picker
-      // 自定义日期选择的主题
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary:
-                  Color.fromARGB(178, 250, 151, 205), // header background color
-              onPrimary: Colors.black, // header text color
-              onSurface: Color.fromARGB(255, 43, 43, 43), // body text color
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor:
-                    const Color.fromARGB(255, 58, 58, 58), // button text color
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
-  }
-
+class _MyTitleState extends State<MyTitle> {
   @override
   Widget build(BuildContext context) {
-    final formattedDate = selectedDate != null
-        ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日"
-        : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日";
-
-    return Scaffold(
-        appBar: AppBar(
-          /* leading: IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {},
-          ), */
-
-          /* title: Padding(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-          child: const Text(
-            "TriGuard",
-            style: TextStyle(
-                fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-          ),
-        ), */
-
-          title: const Text(
-            "TriGuard",
-            style: TextStyle(
-                fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-          ),
-          /* actions: [
-            IconButton(
-              icon: Icon(
-                Icons.search,
-              ),
-              onPressed: () {
-                print("搜索");
-              },
-              color: Colors.black,
-            )
-          ], */
-          //flexibleSpace: header,
-          //toolbarHeight: 45,
-          //toolbarHeight: MediaQuery.of(context).size.height * 0.1,
-          flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-              (MediaQuery.of(context).size.height * 0.1 + 11)),
-
-          //toolbarHeight: 45,
-        ),
-        /* body: const Center(
-        child: Text("首页"),
-      ), */
-
-        body: Container(
-          // white background
-          color: Colors.white,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              /* Container(
-            height: 1,
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 169, 171, 179),
-            ),
-          ), */
-              // 日期选择
-              Container(
-                child: Container(
-                  alignment: Alignment.center,
-                  //width: 300,
-                  //color: const Color.fromARGB(255, 255, 255, 255),
-                  color: Colors.transparent,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          formattedDate,
-                          style: const TextStyle(
-                              fontSize: 20, fontFamily: "BalooBhai"),
-                        ),
-                        //const SizedBox(height: 5),
-                        //ElevatedButton(
-                        SizedBox(
-                          width: 40,
-                          child: TextButton(
-                            onPressed: () => _selectDate(context),
-                            child: const Icon(
-                              Icons.calendar_month,
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ),
-                        ),
-                      ]),
-                ),
-              ),
-              /*    const SizedBox(
-            height: 5,
-          ), */
-
-              // 今日血压
-              Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "今日血压",
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 5),
-                              Image.asset("assets/icons/bloodPressure.png",
-                                  width: 25, height: 25),
-                            ]),
-                      ),
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                "112/95",
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromRGBO(165, 51, 51, 1)),
-                              ),
-                              SizedBox(width: 5),
-                              Text("mmHg",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold)),
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: IconButton(
-                                  padding: EdgeInsets.all(0),
-                                  icon: Icon(Icons.edit),
-                                  iconSize: 25,
-                                  onPressed: () {
-                                    print("edit");
-                                    Navigator.pushNamed(context,
-                                        '/homePage/BloodPressure/Edit');
-                                  },
-                                ),
-                              )
-                            ]),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(
-                height: 5,
-              ),
-
-              // 血压图表
-              UnconstrainedBox(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  height: MediaQuery.of(context).size.height * 0.25,
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    border: GradientBoxBorder(
-                      gradient: LinearGradient(colors: [
-                        Color.fromARGB(146, 253, 69, 69),
-                        Color.fromARGB(157, 255, 199, 223)
-                      ]),
-                      width: 1,
+    return Center(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.85,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Container(
+              child: Row(
+                  //mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromARGB(120, 151, 151, 151),
-                        offset: Offset(0, 5),
-                        blurRadius: 5.0,
-                        spreadRadius: 0.0,
+                    const SizedBox(width: 5),
+                    Image.asset(widget.icon, width: 25, height: 25),
+                  ]),
+            ),
+            Container(
+              child: Row(
+                  //mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.value,
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromRGBO(165, 51, 51, 1)),
+                    ),
+                    SizedBox(width: 5),
+                    Text(widget.unit,
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold)),
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: IconButton(
+                        padding: EdgeInsets.all(0),
+                        icon: Icon(Icons.edit),
+                        iconSize: 25,
+                        onPressed: () {
+                          Navigator.pushNamed(context, widget.route);
+                        },
                       ),
-                    ],
+                    )
+                  ]),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MyBloodPressure extends StatefulWidget {
+  final String value;
+  const MyBloodPressure({Key? key, required this.value}) : super(key: key);
+
+  @override
+  State<MyBloodPressure> createState() => _MyBloodPressureState();
+}
+
+class _MyBloodPressureState extends State<MyBloodPressure> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        MyTitle(
+            title: "今日血压",
+            icon: "assets/icons/bloodPressure.png",
+            value: widget.value,
+            unit: "mmHg",
+            route: "/homePage/BloodPressure/Edit"),
+
+        const SizedBox(
+          height: 5,
+        ),
+
+        // 血压图表
+        Stack(
+          alignment: Alignment.centerRight,
+          children: [
+            UnconstrainedBox(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                height: MediaQuery.of(context).size.height * 0.25,
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(255, 255, 255, 255),
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                  border: GradientBoxBorder(
+                    gradient: LinearGradient(colors: [
+                      Color.fromARGB(146, 253, 69, 69),
+                      Color.fromARGB(157, 255, 199, 223)
+                    ]),
+                    width: 1,
                   ),
-                  alignment: Alignment.centerRight,
-                  child: Echarts(
-                    option: '''
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color.fromARGB(120, 151, 151, 151),
+                      offset: Offset(0, 5),
+                      blurRadius: 5.0,
+                      spreadRadius: 0.0,
+                    ),
+                  ],
+                ),
+                alignment: Alignment.centerRight,
+                child: Echarts(
+                  option: '''
               {
                 animation:false,
 
@@ -300,93 +202,100 @@ class _HomePageState extends State<HomePage> {
                 ]
               }
             ''',
-                  ),
                 ),
               ),
-
-              // -----------------------------------------------------------------------------------------
-              // -----------------------------------------------------------------------------------------
-              // -----------------------------------------------------------------------------------------
-              // -----------------------------------------------------------------------------------------
-              // -----------------------------------------------------------------------------------------
-
-              const SizedBox(
-                height: 15,
-              ),
-
-              /*    const SizedBox(
-            height: 5,
-          ), */
-
-              // 今日血糖
-              Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "今日血糖",
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 5),
-                              Image.asset("assets/icons/sugar-blood-level.png",
-                                  width: 25, height: 25),
-                            ]),
-                      ),
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "8.8",
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromRGBO(165, 51, 51, 1)),
-                              ),
-                              const SizedBox(width: 5),
-                              const Text("mmol/L",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold)),
-                              Icon(Icons.edit),
-                            ]),
-                      )
-                    ],
-                  ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, "/homePage/BloodPressure/Details");
+              },
+              child: Container(
+                height: 30,
+                width: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 255, 225, 225),
+                  borderRadius: BorderRadius.circular(5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color.fromARGB(120, 151, 151, 151),
+                      offset: Offset(0, 5),
+                      blurRadius: 5.0,
+                      spreadRadius: 0.0,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 20,
                 ),
               ),
+            )
+          ],
+        )
 
-              const SizedBox(
-                height: 5,
-              ),
+        /* Container(
+          height: 30,
+          width: 80,
+          alignment: Alignment.center,
+          color: const Color.fromARGB(255, 255, 225, 225),
+          //child: TextButton(child: Text("查看更多"), onPressed: () {}),
+          child: Text(
+            "查看更多",
+            style: TextStyle(),
+            textAlign: TextAlign.center,
+          ),
+        ), */
+        //FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add)),
+      ],
+    );
+  }
+}
 
-              // 血糖图表
-              UnconstrainedBox(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  height: MediaQuery.of(context).size.height * 0.25,
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromARGB(255, 95, 95, 95),
-                        offset: Offset(0, 0),
-                        blurRadius: 5.0,
-                        spreadRadius: 0.0,
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.centerRight,
-                  child: Echarts(
-                    option: '''
+class MyBloodSugar extends StatefulWidget {
+  final String value;
+  const MyBloodSugar({Key? key, required this.value}) : super(key: key);
+
+  @override
+  State<MyBloodSugar> createState() => _MyBloodSugarState();
+}
+
+class _MyBloodSugarState extends State<MyBloodSugar> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        MyTitle(
+            title: "今日血糖",
+            icon: "assets/icons/bloodSugar.png",
+            value: widget.value,
+            unit: "mmol/L",
+            route: "/homePage/BloodPressure/Edit"), //TODO
+
+        const SizedBox(
+          height: 5,
+        ),
+
+        // 血糖图表
+        UnconstrainedBox(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            height: MediaQuery.of(context).size.height * 0.25,
+            decoration: const BoxDecoration(
+              color: Color.fromARGB(255, 255, 255, 255),
+              borderRadius: BorderRadius.all(Radius.circular(15)),
+              boxShadow: [
+                BoxShadow(
+                  color: Color.fromARGB(255, 95, 95, 95),
+                  offset: Offset(0, 0),
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                ),
+              ],
+            ),
+            alignment: Alignment.centerRight,
+            child: Echarts(
+              option: '''
               {
                 animation:false,
                 title: {
@@ -435,93 +344,56 @@ class _HomePageState extends State<HomePage> {
                 ]
               }
             ''',
-                  ),
-                ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class MyBloodFat extends StatefulWidget {
+  final String value;
+  const MyBloodFat({Key? key, required this.value}) : super(key: key);
+
+  @override
+  State<MyBloodFat> createState() => _MyBloodFatState();
+}
+
+class _MyBloodFatState extends State<MyBloodFat> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      MyTitle(
+          title: "今日血脂",
+          icon: "assets/icons/bloodFat.png",
+          value: widget.value,
+          unit: "mmol/L",
+          route: "/homePage/BloodPressure/Edit"), //TODO
+
+      const SizedBox(
+        height: 5,
+      ),
+
+      UnconstrainedBox(
+        child: Container(
+          alignment: Alignment.centerRight,
+          width: MediaQuery.of(context).size.width * 0.85,
+          height: MediaQuery.of(context).size.height * 0.25,
+          decoration: const BoxDecoration(
+            color: Color.fromARGB(255, 255, 255, 255),
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromARGB(255, 95, 95, 95),
+                offset: Offset(0, 0),
+                blurRadius: 5.0,
+                spreadRadius: 0.0,
               ),
-
-              // -----------------------------------------------------------------------------------------
-              // -----------------------------------------------------------------------------------------
-              // -----------------------------------------------------------------------------------------
-              // -----------------------------------------------------------------------------------------
-              // -----------------------------------------------------------------------------------------
-
-              const SizedBox(
-                height: 15,
-              ),
-
-              /*    const SizedBox(
-            height: 5,
-          ), */
-
-              // 今日血糖
-              Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "今日血脂",
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 5),
-                              Image.asset("assets/icons/blood-count-test.png",
-                                  width: 25, height: 25),
-                            ]),
-                      ),
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "3.4",
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromRGBO(165, 51, 51, 1)),
-                              ),
-                              const SizedBox(width: 5),
-                              const Text("mmol/L",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold)),
-                              Icon(Icons.edit),
-                            ]),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(
-                height: 5,
-              ),
-
-              // 血脂图表
-              UnconstrainedBox(
-                child: Container(
-                  alignment: Alignment.centerRight,
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  height: MediaQuery.of(context).size.height * 0.25,
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromARGB(255, 95, 95, 95),
-                        offset: Offset(0, 0),
-                        blurRadius: 5.0,
-                        spreadRadius: 0.0,
-                      ),
-                    ],
-                  ),
-                  child: Echarts(
-                    option: '''
+            ],
+          ),
+          child: Echarts(
+            option: '''
               {
                 title: {
                 text: '血脂',
@@ -580,88 +452,56 @@ class _HomePageState extends State<HomePage> {
                 ]
               }
             ''',
-                  ),
-                ),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class MyActivities extends StatefulWidget {
+  final String value;
+  const MyActivities({Key? key, required this.value}) : super(key: key);
+
+  @override
+  State<MyActivities> createState() => _MyActivitiesState();
+}
+
+class _MyActivitiesState extends State<MyActivities> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      MyTitle(
+          title: "今日活动",
+          icon: "assets/icons/exercising.png",
+          value: widget.value,
+          unit: "分钟",
+          route: "/homePage/BloodPressure/Edit"), //TODO
+
+      const SizedBox(
+        height: 5,
+      ),
+
+      // 活动图表
+      UnconstrainedBox(
+        child: Container(
+          alignment: Alignment.centerRight,
+          width: MediaQuery.of(context).size.width * 0.85,
+          height: MediaQuery.of(context).size.height * 0.25,
+          decoration: const BoxDecoration(
+            color: Color.fromARGB(255, 255, 255, 255),
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromARGB(255, 95, 95, 95),
+                offset: Offset(0, 0),
+                blurRadius: 5.0,
+                spreadRadius: 0.0,
               ),
-
-              // 运动
-              const SizedBox(
-                height: 15,
-              ),
-
-              /*    const SizedBox(
-            height: 5,
-          ), */
-
-              // 今日活动
-              Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "今日活动",
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 5),
-                              Image.asset("assets/icons/blood-count-test.png",
-                                  width: 25, height: 25),
-                            ]),
-                      ),
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "45",
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromRGBO(165, 51, 51, 1)),
-                              ),
-                              const SizedBox(width: 5),
-                              const Text("分钟",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold)),
-                              Icon(Icons.edit),
-                            ]),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(
-                height: 5,
-              ),
-
-              // 活动图表
-              UnconstrainedBox(
-                child: Container(
-                  alignment: Alignment.centerRight,
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  height: MediaQuery.of(context).size.height * 0.25,
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromARGB(255, 95, 95, 95),
-                        offset: Offset(0, 0),
-                        blurRadius: 5.0,
-                        spreadRadius: 0.0,
-                      ),
-                    ],
-                  ),
-                  child: Echarts(
-                    option: '''
+            ],
+          ),
+          child: Echarts(
+            option: '''
              {
 
    title: {
@@ -749,89 +589,56 @@ class _HomePageState extends State<HomePage> {
   ]
 }
             ''',
-                  ),
-                ),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class MyDiet extends StatefulWidget {
+  final String value;
+  const MyDiet({Key? key, required this.value}) : super(key: key);
+
+  @override
+  State<MyDiet> createState() => _MyDietState();
+}
+
+class _MyDietState extends State<MyDiet> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      MyTitle(
+          title: "今日饮食",
+          icon: "assets/icons/meal.png",
+          value: widget.value,
+          unit: "千卡",
+          route: "/homePage/BloodPressure/Edit"), //TODO
+
+      const SizedBox(
+        height: 5,
+      ),
+
+      UnconstrainedBox(
+        child: Container(
+          alignment: Alignment.centerRight,
+          width: MediaQuery.of(context).size.width * 0.85,
+          // height: MediaQuery.of(context).size.height * 0.25,
+          height: MediaQuery.of(context).size.height * 0.50,
+          decoration: const BoxDecoration(
+            color: Color.fromARGB(255, 255, 255, 255),
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromARGB(255, 95, 95, 95),
+                offset: Offset(0, 0),
+                blurRadius: 5.0,
+                spreadRadius: 0.0,
               ),
-
-              // 饮食
-              const SizedBox(
-                height: 15,
-              ),
-
-              /*    const SizedBox(
-            height: 5,
-          ), */
-
-              // 今日血糖
-              Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "今日饮食",
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 5),
-                              Image.asset("assets/icons/blood-count-test.png",
-                                  width: 25, height: 25),
-                            ]),
-                      ),
-                      Container(
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "1723",
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromRGBO(165, 51, 51, 1)),
-                              ),
-                              const SizedBox(width: 5),
-                              const Text("千卡",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold)),
-                              Icon(Icons.edit),
-                            ]),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(
-                height: 5,
-              ),
-
-              // 饮食图表
-              UnconstrainedBox(
-                child: Container(
-                  alignment: Alignment.centerRight,
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  // height: MediaQuery.of(context).size.height * 0.25,
-                  height: MediaQuery.of(context).size.height * 0.50,
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromARGB(255, 95, 95, 95),
-                        offset: Offset(0, 0),
-                        blurRadius: 5.0,
-                        spreadRadius: 0.0,
-                      ),
-                    ],
-                  ),
-                  child: Echarts(
-                    extraScript: '''
+            ],
+          ),
+          child: Echarts(
+            extraScript: '''
 chart.on('updateAxisPointer', function (event) {
     const xAxisInfo = event.axesInfo[0];
     if (xAxisInfo) {
@@ -851,7 +658,7 @@ chart.on('updateAxisPointer', function (event) {
     }
   });
 ''',
-                    option: '''
+            option: '''
 
  {
   animation:false,
@@ -959,11 +766,186 @@ chart.on('updateAxisPointer', function (event) {
     ]
   }
             ''',
-                  ),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  DateTime? selectedDate;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      // https://stackoverflow.com/questions/50321182/how-to-customize-a-date-picker
+      // 自定义日期选择的主题
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary:
+                  Color.fromARGB(178, 250, 151, 205), // header background color
+              onPrimary: Colors.black, // header text color
+              onSurface: Color.fromARGB(255, 43, 43, 43), // body text color
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor:
+                    const Color.fromARGB(255, 58, 58, 58), // button text color
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final formattedDate = selectedDate != null
+        ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日"
+        : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日";
+
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "TriGuard",
+            style: TextStyle(
+                fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
+          ),
+          /* actions: [
+            IconButton(
+              icon: Icon(
+                Icons.search,
+              ),
+              onPressed: () {
+                print("搜索");
+              },
+              color: Colors.black,
+            )
+          ], */
+          //flexibleSpace: header,
+          //toolbarHeight: 45,
+          //toolbarHeight: MediaQuery.of(context).size.height * 0.1,
+          flexibleSpace: getHeader(MediaQuery.of(context).size.width,
+              (MediaQuery.of(context).size.height * 0.1 + 11)),
+
+          automaticallyImplyLeading: false, //toolbarHeight: 45, 不显示 ← 按钮
+        ),
+        /* body: const Center(
+        child: Text("首页"),
+      ), */
+
+        body: Container(
+          // white background
+          color: Colors.white,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              /* Container(
+            height: 1,
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 169, 171, 179),
+            ),
+          ), */
+              // 日期选择
+              Container(
+                child: Container(
+                  alignment: Alignment.center,
+                  //width: 300,
+                  //color: const Color.fromARGB(255, 255, 255, 255),
+                  color: Colors.transparent,
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          formattedDate,
+                          style: const TextStyle(
+                              fontSize: 20, fontFamily: "BalooBhai"),
+                        ),
+                        //const SizedBox(height: 5),
+                        //ElevatedButton(
+                        SizedBox(
+                          width: 40,
+                          child: TextButton(
+                            onPressed: () => _selectDate(context),
+                            child: const Icon(
+                              Icons.calendar_month,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          ),
+                        ),
+                      ]),
                 ),
+              ),
+              /*    const SizedBox(
+            height: 5,
+          ), */
+
+              // 今日血压
+              MyBloodPressure(value: "112/95"),
+
+              const SizedBox(
+                height: 15,
+              ),
+
+              // 今日血糖
+              MyBloodSugar(value: "8.8"),
+
+              const SizedBox(
+                height: 15,
+              ),
+
+              // 今日血脂
+              MyBloodFat(value: "3.4"),
+
+              const SizedBox(
+                height: 15,
+              ),
+
+              MyActivities(value: "45"),
+
+              // 运动
+              const SizedBox(
+                height: 15,
+              ),
+
+              // 饮食
+              const SizedBox(
+                height: 15,
+              ),
+
+              MyDiet(value: "1723"),
+
+              const SizedBox(
+                height: 15,
               ),
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
