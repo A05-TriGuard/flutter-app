@@ -11,6 +11,7 @@ typedef UpdateDateCallback = void Function(DateTime newDate);
 typedef UpdateDaysCallback = void Function(String newDays);
 
 // 图表天数选择
+// ignore: must_be_immutable
 class GraphDayDropdownButton extends StatefulWidget {
   //final UpdateDateCallback updateDate;
   final VoidCallback updateView;
@@ -49,7 +50,7 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
       children: [
         const Text(
           "显示：",
-          style: const TextStyle(fontSize: 15, fontFamily: "BalooBhai"),
+          style: TextStyle(fontSize: 15, fontFamily: "BalooBhai"),
         ),
 
         DropdownButtonHideUnderline(
@@ -86,6 +87,8 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
               padding: EdgeInsets.symmetric(horizontal: 16),
               height: 40,
               width: 140,
+              // decoration:
+              //     BoxDecoration(borderRadius: BorderRadius.circular(10)),
             ),
             menuItemStyleData: const MenuItemStyleData(
               height: 40,
@@ -99,6 +102,7 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
 }
 
 // 血压图表
+// ignore: must_be_immutable
 class BloodPressureGraph extends StatefulWidget {
   DateTime date;
   final String selectedDays;
@@ -282,6 +286,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 }
 
 // 日期选择器 与 血压图表 组件
+// ignore: must_be_immutable
 class BloodPressureGraphWidget extends StatefulWidget {
   DateTime date;
   final VoidCallback updateView;
@@ -396,10 +401,10 @@ class _BloodPressureDataState extends State<BloodPressureData> {
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(
-                color: Color.fromRGBO(0, 0, 0, 0.2),
+                color: const Color.fromRGBO(0, 0, 0, 0.2),
               ),
               borderRadius: BorderRadius.circular(15),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.2),
                   offset: Offset(0, 5),
@@ -462,7 +467,7 @@ class BloodPressureData2 extends StatefulWidget {
   final int feeling;
   final String remark;
 
-  BloodPressureData2({
+  const BloodPressureData2({
     Key? key,
     required this.id,
     required this.hour,
@@ -513,7 +518,7 @@ class _BloodPressureData2State extends State<BloodPressureData2> {
           children: <Widget>[
             Text(
                 '${widget.hour < 10 ? "0${widget.hour}" : widget.hour}:${widget.minute < 10 ? "0${widget.minute}" : widget.minute}',
-                style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai")),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,12 +574,21 @@ class _BloodPressureData2State extends State<BloodPressureData2> {
           scrollDirection: Axis.vertical,
           child: Column(
             children: [
-              Text(
-                "备注",
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontFamily: "BalooBhai",
-                    fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "备注",
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: "BalooBhai",
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Image.asset("assets/icons/remark.png", width: 15, height: 15),
+                ],
               ),
               Text(
                 widget.remark == "" ? "暂无备注" : widget.remark,
@@ -702,6 +716,7 @@ class _BloodPressureData2State extends State<BloodPressureData2> {
 }
 
 // 展示所有
+// ignore: must_be_immutable
 class BloodPressureDataList extends StatefulWidget {
   DateTime date;
   int showMore;
@@ -725,6 +740,8 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 
   void getWidgetList() {
     dataWidgetList = [];
+
+    //TODO 要考虑到当天没有数据的情况
 
     // 收起时就显示一个
     int length = 1;
@@ -757,6 +774,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 }
 
 //展示列表数据接口
+// ignore: must_be_immutable
 class BloodPressureDataWidget extends StatefulWidget {
   DateTime date;
   final VoidCallback updateView;
@@ -878,6 +896,7 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
 class BloodPressureStaticGraph extends StatefulWidget {
   final DateTime date;
   final String selectedDays;
+  final String seriesName;
   final UpdateDateCallback updateDate;
   final List<int> dataTimes;
   const BloodPressureStaticGraph({
@@ -886,6 +905,7 @@ class BloodPressureStaticGraph extends StatefulWidget {
     required this.selectedDays,
     required this.updateDate,
     required this.dataTimes,
+    required this.seriesName,
   }) : super(key: key);
 
   @override
@@ -916,7 +936,7 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
           },
           series: [
             {
-              name: 'Access From',
+              name: '${widget.seriesName}',
               type: 'pie',
               radius: '60%',
               center: ['65%', '50%'], //第一个是左右，第二个上下
@@ -1038,6 +1058,27 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
       //crossAxisAlignment: CrossAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(pageNum == 0 ? "血压" : "心率",
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: "BalooBhai",
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(
+              width: 2,
+            ),
+            Image.asset(
+              pageNum == 0
+                  ? "assets/icons/bloodPressure1.png"
+                  : "assets/icons/heartRate.png",
+              height: 15,
+              width: 15,
+            ),
+          ],
+        ),
+
         // 标题
         Text(
           title,
@@ -1085,7 +1126,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
           height: 2,
           width: MediaQuery.of(context).size.width * 0.75,
           decoration: BoxDecoration(
-            color: Color.fromARGB(255, 138, 138, 138),
+            color: const Color.fromARGB(255, 138, 138, 138),
             borderRadius: BorderRadius.circular(2),
           ),
           alignment: Alignment.center,
@@ -1109,7 +1150,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                   fontWeight: FontWeight.bold),
             ),
             Text(
-              pageNum == 0 ? '${averageSbp} / ${averageDbp} ' : '${averageHr}',
+              pageNum == 0 ? '${averageSbp} / ${averageDbp} ' : '${averageHr} ',
               style: const TextStyle(
                   fontSize: 18,
                   fontFamily: "BalooBhai",
@@ -1268,11 +1309,13 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
             ? BloodPressureStaticGraph(
                 date: widget.date,
                 selectedDays: widget.selectedDays,
+                seriesName: "血压",
                 dataTimes: bloodPressureTimes,
                 updateDate: widget.updateDate)
             : BloodPressureStaticGraph(
                 date: widget.date,
                 selectedDays: widget.selectedDays,
+                seriesName: "心率",
                 dataTimes: heartRateTimes,
                 updateDate: widget.updateDate),
       ],
@@ -1281,7 +1324,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
   Widget getPageNum() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -1359,7 +1402,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                       ],
                     ),
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(10, 20, 10, 20),
+                      padding: const EdgeInsets.fromLTRB(10, 20, 10, 20),
                       child: AnimatedCrossFade(
                         duration: const Duration(milliseconds: 300),
                         firstChild: getDataStaticWidget(),

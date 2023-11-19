@@ -1,73 +1,8 @@
-/*import 'package:flutter/material.dart';
-import '../component/footer/footer.dart';
-
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
-
-  @override
-  _LoginPageState createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  bool isLoggedIn = false;
-
-  void login() {
-    final username = usernameController.text;
-    final password = passwordController.text;
-
-    if (username == "abc" && password == "1234") {
-      setState(() {
-        isLoggedIn = true;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (isLoggedIn) {
-      return new footer();
-    } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Login'),
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                TextField(
-                  controller: usernameController,
-                  decoration: InputDecoration(
-                    labelText: 'Username',
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                  ),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: login,
-                  child: Text('Login'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-  }
-}*/
-
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -77,24 +12,87 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  // 获取用户输入的资料与密码
+  final TextEditingController usernameController =
+      TextEditingController(text: "admin");
+  final TextEditingController passwordController =
+      TextEditingController(text: "123456");
   bool isLoggedIn = false;
+  bool isLoginFailed = false;
+  Dio dio = Dio();
 
-  void login() {
+  // 登录函数
+  void login() async {
     final username = usernameController.text;
     final password = passwordController.text;
 
-    if (username == "abc" && password == "123") {
-      setState(() {
-        isLoggedIn = true;
+    if (!(username.isEmpty || password.isEmpty)) {
+      const String loginApi = 'http://43.138.75.58:8080/api/auth/login';
+      Response response = await dio.post(loginApi, queryParameters: {
+        'username': username,
+        'password': password,
       });
 
-      //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+      print(response.data);
+
+      if (response.data['code'] == 200) {
+        print("登录成功");
+        Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+      } else {
+        isLoginFailed = true;
+        setState(() {});
+      }
     }
 
-    //TODO
-    Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+    // ======================================================
+    // http
+
+    //https://blog.csdn.net/DongShanYuXiao/article/details/132031108
+
+    // 定义API端点
+    /* final String apiUrl = 'http://43.138.75.58:8080/api/auth/login';
+      debugPrint("username: ${username}, password: ${password}");
+
+      // 准备请求体数据
+      Map<String, dynamic> requestBody = {
+        'username': username,
+        'password': password,
+      };
+
+      // 将请求体数据转为JSON格式
+      //String requestBodyJson = jsonEncode(requestBody);
+
+      try {
+        // 发起POST请求
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded', // 指定请求体格式为JSON
+            //'Content-Type': 'application/json',
+          },
+          body: requestBody,
+        );
+        // 检查请求是否成功
+        if (response.statusCode == 200) {
+          // 解析响应数据
+          Map<String, dynamic> responseData = jsonDecode(response.body);
+
+          // 处理响应数据，根据需要进行其他操作
+          print('$responseData');
+
+          if (responseData['code'] == 200) {
+            print("登录成功");
+            Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+          }
+        } else {
+          // 请求失败时的处理
+          print('请求失败，状态码：${response.statusCode}');
+        }
+      } catch (error) {
+        // 发生异常时的处理
+        print('发生异常：$error');
+      }
+    } */
   }
 
   @override
@@ -116,13 +114,14 @@ class _LoginPageState extends State<LoginPage> {
         constraints: BoxConstraints.expand(),
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/loginBg.jpg"),
+            image: AssetImage("assets/images/loginBg1.png"),
             fit: BoxFit.cover,
             opacity: 0.66,
           ),
         ),
         child: Column(
           children: [
+            // TriGuard白透明背景标题
             Padding(
                 padding: const EdgeInsets.only(top: 70, bottom: 0),
                 child: Stack(
@@ -162,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 )),
 
-            // 登录框
+            // 登录组件
             Container(
               child: Padding(
                 padding: const EdgeInsets.only(top: 10, bottom: 0),
@@ -173,9 +172,8 @@ class _LoginPageState extends State<LoginPage> {
                       // 用户名输入框
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.7,
-                        //height: 45,
-                        //alignment: Alignment.center,
-                        child: TextField(
+                        // TODO
+                        child: TextFormField(
                           controller: usernameController,
                           maxLines: 1,
                           textAlign: TextAlign.left,
@@ -197,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
                                   height: 16,
                                 )),
                             prefixIconConstraints: BoxConstraints(minWidth: 60),
-                            labelText: '用户名',
+                            labelText: '用户名/手机号/邮箱',
                             labelStyle: const TextStyle(
                               color: Color.fromARGB(96, 104, 104, 104),
                             ),
@@ -226,7 +224,8 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.7,
                         //height: 45,
-                        child: TextField(
+                        // TODO
+                        child: TextFormField(
                           controller: passwordController,
                           obscureText: true, //隐藏密码
                           textAlign: TextAlign.left,
@@ -307,9 +306,34 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
 
-                      const SizedBox(
-                        height: 15,
-                      ),
+                      // 登录失败显示提示信息
+                      isLoginFailed == true
+                          ? Column(
+                              children: [
+                                const SizedBox(
+                                  height: 5,
+                                ),
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.7,
+                                  alignment: Alignment.centerRight,
+                                  child: const Text(
+                                    "用户或密码错误",
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      color: Colors.red,
+                                      fontFamily: "BalooBhai",
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          :
+                          // 登录失败时显示
+
+                          const SizedBox(
+                              height: 15,
+                            ),
 
                       //忘记密码 或选择
                       Container(
@@ -322,7 +346,13 @@ class _LoginPageState extends State<LoginPage> {
                                 padding: const EdgeInsets.fromLTRB(
                                     0, 0, 15, 0), //(0, 0, 10, 0),
                                 child: TextButton(
-                                    onPressed: onPressed,
+                                    onPressed: () {
+                                      setState(() {
+                                        isLoginFailed = false;
+                                      });
+                                      Navigator.pushNamed(
+                                          context, '/resetPassword');
+                                    },
                                     child: const Text(
                                       "忘记密码",
                                       style: TextStyle(
@@ -475,6 +505,9 @@ class _LoginPageState extends State<LoginPage> {
                                 padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
                                 child: TextButton(
                                     onPressed: () {
+                                      setState(() {
+                                        isLoginFailed = false;
+                                      });
                                       Navigator.pushNamed(
                                           context, '/account/register');
                                     },

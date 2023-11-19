@@ -38,6 +38,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   logger: ^2.0.2+1
   dropdown_button2: ^2.3.8
+  http: ^0.13.3
+  dio: ^5.3.3
 
 dev_dependencies:
   flutter_test:

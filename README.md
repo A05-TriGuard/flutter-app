@@ -106,3 +106,13 @@ https://pub.dev/packages/dropdown_button2
 
 
 ### 无语的js
+
+
+#### http请求dio库 
+https://pub.dev/packages/dio
+https://github.com/cfug/dio/blob/main/dio/README-ZH.md
+`dependencies: dio: ^5.3.3`
+`flutter pub get`
+
+#### http库
+https://stackoverflow.com/questions/62012502/how-to-post-x-www-form-urlencoded-in-flutter

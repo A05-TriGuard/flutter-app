@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../account/login.dart';
+import '../account/resetPassword.dart';
 import '../homePage/homePage.dart';
 import '../articles/articles.dart';
 import '../supervisor/supervisor.dart';
@@ -12,6 +13,8 @@ import '../homePage/bloodPressure/bloodPressureDetails.dart';
 
 Map routes = {
   '/': (context) => const LoginPage(),
+  '/resetPassword': (context) => const ResetPassword(),
+
   '/homePage': (context) => const HomePage(),
   //'/homePage/BloodPressure/Edit': (context) => const bloodPressureEdit(),
   '/homePage/BloodPressure/Edit': (context) => BloodPressureEdit(),

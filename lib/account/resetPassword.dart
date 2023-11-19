@@ -61,16 +61,15 @@ class _RegisterDropdownButtonState extends State<RegisterDropdownButton> {
   }
 }
 
-class RegisterStateDialog extends StatefulWidget {
+class ResetFailedDialog extends StatefulWidget {
   final String content;
-  const RegisterStateDialog({Key? key, required this.content})
-      : super(key: key);
+  const ResetFailedDialog({Key? key, required this.content}) : super(key: key);
 
   @override
-  State<RegisterStateDialog> createState() => _RegisterStateDialogState();
+  State<ResetFailedDialog> createState() => _ResetFailedDialogState();
 }
 
-class _RegisterStateDialogState extends State<RegisterStateDialog> {
+class _ResetFailedDialogState extends State<ResetFailedDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -80,7 +79,7 @@ class _RegisterStateDialogState extends State<RegisterStateDialog> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "注册失败",
+              "重置密码失败",
               style: TextStyle(
                   fontSize: 25,
                   //文字阴影
@@ -105,42 +104,10 @@ class _RegisterStateDialogState extends State<RegisterStateDialog> {
 
       // 尝试登录按钮
       actions: <Widget>[
-        /* TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // 关闭对话框
-                  // 导航到登录页面
-                  Navigator.pushNamed(context, '/');
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 211, 211, 211),
-                  textStyle: const TextStyle(
-                    fontSize: 16.0,
-                  ),
-                ),
-                /* style: FilledButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 211, 211, 211),
-                  textStyle: const TextStyle(),
-                ), */
-                child: Container(
-                  width: 90,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        "尝试登录",
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      Icon(Icons.login, color: Colors.black),
-                    ],
-                  ),
-                ),
-              ), */
         // 再试一次按钮
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(); // 关闭对话框
-            // 导航到登录页面
-            //Navigator.pushNamed(context, '/');
           },
           style: FilledButton.styleFrom(
             backgroundColor: Color.fromARGB(255, 211, 211, 211),
@@ -167,28 +134,27 @@ class _RegisterStateDialogState extends State<RegisterStateDialog> {
   }
 }
 
-class RegisterAccount extends StatefulWidget {
-  const RegisterAccount({super.key});
+class ResetPassword extends StatefulWidget {
+  const ResetPassword({super.key});
 
   @override
-  State<RegisterAccount> createState() => _RegisterAccountState();
+  State<ResetPassword> createState() => _ResetPasswordState();
 }
 
-class _RegisterAccountState extends State<RegisterAccount> {
+class _ResetPasswordState extends State<ResetPassword> {
   String methodLabelText = "手机号";
   String methodIconPath = "assets/icons/smartphone.png";
   String methodPrexifText = "+86";
 
   final TextEditingController userController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController validCodeController = TextEditingController();
 
   bool isSignedUp = false;
   Dio dio = Dio();
 
-  // 成功注册对话框
-  void showSuccessSignUpDialog() {
+  // 成功重置密码对话框
+  void showSuccessResetPwdDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -199,7 +165,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "注册成功",
+                  "成功重置密码",
                   style: TextStyle(
                       fontSize: 25,
                       //文字阴影
@@ -219,7 +185,9 @@ class _RegisterAccountState extends State<RegisterAccount> {
               ],
             ),
           ),
-          content: const Text("欢迎使用TriGuard！让我们一切打造幸福健康的生活吧！"),
+          content: const Center(
+            child: Text("重置密码成功！赶紧去登录吧！"),
+          ),
 
           // 立即登录按钮
           actions: <Widget>[
@@ -255,57 +223,52 @@ class _RegisterAccountState extends State<RegisterAccount> {
     );
   }
 
-  // 注册失败对话框
-  void showFailSignUpDialog(String content) {
+  // 失败重置密码对话框
+  void showFailResetPwdDialog(String content) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return RegisterStateDialog(
+        return ResetFailedDialog(
           content: content,
         );
       },
     );
   }
 
-  // 注册函数
-  void signUp() async {
+  // 忘记/重置密码函数
+  void resetPassword() async {
     // 获取用户所输入的内容
     final user = userController.text;
     final validCode = validCodeController.text;
-    final username = usernameController.text;
-    final password = passwordController.text;
+    final newPassword = newPasswordController.text;
 
     // 校验：手机号/邮箱，用户名，密码，验证码其中一者不能为空
-    if (user.isEmpty ||
-        validCode.isEmpty ||
-        username.isEmpty ||
-        password.isEmpty) {
-      showFailSignUpDialog("手机号/邮箱，用户名，密码，验证码其中一者不能为空！");
+    if (user.isEmpty || validCode.isEmpty || newPassword.isEmpty) {
+      showFailResetPwdDialog("手机号/邮箱，密码，验证码其中一者不能为空！");
       return;
     }
 
-    print(
-        'user: $user, validCode: $validCode, username: $username, password: $password');
+    print('user: $user, validCode: $validCode, newpassword: $newPassword');
 
-    // 向后端发起注册请求（邮箱）
-    const String emailRegisterApi =
-        'http://43.138.75.58:8080/api/auth/email-register';
+    // 向后端发起重置密码请求（邮箱）
+    const String emailResetPasswordApi =
+        'http://43.138.75.58:8080/api/auth/reset-password';
 
     // 成功发送请求
     try {
-      Response response = await dio.post(emailRegisterApi, data: {
+      Response response = await dio.post(emailResetPasswordApi, data: {
         'email': user,
-        'username': username,
-        'password': password,
+        'password': newPassword,
         'code': validCode,
       });
       print(response.data);
 
       if (response.data["code"] == 200) {
-        print("注册成功");
-        showSuccessSignUpDialog();
+        print("成功重置密码");
+        showSuccessResetPwdDialog();
       } else {
-        showFailSignUpDialog("注册失败！${response.data["message"]}");
+        //showFailSignUpDialog("注册失败！${response.data["message"]}");
+        showFailResetPwdDialog("重置密码失败！验证码错误");
       }
     }
     // 失败：请求参数有误（长度过短，邮箱格式错误）
@@ -313,55 +276,25 @@ class _RegisterAccountState extends State<RegisterAccount> {
       final response = error.response;
       if (response != null) {
         print(response.data);
-        showFailSignUpDialog("注册失败！你可能已经注册过，或者验证码不正确，用户名密码格式不正确！");
+        showFailResetPwdDialog("重置密码失败！用户名，密码格，验证码式不正确！");
       } else {
         // Something happened in setting up or sending the request that triggered an Error
         print(error.requestOptions);
         print(error.message);
-        showFailSignUpDialog("注册失败！");
+        showFailResetPwdDialog("重置密码失败！！");
       }
     }
-
-    /* if (user == "1111" &&
-        validCode == "1111" &&
-        username == "1111" &&
-        password == "1111") {
-      setState(() {
-        isSignedUp = true;
-      });
-
-      //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
-      //弹出注册成功的对话框
-
-      print("signup ok");
-      showSuccessSignUpDialog();
-    } else {
-      //"你可能已经注册过，或者验证码不正确，用户名密码格式不正确！"
-      showFailSignUpDialog("你可能已经注册过，或者验证码不正确，用户名密码格式不正确！");
-    }*/
   }
 
-  void getValidCode() async {
+  void getValidCode() {
     print("获取验证码");
-    final String email = userController.text;
+
     final String emailGetValidCodeApi =
-        "http://43.138.75.58:8080/api/auth/email-code?email=${email}&type=register";
-
-    Response response;
-    response = await dio.get(emailGetValidCodeApi);
-    print(response.data.toString());
-
-    if (response.data["code"] == 200) {
-      print("获取验证码成功");
-    } else {
-      print("获取验证码失败");
-    }
+        "http://43.138.75.58:8080/api/auth/email-code?email=mzx21@mails.tsinghua.edu.cn&type=register";
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool enabled = true;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -385,7 +318,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
           // 间距
           SizedBox(height: MediaQuery.of(context).size.width * 0.15),
 
-          //账号注册 标题
+          //忘记密码 标题
           Container(
             alignment: Alignment.topLeft,
             width: MediaQuery.of(context).size.width * 0.75,
@@ -393,7 +326,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  "账号注册",
+                  "忘记密码",
                   style: TextStyle(
                     fontSize: 24,
                     fontFamily: 'Blinker',
@@ -403,9 +336,9 @@ class _RegisterAccountState extends State<RegisterAccount> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(5, 3, 0, 0),
                   child: Image.asset(
-                    "assets/icons/signup.png",
-                    width: 30,
-                    height: 30,
+                    "assets/icons/resetPassword.png",
+                    width: 25,
+                    height: 25,
                   ),
                 ),
               ],
@@ -491,61 +424,11 @@ class _RegisterAccountState extends State<RegisterAccount> {
 
           SizedBox(height: MediaQuery.of(context).size.width * 0.05),
 
-          // 用户名输入
+          // 新密码输入
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.75,
             child: TextField(
-              controller: usernameController,
-              maxLines: 1,
-              textAlign: TextAlign.left,
-              textAlignVertical: TextAlignVertical.center,
-              cursorColor: Colors.black38,
-              style: const TextStyle(color: Colors.black, fontSize: 16),
-              decoration: InputDecoration(
-                //取消奇怪的高度
-                isCollapsed: true,
-                contentPadding: const EdgeInsets.fromLTRB(0, 10, 15, 10),
-                counterStyle: const TextStyle(color: Colors.black38),
-                prefixIcon: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: Image.asset(
-                      "assets/icons/profile.png",
-                      width: 20,
-                      height: 20,
-                    )),
-                //prefixText: methodPrexifText,
-                prefixStyle: const TextStyle(
-                  color: Colors.black38,
-                  fontSize: 16,
-                  //fontFamily: 'Blinker',
-                ),
-                prefixIconConstraints: const BoxConstraints(minWidth: 60),
-                labelText: "用户名",
-                labelStyle: const TextStyle(
-                  color: Color.fromARGB(96, 104, 104, 104),
-                ),
-                fillColor: const Color.fromARGB(187, 250, 250, 250),
-                filled: true,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide:
-                      const BorderSide(color: Color.fromRGBO(0, 0, 0, 0.2)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(179, 145, 145, 145))),
-              ),
-            ),
-          ),
-
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
-
-          // 密码输入
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.75,
-            child: TextField(
-              controller: passwordController,
+              controller: newPasswordController,
               maxLines: 1,
               textAlign: TextAlign.left,
               textAlignVertical: TextAlignVertical.center,
@@ -570,7 +453,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
                   //fontFamily: 'Blinker',
                 ),
                 prefixIconConstraints: const BoxConstraints(minWidth: 60),
-                labelText: "密码",
+                labelText: "新密码",
                 labelStyle: const TextStyle(
                   color: Color.fromARGB(96, 104, 104, 104),
                 ),
@@ -678,7 +561,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
               width: MediaQuery.of(context).size.width * 0.75,
               child: FilledButton(
                 onPressed: () {
-                  signUp();
+                  resetPassword();
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 255, 132, 176),
@@ -686,7 +569,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
                     fontSize: 16.0,
                   ),
                 ),
-                child: const Text('注册'),
+                child: const Text('重置密码'),
               ),
             ),
           ),
