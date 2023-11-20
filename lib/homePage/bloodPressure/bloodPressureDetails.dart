@@ -44,7 +44,7 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
 
   @override
   Widget build(BuildContext context) {
-    print("血压图表天数显示刷新 ${widget.selectedValue}");
+    //print("血压图表天数显示刷新 ${widget.selectedValue}");
     return Row(
       // mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -164,7 +164,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
   @override
   Widget build(BuildContext context) {
-    print('血压图表更新build：${widget.date}，天数：${widget.selectedDays}');
+    //print('血压图表更新build：${widget.date}，天数：${widget.selectedDays}');
     updateGraph();
     return UnconstrainedBox(
       child: Container(
@@ -319,7 +319,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
+    // print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
 
     /* BloodPressureGraph graph =  BloodPressureGraph(
       date: widget.date,
@@ -502,14 +502,6 @@ class _BloodPressureData2State extends State<BloodPressureData2> {
           color: const Color.fromRGBO(0, 0, 0, 0.2),
         ),
         borderRadius: BorderRadius.circular(15),
-        /* boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.2),
-            offset: Offset(0, 5),
-            blurRadius: 5.0,
-            spreadRadius: 0.0,
-          ),
-        ], */
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
@@ -559,14 +551,6 @@ class _BloodPressureData2State extends State<BloodPressureData2> {
           color: const Color.fromRGBO(0, 0, 0, 0.2),
         ),
         borderRadius: BorderRadius.circular(15),
-        /* boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.2),
-            offset: Offset(0, 5),
-            blurRadius: 5.0,
-            spreadRadius: 0.0,
-          ),
-        ], */
       ),
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -730,6 +714,7 @@ class BloodPressureDataList extends StatefulWidget {
 class _BloodPressureDataListState extends State<BloodPressureDataList> {
   List<Map> data = bpdata;
   List<Widget> dataWidgetList = [];
+  int length = 1;
 
   @override
   void initState() {
@@ -744,9 +729,11 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     //TODO 要考虑到当天没有数据的情况
 
     // 收起时就显示一个
-    int length = 1;
+
     if (widget.showMore == 1) {
       length = data.length;
+    } else {
+      length = 1;
     }
 
     for (int i = 0; i < length; i++) {
@@ -767,8 +754,20 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
   @override
   Widget build(BuildContext context) {
     getWidgetList();
-    return Column(
+    /* return Column(
       children: dataWidgetList,
+    ); */
+
+    // 收起展开的动画
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      height: length == 1 ? 95 : 95.0 * length,
+      curve: Curves.easeInOut,
+      child: SingleChildScrollView(
+        child: Column(
+          children: dataWidgetList,
+        ),
+      ),
     );
   }
 }
@@ -805,7 +804,7 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print('血压展示列表数据更新: ${widget.date}');
+    // print('血压展示列表数据更新: ${widget.date}');
 
     return Center(
       child: Container(
@@ -823,10 +822,10 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
                 GestureDetector(
                   onTap: () {
                     if (showMore == 0) {
-                      print("展开");
+                      //print("展开");
                       showMore = 1;
                     } else {
-                      print("收起");
+                      //  print("收起");
                       showMore = 0;
                     }
 
@@ -914,16 +913,8 @@ class BloodPressureStaticGraph extends StatefulWidget {
 }
 
 class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
-  @override
-  Widget build(BuildContext context) {
-    print("血压统计饼图更新 ${widget.date} ${widget.selectedDays}");
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      height: MediaQuery.of(context).size.height * 0.25,
-      alignment: Alignment.center,
-      //color: const Color.fromARGB(255, 170, 170, 170),
-      child: Echarts(
-        option: '''
+  Future<Widget> getEchart() async {
+    return Echarts(option: '''
         {
 
           tooltip: {
@@ -963,8 +954,27 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
             }
           ]
         }
-        ''',
-      ),
+        ''');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // print("血压统计饼图更新 ${widget.date} ${widget.selectedDays}");
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.85,
+      height: MediaQuery.of(context).size.height * 0.25,
+      alignment: Alignment.center,
+
+      // 等待图表异步加载
+      child: FutureBuilder(
+          future: getEchart(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return snapshot.data!;
+            } else {
+              return const CircularProgressIndicator();
+            }
+          }),
     );
   }
 }
@@ -1428,7 +1438,81 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   }
 }
 
+class BloodPressureMoreInfoButton extends StatefulWidget {
+  const BloodPressureMoreInfoButton({super.key});
+
+  @override
+  State<BloodPressureMoreInfoButton> createState() =>
+      _BloodPressureMoreInfoButtonState();
+}
+
+class _BloodPressureMoreInfoButtonState
+    extends State<BloodPressureMoreInfoButton> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        UnconstrainedBox(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, 'homePage/BloodPressure/MoreData');
+              },
+              child: Container(
+                  width: 150,
+                  height: 35,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 156, 248, 243),
+                    border: Border.all(
+                      color: const Color.fromRGBO(0, 0, 0, 0.2),
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromRGBO(0, 0, 0, 0.2),
+                        offset: Offset(0, 5),
+                        blurRadius: 5.0,
+                        spreadRadius: 0.0,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "更多血压详情",
+                        style: TextStyle(
+                            fontFamily: 'BalooBhai',
+                            fontSize: 15,
+                            color: Colors.black),
+                      ),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Image.asset(
+                        "assets/icons/doubleRightArrow.png",
+                        width: 15,
+                        height: 15,
+                      )
+                    ],
+                  )),
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 15,
+        )
+      ],
+    );
+  }
+}
+
 // ============================================================================
+
 // 血压详情此页面
 class BloodPressureDetails extends StatefulWidget {
   final Map arguments;
@@ -1447,7 +1531,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('主要：${widget.arguments}');
+    //print('主要：${widget.arguments}');
     date = widget.arguments["date"];
     bloodPressureGraphtWidget = BloodPressureGraphWidget(
       date: date,
@@ -1459,7 +1543,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
   }
 
   void updateView() {
-    print("血压详情页面更新");
+    //print("血压详情页面更新");
     setState(() {});
   }
 
@@ -1477,7 +1561,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
   }
 
   void updateDays(String newDays) {
-    print("血压详情页面更新天数 ${newDays}");
+    //print("血压详情页面更新天数 ${newDays}");
     setState(() {
       selectedDays = newDays;
     });
@@ -1497,13 +1581,9 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
             (MediaQuery.of(context).size.height * 0.1 + 11)),
       ),
       body: Container(
-        // white background
         color: Colors.white,
         child: ListView(shrinkWrap: true, children: [
-          /* TitleDate(
-              title: "血压详情",
-              icons: "assets/icons/bloodPressure.png",
-              date: DateTime.now()), */
+          // 标题组件
           UnconstrainedBox(
             child: Container(
               width: MediaQuery.of(context).size.width * 0.85,
@@ -1513,21 +1593,23 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
             ),
           ),
 
-          /* BloodPressureGraphWidget(
-            date: date,
-            updateView: updateView,
-            updateDate: updateDate,
-          ), */
+          // 血压图表组件
           bloodPressureGraphtWidget,
+
+          //数据列表组件
           BloodPressureDataWidget(
             date: date,
             updateView: updateView,
           ),
+
+          //统计组件
           BloodPressureStaticWidget(
               date: date,
               selectedDays: selectedDays,
               updateView: updateView,
-              updateDate: updateDate)
+              updateDate: updateDate),
+
+          BloodPressureMoreInfoButton(),
         ]),
       ),
     );

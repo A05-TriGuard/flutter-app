@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../component/header/header.dart';
 import '../router/router.dart';
 
@@ -38,7 +41,9 @@ class _UserState extends State<User> {
               child: const Text('Leave'),
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pop(context);
+                //Navigator.pop(context);
+                SystemNavigator.pop();
+                //exit(0);
               },
             ),
           ],

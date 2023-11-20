@@ -19,7 +19,7 @@ samples, guidance on mobile development, and a full API reference.
 ### Apache Echart配置
 https://www.bilibili.com/video/BV1P64y147hr/?spm_id_from=333.337.search-card.all.click&vd_source=242881c2e0028b99f5965425eaeee832
 
-
+```
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -34,6 +34,7 @@ dev_dependencies:
      git:
        url: git://github.com/furuiCQ/flutter_echart.git
   flutter_echarts: ^2.5.0
+```
 
 然后终端执行
 flutter pub get
@@ -124,3 +125,25 @@ https://stackoverflow.com/questions/50037710/flutter-move-to-a-new-screen-withou
 ### 返回的问题
 https://api.flutter.dev/flutter/widgets/PopScope-class.html
 https://www.flutterbeads.com/disable-override-back-button-in-flutter/
+
+### 退出app
+https://stackoverflow.com/questions/45109557/flutter-how-to-programmatically-exit-the-app
+
+```
+import 'dart:io' show Platform;
+import 'package:flutter/services.dart';
+    
+RaisedButton(
+  onPressed: () {
+    if (Platform.isAndroid) {
+      SystemNavigator.pop();
+    } else if (Platform.isIOS) {
+      exit(0);
+    }
+  },
+  child: Text("close app")
+)
+```
+
+### how to assign future<> to widget in flutter?
+https://stackoverflow.com/questions/49764905/how-to-assign-future-to-widget-in-flutter

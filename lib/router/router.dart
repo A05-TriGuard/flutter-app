@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:triguard/homePage/bloodPressure/bloodPressureMoreData.dart';
 import '../account/login.dart';
 import '../account/resetPassword.dart';
 import '../homePage/homePage.dart';
@@ -20,6 +21,8 @@ Map routes = {
   '/homePage/BloodPressure/Edit': (context) => BloodPressureEdit(),
   '/homePage/BloodPressure/Details': (context) => BloodPressureDetails(
       arguments: {"userId": 1, "date": DateTime(2023, 11, 11)}),
+  'homePage/BloodPressure/MoreData': (context) => const BloodPressureMoreData(),
+
   '/articles': (context) => const Article(),
   '/supervisor': (context) => const Supervisor(),
   '/moment': (context) => const Moment(),

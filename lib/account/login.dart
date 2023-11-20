@@ -20,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoggedIn = false;
   bool isLoginFailed = false;
   Dio dio = Dio();
+  String loginStateHintText = "";
 
   // 登录函数
   void login() async {
@@ -38,11 +39,24 @@ class _LoginPageState extends State<LoginPage> {
 
         if (response.data['code'] == 200) {
           print("登录成功");
+
+          setState(() {
+            isLoginFailed = false;
+          });
           Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
           //Navigator.pushReplacement(context, '/mainPages', arguments: {"id": 1});
-        } else {
+        } else if (response.data['code'] == 403) {
           isLoginFailed = true;
-          setState(() {});
+          print(response.data["message"]);
+          setState(() {
+            loginStateHintText = response.data["message"];
+          });
+        } else if (response.data['code'] == 401) {
+          isLoginFailed = true;
+          print(response.data["message"]);
+          setState(() {
+            loginStateHintText = "用户或密码不正确";
+          });
         }
       } on DioException catch (error) {
         final response = error.response;
@@ -332,9 +346,9 @@ class _LoginPageState extends State<LoginPage> {
                                   width:
                                       MediaQuery.of(context).size.width * 0.7,
                                   alignment: Alignment.centerRight,
-                                  child: const Text(
-                                    "用户或密码错误",
-                                    style: TextStyle(
+                                  child: Text(
+                                    loginStateHintText,
+                                    style: const TextStyle(
                                       fontSize: 12.0,
                                       color: Colors.red,
                                       fontFamily: "BalooBhai",

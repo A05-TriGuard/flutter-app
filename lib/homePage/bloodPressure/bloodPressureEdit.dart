@@ -918,6 +918,7 @@ class _CustomIconButtonRowState extends State<CustomIconButtonRow> {
 // ----------------------------------------------------------------------------------
 // 页面模块
 
+// 此页面
 class BloodPressureEdit extends StatefulWidget {
   //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
   @override
@@ -992,6 +993,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
 
   @override
   Widget build(BuildContext context) {
+    // print("血压修改页面刷新");
     return Scaffold(
       appBar: AppBar(
         title: const Text(
