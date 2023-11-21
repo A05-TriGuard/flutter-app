@@ -408,8 +408,8 @@ class _DatePicker2State extends State<DatePicker2> {
 
             // 日期选择
             SizedBox(
-              width: 20,
-              height: 20,
+              width: 30,
+              height: 30,
               child: IconButton(
                 padding: EdgeInsets.all(0),
                 icon: const Icon(Icons.calendar_month),
