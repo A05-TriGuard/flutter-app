@@ -1,0 +1,13 @@
+android/
+ios/
+linux/
+macos/
+test/
+web/
+windows/
+.metadata
+.dart_tool/
+.idea/
+build/
+test_triguard.iml
+analysis_options.yaml
