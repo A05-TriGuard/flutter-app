@@ -1206,11 +1206,24 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
           flexibleSpace: getHeader(MediaQuery.of(context).size.width,
               (MediaQuery.of(context).size.height * 0.1 + 11)),
         ),
+        /* floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            //Navigator.pop(context);
+            print("哈哈");
+          },
+          child: Image.asset(
+            "assets/icons/filter.png",
+            width: 25,
+            height: 25,
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endTop,  */
+
         body: Container(
           color: Colors.white,
           child: ListView(shrinkWrap: true, children: [
             // 标题组件
-            UnconstrainedBox(
+            /* UnconstrainedBox(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
                 alignment: Alignment.centerLeft,
@@ -1218,7 +1231,33 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
                     title: "血压数据表", icons: "assets/icons/bloodPressure.png"),
               ),
             ),
+ */
 
+            UnconstrainedBox(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const PageTitle(
+                        title: "血压数据表",
+                        icons: "assets/icons/bloodPressure.png"),
+                    GestureDetector(
+                      onTap: () {
+                        print("哈哈哈哈");
+                      },
+                      child: Image.asset(
+                        "assets/icons/filter.png",
+                        height: 30,
+                        width: 30,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
             // 过滤器
             BloodPressureFilterWidget(
               filterParam: filterParam,

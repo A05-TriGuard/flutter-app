@@ -1,149 +1,3 @@
-/* import 'package:flutter/material.dart';
-import '../../component/header/header.dart';
-
-//https://stackoverflow.com/questions/51697901/programmatically-expand-expansiontile-in-flutter
-class MyListView extends StatefulWidget {
-  @override
-  _MyListViewState createState() => _MyListViewState();
-}
-
-class _MyListViewState extends State<MyListView> {
-  List<bool> _isExpandedList = [];
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize the list of ExpansionTile states to all false (collapsed).
-    _isExpandedList = List.generate(5, (index) => false);
-  }
-
-  void _updateExpansionState(int index) {
-    // Set the tapped ExpansionTile to expanded (true) and others to collapsed (false).
-    setState(() {
-      /* for (int i = 0; i < _isExpandedList.length; i++) {
-        _isExpandedList[i] = i == index;
-      } */
-      _isExpandedList[index] = true;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 5,
-      itemBuilder: (BuildContext context, int index) {
-        return Column(
-          children: [
-            ExpansionTile(
-              onExpansionChanged: (isExpanded) {
-                // When an ExpansionTile is expanded, update the expansion states.
-                //if (isExpanded) {
-                _updateExpansionState(index);
-                //}
-                print(index);
-              },
-              /* trailing: IgnorePointer(
-                child: Switch(
-                  value: isExpanded,
-                  onChanged: (_) {},
-                ),
-              ), */
-              trailing: const SizedBox(),
-              /* trailing: Visibility(
-                //child: Text("Invisible"),
-                child: SizedBox(),
-                maintainSize: false,
-                maintainAnimation: true,
-                maintainState: true,
-                visible: false,
-              ), */
-              title: Container(
-                //transform: Matrix4.translationValues(32, 0, 0),
-                child:
-                    Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-                  Text("时间:"),
-                  Text("09:32"),
-                ]),
-              ),
-              //subtitle: Text('血压: 110/95 心率: 90 感觉: 还好'),
-              subtitle: Container(
-                  child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text("血压:"),
-                  Text(
-                    "110/95",
-                    style: TextStyle(fontFamily: "BalooBhai"),
-                  ),
-                  Text("心率:"),
-                  Text(
-                    "90",
-                    style: TextStyle(fontFamily: "BalooBhai"),
-                  ),
-                  Text("感觉:"),
-                  Text("还好"),
-                ],
-              )),
-              children: <Widget>[
-                // The content of each ExpansionTile.
-                SizedBox(
-                  height: _isExpandedList[index]
-                      ? 100.0
-                      : 0.0, // Set the height based on the expansion state.
-                  child: Center(
-                    child: Text('Expanded content'),
-                  ),
-                ),
-              ],
-            ),
-            Divider(
-              height: 1.0,
-              color: Colors.grey,
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-//------------------------------------------------------------------
-//------------------------------------------------------------------
-//------------------------------------------------------------------
-//------------------------------------------------------------------
-//------------------------------------------------------------------
-
-class bloodPressureEdit extends StatefulWidget {
-  const bloodPressureEdit({super.key});
-
-  @override
-  State<bloodPressureEdit> createState() => _bloodPressureEditState();
-}
-
-class _bloodPressureEditState extends State<bloodPressureEdit> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          /* title: const Text(
-          "返回",
-          style: TextStyle(
-              fontFamily: 'Blinker', fontSize: 22, color: Colors.black),
-        ), */
-          // flexibleSpace: header,
-          //toolbarHeight: MediaQuery.of(context).size.height * 0.1 + 11,
-
-          flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-              (MediaQuery.of(context).size.height * 0.1 + 11)),
-        ),
-        /* body: const Center(
-        child: Text("修改血压"),
-      ), */
-        body: MyListView());
-  }
-}
- */
-
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../component/header/header.dart';
@@ -198,6 +52,15 @@ class newValue {
     print("armIndex: $armIndex");
     print("feelingIndex: $feelingIndex");
   }
+}
+
+String getRemarById(int id) {
+  for (int i = 0; i < bpdata.length; i++) {
+    if (bpdata[i]["id"] == id) {
+      return bpdata[i]["remark"];
+    }
+  }
+  return "";
 }
 
 // 获取某个id的数据
@@ -286,6 +149,7 @@ class _addDataWidgetState extends State<addDataWidget> {
   final TextEditingController DBloodpressureController =
       TextEditingController();
   final TextEditingController heartRateController = TextEditingController();
+  final TextEditingController remarkController = TextEditingController();
   CustomButtonRow armButtons = CustomButtonRow(
     selectedIndex: 2,
   );
@@ -316,10 +180,10 @@ class _addDataWidgetState extends State<addDataWidget> {
   @override
   Widget build(BuildContext context) {
     return UnconstrainedBox(
-      child: Column(children: [
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Container(
           width: MediaQuery.of(context).size.width * 0.85,
-          height: MediaQuery.of(context).size.height * 0.55,
+          height: MediaQuery.of(context).size.height * 0.66,
           decoration: BoxDecoration(
             //color: Colors.white,
             color: Colors.white,
@@ -336,9 +200,10 @@ class _addDataWidgetState extends State<addDataWidget> {
           child: Padding(
             padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Container(
                       //color: Colors.blue, // 左边容器的颜色
@@ -351,6 +216,7 @@ class _addDataWidgetState extends State<addDataWidget> {
                           getTitle("心率", "PULSE"),
                           getTitle("手臂", "ARM"),
                           getTitle("感觉", "FEELINGS"),
+                          getTitle("备注", "REMARKS"),
                         ],
                       ),
                     ),
@@ -363,6 +229,8 @@ class _addDataWidgetState extends State<addDataWidget> {
                       //width: MediaQuery.of(context).size.width * 0.85 * 0.4,
                       //color: Colors.green, // 右边容器的颜色
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // 时间
                           Row(
@@ -537,6 +405,28 @@ class _addDataWidgetState extends State<addDataWidget> {
                         initialSelectedIndex: widget.feeling,
                       ), */
                           feelingsButtons,
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          SizedBox(
+                            width: 150,
+                            height: 40,
+                            child: TextFormField(
+                              controller: remarkController,
+                              //initialValue: widget.SBloodpressure,
+                              decoration: InputDecoration(
+                                  counterText: "",
+                                  hintText: "-",
+                                  contentPadding:
+                                      EdgeInsets.fromLTRB(0, 0, 0, 6)),
+                              textAlign: TextAlign.center,
+                              textAlignVertical: TextAlignVertical.bottom,
+                              style: const TextStyle(
+                                  fontSize: 20, fontFamily: "BalooBhai"),
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
                         ],
                       ),
                     ),
@@ -578,6 +468,7 @@ class _addDataWidgetState extends State<addDataWidget> {
                               "feeling":
                                   feelingsButtons.getSelectedButtonIndex(),
                               "isExpanded": 0,
+                              "remark": remarkController.text,
                             });
 
                             Widget newWidget = BloodPressureEditWidgetLess(
@@ -591,6 +482,7 @@ class _addDataWidgetState extends State<addDataWidget> {
                               heartRate: int.parse(heartRateController.text),
                               arm: armButtons.getSelectedButtonIndex(),
                               feeling: feelingsButtons.getSelectedButtonIndex(),
+                              remark: remarkController.text,
                             );
 
                             setState(() {
@@ -848,6 +740,7 @@ class _CustomButtonRowState extends State<CustomButtonRow> {
   }
 }
 
+// ignore: must_be_immutable
 class CustomIconButtonRow extends StatefulWidget {
   int selectedIndex;
 
@@ -948,6 +841,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
           arm: bpdata[i]["arm"],
           feeling: bpdata[i]["feeling"],
           isExpanded: bpdata[i]["isExpanded"],
+          remark: bpdata[i]["remark"],
           updateParent: updateView,
         ),
       ));
@@ -982,6 +876,9 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
             arm: bpdata[i]["arm"],
             feeling: bpdata[i]["feeling"],
             isExpanded: bpdata[i]["isExpanded"],
+            remark: (bpdata[i]["remark"].toString()).isEmpty
+                ? "暂无备注"
+                : bpdata[i]["remark"].toString(),
             updateParent: updateView,
           ),
         ));
@@ -1215,6 +1112,7 @@ class _TitleDateState extends State<TitleDate> {
 }
 
 // 生成血压数据的显示模块
+// ignore: must_be_immutable
 class BloodPressureEditWidget extends StatefulWidget {
   final int id;
   final int hour;
@@ -1224,6 +1122,7 @@ class BloodPressureEditWidget extends StatefulWidget {
   final int heartRate;
   final int feeling;
   final int arm;
+  final String remark;
   final VoidCallback updateParent;
   int isExpanded;
 
@@ -1237,6 +1136,7 @@ class BloodPressureEditWidget extends StatefulWidget {
     required this.heartRate,
     required this.feeling,
     required this.arm,
+    required this.remark,
     required this.isExpanded,
     required this.updateParent,
   }) : super(key: key);
@@ -1278,24 +1178,11 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeIn,
               height: getDataById(widget.id, "isExpanded") == 1
-                  ? MediaQuery.of(context).size.height * 0.55
+                  ? MediaQuery.of(context).size.height * 0.65
                   : MediaQuery.of(context).size.height * 0.15,
               // height: MediaQuery.of(context).size.height * 0.15,
               width: MediaQuery.of(context).size.width * 0.85,
-              decoration: BoxDecoration(
-                //color: Colors.white,
-                color: Colors.white,
-                border: Border.all(color: const Color.fromRGBO(0, 0, 0, 0.2)),
-                borderRadius: BorderRadius.circular(20.0),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromARGB(120, 151, 151, 151),
-                    offset: Offset(0, 5),
-                    blurRadius: 5.0,
-                    spreadRadius: 0.0,
-                  ),
-                ],
-              ),
+
               alignment: Alignment.center,
               //https://stackoverflow.com/questions/56298325/overflow-warning-in-animatedcontainer-adjusting-height
               //切换的一瞬间会overflow，用SingleChildScrollView包裹一下解决
@@ -1310,6 +1197,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                         heartRate: widget.heartRate,
                         arm: widget.arm,
                         feeling: widget.feeling,
+                        remark: widget.remark,
                         deleteData: () {
                           setState(() {
                             setDataById(widget.id, "isExpanded", 0);
@@ -1353,17 +1241,18 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                     )
                   : SingleChildScrollView(
                       child: BloodPressureEditWidgetLess(
-                          id: widget.id,
-                          hour: getDataById(widget.id, "hour"),
-                          minute: getDataById(widget.id, "minute"),
-                          SBloodpressure: getDataById(widget.id, "sbp"),
-                          DBloodpressure: getDataById(widget.id, "dbp"),
-                          heartRate: getDataById(widget.id, "heartRate"),
-                          arm: getDataById(widget.id, "arm"),
-                          feeling: getDataById(widget.id, "feeling")),
+                        id: widget.id,
+                        hour: getDataById(widget.id, "hour"),
+                        minute: getDataById(widget.id, "minute"),
+                        SBloodpressure: getDataById(widget.id, "sbp"),
+                        DBloodpressure: getDataById(widget.id, "dbp"),
+                        heartRate: getDataById(widget.id, "heartRate"),
+                        arm: getDataById(widget.id, "arm"),
+                        feeling: getDataById(widget.id, "feeling"),
+                        remark: getRemarById(widget.id),
+                      ),
                     ),
-            ),
-            const SizedBox(height: 10),
+            )
           ],
         ));
   }
@@ -1379,6 +1268,7 @@ class BloodPressureEditWidgetLess extends StatefulWidget {
   final int heartRate;
   final int arm;
   final int feeling;
+  final String remark;
 
   const BloodPressureEditWidgetLess(
       {Key? key,
@@ -1389,7 +1279,8 @@ class BloodPressureEditWidgetLess extends StatefulWidget {
       required this.DBloodpressure,
       required this.heartRate,
       required this.feeling,
-      required this.arm})
+      required this.arm,
+      required this.remark})
       : super(key: key);
 
   @override
@@ -1399,38 +1290,213 @@ class BloodPressureEditWidgetLess extends StatefulWidget {
 
 class _BloodPressureEditWidgetLessState
     extends State<BloodPressureEditWidgetLess> {
-  @override
-  Widget build(BuildContext context) {
+  List<String> armButtonTypes = ["左手", "右手", "不选"];
+  List<String> feelingButtonTypes = ["开心", "还好", "不好"];
+  bool showRemark = false;
+  PageController pageController = PageController();
+
+  Widget getInfoPage() {
     return Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Text(
-              '${widget.hour < 10 ? "0${widget.hour}" : widget.hour}:${widget.minute < 10 ? "0${widget.minute}" : widget.minute}',
-              style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      //duration: Duration(milliseconds: 1000),
+      //curve: Curves.easeInOut,
+      height: 80,
+      width: MediaQuery.of(context).size.width * 0.85,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: const Color.fromRGBO(0, 0, 0, 0.2),
+        ),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            Text(
+                '${widget.hour < 10 ? "0${widget.hour}" : widget.hour}:${widget.minute < 10 ? "0${widget.minute}" : widget.minute}',
+                style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai")),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('血压: ${widget.SBloodpressure} / ${widget.DBloodpressure}',
+                    style:
+                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                Text('心率: ${widget.heartRate} ',
+                    style:
+                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('手臂: ${armButtonTypes[widget.arm]}',
+                    style:
+                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                Text('感觉: ${feelingButtonTypes[widget.feeling]}',
+                    style:
+                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget getRemarkPage() {
+    return Container(
+      height: 80,
+      width: MediaQuery.of(context).size.width * 0.85,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: const Color.fromRGBO(0, 0, 0, 0.2),
+        ),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
             children: [
-              Text('血压: ${widget.SBloodpressure} / ${widget.DBloodpressure}',
-                  style:
-                      const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-              Text('心率: ${widget.heartRate} ',
-                  style:
-                      const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "备注",
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: "BalooBhai",
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Image.asset("assets/icons/remark.png", width: 15, height: 15),
+                ],
+              ),
+              Text(
+                widget.remark == "" ? "暂无备注" : widget.remark,
+                style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                textAlign: TextAlign.left,
+              ),
             ],
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+      ),
+    );
+  }
+
+  Widget getPageNum(bool showRemark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: showRemark ? Colors.grey : Colors.blue,
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+        const SizedBox(
+          width: 5,
+        ),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: showRemark ? Colors.blue : Colors.grey,
+            borderRadius: BorderRadius.circular(5),
+          ),
+        )
+      ],
+    );
+  }
+
+  /* @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(
+          height: 5,
+        ),
+        getInfoPage(),
+      ],
+    );
+  } */
+
+  @override
+  Widget build(BuildContext context) {
+    Widget infoPage = getInfoPage();
+
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        if (details.primaryDelta! > 10) {
+          setState(() {
+            showRemark = false;
+          });
+        } else if (details.primaryDelta! < -10) {
+          setState(() {
+            showRemark = true;
+          });
+        }
+      },
+      /* child: Container(
+        //duration: Duration(milliseconds: 1000),
+        //curve: Curves.easeIn,
+        child: showRemark ? getRemarkPage() : infoPage,
+      ), */
+
+      /* child: AnimatedContainer(
+        duration: Duration(milliseconds: 1000),
+        //curve: Curves.easeInOut,
+        width: showRemark == true
+            ? MediaQuery.of(context).size.width * 0.85
+            : MediaQuery.of(context).size.width * 0.85,
+        height: showRemark == true ? 160 : 80,
+        curve: Curves.fastOutSlowIn,
+        child: showRemark ? getRemarkPage() : infoPage,
+      ), */
+
+      child: Column(
+        children: [
+          Stack(
+            alignment: Alignment.bottomCenter,
             children: [
-              Text('手臂: ${armButtonTypes[widget.arm]}',
-                  style:
-                      const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-              Text('感觉: ${feelingButtonTypes[widget.feeling]}',
-                  style:
-                      const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+              Column(
+                children: [
+                  AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 300),
+                    firstChild: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: infoPage,
+                    ),
+                    secondChild: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: getRemarkPage(),
+                    ),
+                    crossFadeState: showRemark
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                ],
+              ),
+              SizedBox(
+                //height: 5,
+                child: getPageNum(showRemark),
+              ),
             ],
+          ),
+          const SizedBox(
+            height: 10,
           ),
         ],
       ),
@@ -1448,6 +1514,7 @@ class BloodPressureEditWidgetMore extends StatefulWidget {
   final int heartRate;
   final int feeling;
   final int arm;
+  final String remark;
   final VoidCallback deleteData;
   final VoidCallback cancelEditData;
   final VoidCallback confirmEditData;
@@ -1462,6 +1529,7 @@ class BloodPressureEditWidgetMore extends StatefulWidget {
     required this.heartRate,
     required this.feeling,
     required this.arm,
+    required this.remark,
     required this.deleteData,
     required this.cancelEditData,
     required this.confirmEditData,
@@ -1507,6 +1575,8 @@ class _BloodPressureEditWidgetMoreState
         TextEditingController(text: widget.DBloodpressure.toString());
     final TextEditingController heartRateController =
         TextEditingController(text: widget.heartRate.toString());
+    final TextEditingController remarkController =
+        TextEditingController(text: widget.remark);
     CustomButtonRow armButtons = CustomButtonRow(
       selectedIndex: widget.arm,
     );
@@ -1533,6 +1603,7 @@ class _BloodPressureEditWidgetMoreState
                       getTitle("心率", "PULSE"),
                       getTitle("手臂", "ARM"),
                       getTitle("感觉", "FEELINGS"),
+                      getTitle("备注", "REMARKS"),
                     ],
                   ),
                 ),
@@ -1721,6 +1792,27 @@ class _BloodPressureEditWidgetMoreState
                         initialSelectedIndex: widget.feeling,
                       ), */
                       feelingsButtons,
+
+                      const SizedBox(height: 5),
+
+                      SizedBox(
+                        width: 150,
+                        height: 40,
+                        child: TextFormField(
+                          controller: remarkController,
+                          //initialValue: widget.SBloodpressure,
+                          decoration: InputDecoration(
+                              counterText: "",
+                              hintText: "-",
+                              contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 6)),
+                          textAlign: TextAlign.center,
+                          textAlignVertical: TextAlignVertical.bottom,
+                          style: const TextStyle(
+                              fontSize: 20, fontFamily: "BalooBhai"),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10), // 备注
                     ],
                   ),
                 ),
