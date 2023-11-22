@@ -147,3 +147,13 @@ RaisedButton(
 
 ### how to assign future<> to widget in flutter?
 https://stackoverflow.com/questions/49764905/how-to-assign-future-to-widget-in-flutter
+
+
+### datatable how to add vertical border between columns
+https://stackoverflow.com/questions/66895241/flutter-datatable-how-to-add-vertical-border-between-columns
+
+#### date picker
+https://pub.dev/packages/flutter_cupertino_date_picker_fork
+
+#### Draggable FloatingActionButton in Flutter
+https://stackoverflow.com/questions/55046638/draggable-floatingactionbutton-in-flutter

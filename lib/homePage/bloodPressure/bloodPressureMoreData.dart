@@ -5,6 +5,7 @@ import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/gradientBorder/gradient_borders.dart';
 import './bpData.dart';
+import './bpAllData.dart';
 
 //typedef UpdateDateCallback = void Function(DateTime newDate);
 //typedef UpdateDaysCallback = void Function(String newDays);
@@ -24,6 +25,7 @@ class BloodPressureFilterParam {
   DateTime endDate = DateTime.now();
   List<bool> armsSelected = [false, false, false, true];
   List<bool> feelingsSelected = [false, false, false, true];
+  List<bool> remarksSelected = [false, false, true];
   bool refresh = false;
   TextEditingController minHeartRateController = TextEditingController();
   TextEditingController maxHeartRateController = TextEditingController();
@@ -51,6 +53,7 @@ class BloodPressureFilterParam {
     required this.startMinuteController,
     required this.endHourController,
     required this.endMinuteController,
+    required this.remarksSelected,
   });
 
   void printFilterParams() {
@@ -63,8 +66,50 @@ class BloodPressureFilterParam {
         '心率： ${minHeartRateController.text} ~  ${maxHeartRateController.text}');
     print('手臂：${armsSelected}');
     print('感觉：${feelingsSelected}');
+    print('备注：${remarksSelected}');
     print('刷新：${refresh}');
     print("====================");
+  }
+
+  void tackle() {
+    if (startHourController.text == "") {
+      startHourController.text = "00";
+    }
+
+    if (endHourController.text == "") {
+      endHourController.text = "23";
+    }
+
+    if (startMinuteController.text == "") {
+      startMinuteController.text = "00";
+    }
+
+    if (endMinuteController.text == "") {
+      endMinuteController.text = "59";
+    }
+
+    if (minSBPController.text == "") {
+      minSBPController.text = "70";
+    }
+
+    if (maxSBPController.text == "") {
+      maxSBPController.text = "140";
+    }
+    if (minDBPController.text == "") {
+      minDBPController.text = "70";
+    }
+
+    if (maxDBPController.text == "") {
+      maxDBPController.text = "140";
+    }
+
+    if (minHeartRateController.text == "") {
+      minHeartRateController.text = "70";
+    }
+
+    if (maxHeartRateController.text == "") {
+      maxHeartRateController.text = "150";
+    }
   }
 }
 
@@ -87,56 +132,554 @@ class BloodPressureRecordWidget extends StatefulWidget {
 }
 
 class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
+  List<Map<dynamic, dynamic>> filteredData = [];
+  // [最小值，最大值，平均值，偏低次数，正常次数，偏高次数，异常次数，总次数]
+  /* 收缩压sbp（高压）：
+    偏低： 少于90 mmHg
+    正常： 90-120 mmHg
+    偏高： 121-139 mmHg
+    异常（高血压）： 140 mmHg及以上
+
+    舒张压dbp（低压）：
+    偏低： 少于60 mmHg
+    正常： 60-80 mmHg
+    偏高： 81-89 mmHg
+    异常（高血压）： 90 mmHg及以上
+    心率：
+
+    偏低pulse（脉搏过缓）： 少于60 次/分钟
+    正常： 60-100 次/分钟
+    偏高（脉搏过快）： 101-120 次/分钟
+    异常： 120 次/分钟及以上
+ */
+  List<int> sbpList = [1000, 0, 0, 0, 0, 0, 0, 0]; //
+  List<int> dbpList = [1000, 0, 0, 0, 0, 0, 0, 0];
+  List<int> heartRateList = [1000, 0, 0, 0, 0, 0, 0, 0];
+
+  void getFilteredData() {
+    filteredData = [];
+    for (int i = 0; i < bpAllData.length; i++) {
+      DateTime date = DateTime.parse(bpAllData[i]["date"]);
+      DateTime dateTime = DateTime(date.year, date.month, date.day);
+      if (!(dateTime.isAfter(widget.filterParam.startDate) &&
+          dateTime.isBefore(widget.filterParam.endDate))) {
+        continue;
+      }
+
+      int hour = int.parse(bpAllData[i]["time"].toString().split(":")[0]);
+      int minute = int.parse(bpAllData[i]["time"].toString().split(":")[1]);
+      //print(
+      //    "${bpAllData[i]["time"].toString().split(":")[0]} ::: ${bpAllData[i]["time"].toString().split(":")[1]}");
+      DateTime time = DateTime(2023, 06, 11, hour, minute);
+      if (!(time.isAfter(DateTime(
+            2023,
+            06,
+            11,
+            int.parse(widget.filterParam.startHourController.text),
+            int.parse(widget.filterParam.startMinuteController.text),
+          )) &&
+          time.isBefore(DateTime(
+            2023,
+            06,
+            11,
+            int.parse(widget.filterParam.endHourController.text),
+            int.parse(widget.filterParam.endMinuteController.text),
+          )))) {
+        continue;
+      }
+
+      if (bpAllData[i]["sbp"] <
+              int.parse(widget.filterParam.minSBPController.text) ||
+          bpAllData[i]["sbp"] >
+              int.parse(widget.filterParam.maxSBPController.text)) {
+        continue;
+      }
+
+      if (bpAllData[i]["dbp"] <
+              int.parse(widget.filterParam.minDBPController.text) ||
+          bpAllData[i]["dbp"] >
+              int.parse(widget.filterParam.maxDBPController.text)) {
+        continue;
+      }
+
+      if (bpAllData[i]["heartRate"] <
+              int.parse(widget.filterParam.minHeartRateController.text) ||
+          bpAllData[i]["heartRate"] >
+              int.parse(widget.filterParam.maxHeartRateController.text)) {
+        continue;
+      }
+
+      if (widget.filterParam.armsSelected[3] == false) {
+        int count = 0;
+        if (widget.filterParam.armsSelected[0] == true &&
+            bpAllData[i]["arm"] == 0) {
+          count++;
+        }
+        if (widget.filterParam.armsSelected[1] == true &&
+            bpAllData[i]["arm"] == 1) {
+          count++;
+        }
+        if (widget.filterParam.armsSelected[2] == true &&
+            bpAllData[i]["arm"] == 2) {
+          count++;
+        }
+
+        if (count == 0) {
+          continue;
+        }
+      }
+
+      if (widget.filterParam.feelingsSelected[3] == false) {
+        int count = 0;
+        if (widget.filterParam.feelingsSelected[0] == true &&
+            bpAllData[i]["feeling"] == 0) {
+          count++;
+        }
+        if (widget.filterParam.feelingsSelected[1] == true &&
+            bpAllData[i]["feeling"] == 1) {
+          count++;
+        }
+        if (widget.filterParam.feelingsSelected[2] == true &&
+            bpAllData[i]["feeling"] == 2) {
+          count++;
+        }
+
+        if (count == 0) {
+          continue;
+        }
+      }
+
+      if (widget.filterParam.remarksSelected[2] == false) {
+        int count = 0;
+        if (widget.filterParam.remarksSelected[0] == true &&
+            bpAllData[i]["remark"] == "") {
+          count++;
+        }
+        if (widget.filterParam.remarksSelected[1] == true &&
+            bpAllData[i]["remark"] != "") {
+          count++;
+        }
+
+        if (count == 0) {
+          continue;
+        }
+      }
+
+      filteredData.add(bpAllData[i]);
+    }
+
+    /* print("***************************");
+    //print(filteredData);
+    print(filteredData.length);
+    print("***************************"); */
+  }
+
+  List<DataColumn> getDataColumns() {
+    //using the filteredData to generate the table
+    List<DataColumn> dataColumn = [];
+    List<String> columnNames = [
+      "日期",
+      "时间",
+      "收缩压",
+      "舒张压",
+      "心率",
+      "手臂",
+      "感觉",
+      "备注"
+    ];
+
+    for (int i = 0; i < columnNames.length; i++) {
+      dataColumn.add(DataColumn(
+        label: Expanded(
+          child: i == (columnNames.length - 1)
+              ? Text(
+                  columnNames[i],
+                  style: const TextStyle(
+                      fontFamily: "BalooBhai",
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold),
+                )
+              : Center(
+                  child: Text(
+                    columnNames[i],
+                    style: const TextStyle(
+                        fontFamily: "BalooBhai",
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+        ),
+      ));
+    }
+
+    return dataColumn;
+  }
+
+  List<DataRow> getDataRows() {
+    List<String> armsText = ["左手", "右手", "不选"];
+    List<String> feelingsText = ["较好", "还好", "较差"];
+
+    List<DataRow> dataRow = [];
+    for (int i = 0; i < filteredData.length; i++) {
+      dataRow.add(DataRow(
+        cells: <DataCell>[
+          DataCell(Center(
+            child: Text(filteredData[i]["date"]),
+          )),
+          DataCell(Center(
+            child: Text(filteredData[i]["time"]),
+          )),
+          DataCell(Center(
+            child: Text(filteredData[i]["sbp"].toString()),
+          )),
+          DataCell(Center(
+            child: Text(filteredData[i]["dbp"].toString()),
+          )),
+          DataCell(Center(
+            child: Text(filteredData[i]["heartRate"].toString()),
+          )),
+          DataCell(Center(
+            child: Text(armsText[filteredData[i]["arm"]]),
+          )),
+          DataCell(
+              Center(child: Text(feelingsText[filteredData[i]["feeling"]]))),
+          DataCell(
+            Text(filteredData[i]["remark"].toString()),
+          ),
+        ],
+      ));
+    }
+
+    return dataRow;
+  }
+
+  void getFilteredStatisticsData() {
+    //总和
+    int sbp = 0;
+    int dbp = 0;
+    int pulse = 0;
+    sbpList = [1000, 0, 0, 0, 0, 0, 0, 0];
+    dbpList = [1000, 0, 0, 0, 0, 0, 0, 0];
+    heartRateList = [1000, 0, 0, 0, 0, 0, 0, 0];
+
+    for (int i = 0; i < filteredData.length; i++) {
+      // 累加
+      int temp1 = filteredData[i]["sbp"];
+      int temp2 = filteredData[i]["dbp"];
+      int temp3 = filteredData[i]["heartRate"];
+      sbp += temp1;
+      dbp += temp2;
+      pulse += temp3;
+
+      //最小值，最大值
+      if (filteredData[i]["sbp"] < sbpList[0]) {
+        sbpList[0] = filteredData[i]["sbp"];
+      }
+      if (filteredData[i]["sbp"] > sbpList[1]) {
+        sbpList[1] = filteredData[i]["sbp"];
+      }
+
+      if (filteredData[i]["dbp"] < dbpList[0]) {
+        dbpList[0] = filteredData[i]["dbp"];
+      }
+      if (filteredData[i]["dbp"] > dbpList[1]) {
+        dbpList[1] = filteredData[i]["dbp"];
+      }
+
+      if (filteredData[i]["heartRate"] < heartRateList[0]) {
+        heartRateList[0] = filteredData[i]["heartRate"];
+      }
+
+      if (filteredData[i]["heartRate"] > heartRateList[1]) {
+        heartRateList[1] = filteredData[i]["heartRate"];
+      }
+
+      //范围
+      if (filteredData[i]["sbp"] < 90) {
+        sbpList[3]++;
+      } else if (filteredData[i]["sbp"] >= 90 &&
+          filteredData[i]["sbp"] <= 120) {
+        sbpList[4]++;
+      } else if (filteredData[i]["sbp"] >= 121 &&
+          filteredData[i]["sbp"] <= 139) {
+        sbpList[5]++;
+      } else if (filteredData[i]["sbp"] >= 140) {
+        sbpList[6]++;
+      }
+
+      if (filteredData[i]["dbp"] < 60) {
+        dbpList[3]++;
+      } else if (filteredData[i]["dbp"] >= 60 && filteredData[i]["dbp"] <= 80) {
+        dbpList[4]++;
+      } else if (filteredData[i]["dbp"] >= 81 && filteredData[i]["dbp"] <= 89) {
+        dbpList[5]++;
+      } else if (filteredData[i]["dbp"] >= 90) {
+        dbpList[6]++;
+      }
+
+      if (filteredData[i]["heartRate"] < 60) {
+        heartRateList[3]++;
+      } else if (filteredData[i]["heartRate"] >= 60 &&
+          filteredData[i]["heartRate"] <= 100) {
+        heartRateList[4]++;
+      } else if (filteredData[i]["heartRate"] >= 101 &&
+          filteredData[i]["heartRate"] <= 120) {
+        heartRateList[5]++;
+      } else if (filteredData[i]["heartRate"] >= 121) {
+        heartRateList[6]++;
+      }
+
+      sbpList[7]++;
+      dbpList[7]++;
+      heartRateList[7]++;
+    }
+
+    //平均值
+    if (filteredData.length > 0) {
+      sbpList[2] = sbp ~/ filteredData.length;
+      dbpList[2] = dbp ~/ filteredData.length;
+      heartRateList[2] = pulse ~/ filteredData.length;
+    }
+  }
+
+  List<DataColumn> getStatisticsDataColumns() {
+    List<DataColumn> dataColumn = [];
+    List<String> columnNames = [
+      "血压/心率",
+      "最低值",
+      "最高值",
+      "平均值",
+      "偏低次数",
+      "正常次数",
+      "偏高次数",
+      "异常次数",
+      "总次数",
+    ];
+
+    for (int i = 0; i < columnNames.length; i++) {
+      dataColumn.add(DataColumn(
+        label: Expanded(
+          child: Center(
+            child: Text(
+              columnNames[i],
+              style: const TextStyle(
+                  fontFamily: "BalooBhai",
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ));
+    }
+
+    return dataColumn;
+  }
+
+  List<DataRow> getStatisticsDataRows() {
+    List<DataRow> dataRow = [];
+    List<String> names = ["收缩压", "舒张压", "心率"];
+    List<List<int>> data = [sbpList, dbpList, heartRateList];
+
+    for (int i = 0; i < names.length; i++) {
+      dataRow.add(DataRow(
+        cells: <DataCell>[
+          DataCell(Center(
+            child: Text(names[i]),
+          )),
+          DataCell(Center(
+            child: Text(data[i][0].toString()),
+          )),
+          DataCell(Center(
+            child: Text(data[i][1].toString()),
+          )),
+          DataCell(Center(
+            child: Text(data[i][2].toString()),
+          )),
+          DataCell(Center(
+            child: Text(data[i][3].toString()),
+          )),
+          DataCell(Center(
+            child: Text(data[i][4].toString()),
+          )),
+          DataCell(Center(
+            child: Text(data[i][5].toString()),
+          )),
+          DataCell(Center(
+            child: Text(data[i][6].toString()),
+          )),
+          DataCell(Center(
+            child: Text(data[i][7].toString()),
+          )),
+        ],
+      ));
+    }
+
+    return dataRow;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 原始数据
-    /* if (widget.filterParam.refresh == true && widget.oldParam == true) {
-      print("数据表格刷新（完全无设置过滤器）");
-      widget.filterParam.printFilterParams();
-      widget.oldParam = false;
-    } else if (widget.filterParam.refresh == true && widget.oldParam == false) {
-      print("数据表格刷新（已经设置过滤器）");
-      widget.filterParam.printFilterParams();
-    } */
-
+    widget.filterParam.tackle();
+    // 原始数据记录
     if (widget.filterParam.refresh == true) {
       print("数据表格刷新");
+      getFilteredData();
+      getFilteredStatisticsData();
       widget.filterParam.printFilterParams();
-      //widget.oldParam = false;
       widget.filterParam.refresh = false;
     } else {
       print("数据表格 (不) 刷新");
       widget.filterParam.printFilterParams();
       widget.filterParam.refresh = false;
+      //return Container();
     }
 
-    return UnconstrainedBox(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.85,
-        height: 200,
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Color.fromARGB(255, 129, 127, 127),
-          ),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        alignment: Alignment.center,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 247, 240, 186),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Text("血压记录"),
+    return Column(
+      children: [
+        UnconstrainedBox(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            height: filteredData.length < 6
+                ? ((filteredData.length + 1) * 50) + 50
+                : (50 * 6) + 50,
+            /* decoration: BoxDecoration(
+            border: Border.all(
+              color: Color.fromARGB(255, 129, 127, 127),
+            ),
+            borderRadius: BorderRadius.circular(15),
+          ), */
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const Text("数据表",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontFamily: "BalooBhai",
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 5),
+                    Image.asset(
+                      "assets/icons/statistics.png",
+                      height: 18,
+                      width: 18,
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                UnconstrainedBox(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    height: filteredData.length < 6
+                        ? (filteredData.length + 1) * 50
+                        : 50 * 6,
+                    //height: MediaQuery.of(context).size.height * 0.5,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Color.fromARGB(255, 129, 127, 127),
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    alignment: Alignment.center,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: DataTable(
+                          columns: getDataColumns(),
+                          rows: getDataRows(),
+                          headingRowColor: MaterialStateColor.resolveWith(
+                              (states) =>
+                                  const Color.fromRGBO(255, 151, 245, 0.28)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-      ),
+
+        ///const SizedBox(height: 5),
+
+        // 统计部分
+        UnconstrainedBox(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            height: 250,
+            /* decoration: BoxDecoration(
+            border: Border.all(
+              color: Color.fromARGB(255, 129, 127, 127),
+            ),
+            borderRadius: BorderRadius.circular(15),
+          ), */
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const Text("统计表",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontFamily: "BalooBhai",
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 5),
+                    Image.asset(
+                      "assets/icons/statistics.png",
+                      height: 18,
+                      width: 18,
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                UnconstrainedBox(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    height: 200,
+                    //height: MediaQuery.of(context).size.height * 0.5,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Color.fromARGB(255, 129, 127, 127),
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                      /* boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 0.2,
+                          blurRadius: 0.2,
+                          offset: const Offset(0, 0.5),
+                        ),
+                      ], */
+                    ),
+                    alignment: Alignment.center,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: DataTable(
+                          columns: getStatisticsDataColumns(),
+                          rows: getStatisticsDataRows(),
+                          headingRowColor: MaterialStateColor.resolveWith(
+                              (states) =>
+                                  const Color.fromRGBO(34, 14, 244, 0.16)),
+                        ),
+                        /* child: Container(
+                      color: const Color.fromARGB(255, 64, 255, 198),
+                    ), */
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -727,6 +1270,105 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
   }
 }
 
+// 手臂选择按钮
+// ignore: must_be_immutable
+class RemarksButtonsWidget extends StatefulWidget {
+  //final VoidCallback onPressed;
+  //final String iconPath;
+  //final bool isSelected;
+  List<bool> isSelected = [false, false, true];
+  RemarksButtonsWidget({
+    Key? key,
+    //required this.onPressed,
+    //required this.iconPath,
+    required this.isSelected,
+  }) : super(key: key);
+
+  @override
+  State<RemarksButtonsWidget> createState() => _RemarksButtonsWidgetState();
+}
+
+class _RemarksButtonsWidgetState extends State<RemarksButtonsWidget> {
+  List<String> buttonText = ["无备注", "有备注", "-"];
+
+  Widget getButton(int index) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (index == 2) {
+            for (int i = 0; i < widget.isSelected.length; i++) {
+              widget.isSelected[i] = false;
+            }
+            widget.isSelected[index] = true;
+          } else {
+            widget.isSelected[2] = false;
+            widget.isSelected[index] = !widget.isSelected[index];
+            int totalSelected = 0;
+            for (int i = 0; i < 2; i++) {
+              widget.isSelected[i] ? totalSelected++ : null;
+            }
+            if (totalSelected == 2) {
+              for (int i = 0; i < 2; i++) {
+                widget.isSelected[i] = false;
+              }
+              widget.isSelected[2] = true;
+            }
+          }
+        });
+      },
+      child: Container(
+        child: Row(children: [
+          Container(
+            height: 40,
+            width: 65,
+            padding: EdgeInsets.all(0.0),
+            decoration: BoxDecoration(
+              color: widget.isSelected[index] == true
+                  ? const Color.fromRGBO(253, 134, 255, 0.66)
+                  : Color.fromRGBO(218, 218, 218, 0.66),
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+            ),
+            alignment: Alignment.center,
+            child: Center(
+              child: Text(
+                buttonText[index],
+                style: TextStyle(
+                  color: widget.isSelected[index] == true
+                      ? Color.fromRGBO(66, 9, 119, 0.773)
+                      : Color.fromRGBO(94, 68, 68, 100),
+                  fontSize: 16.0,
+                  fontFamily: 'Blinker',
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          const SizedBox(width: 5),
+        ]),
+      ),
+    );
+  }
+
+  Widget getButtonSet() {
+    List<Widget> buttonSet = [];
+    for (int i = 0; i < buttonText.length; i++) {
+      buttonSet.add(getButton(i));
+    }
+
+    return Row(
+      children: buttonSet,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: getButtonSet(),
+    );
+  }
+}
+
 // 确定取消按钮
 // ignore: must_be_immutable
 class OKCancelButtonsWidget extends StatefulWidget {
@@ -785,6 +1427,7 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
             widget.filterParam.maxHeartRateController.text = "";
             widget.filterParam.armsSelected = [false, false, false, true];
             widget.filterParam.feelingsSelected = [false, false, false, true];
+            widget.filterParam.remarksSelected = [false, false, true];
 
             // widget.filterParam.armsSelected = _localPrevArmsSelected;
             // widget.filterParam.feelingsSelected = _localPrevFeelingsSelected;
@@ -956,7 +1599,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                 // 筛选按钮
                 GestureDetector(
                   onTap: () {
-                    print("筛选按钮");
+                    print("展开/收起");
                     isExpanded = !isExpanded;
                     setState(() {});
                   },
@@ -964,19 +1607,20 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                     height: 25,
                     width: 40,
                     padding: const EdgeInsets.all(0.0),
-                    decoration: BoxDecoration(
+                    /* decoration: BoxDecoration(
                       color: Color.fromARGB(255, 216, 219, 218),
                       borderRadius: BorderRadius.circular(10.0),
                       border: Border.all(
-                          color: const Color.fromRGBO(122, 119, 119, 0.43)),
-                    ),
+                        color: const Color.fromRGBO(122, 119, 119, 0.43),
+                      ),
+                    ), */
                     alignment: Alignment.center,
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        "筛选",
-                        style: TextStyle(
+                        isExpanded ? "收起" : "展开",
+                        style: const TextStyle(
                           color: Colors.black,
-                          fontSize: 12.0,
+                          fontSize: 15.0,
                           fontFamily: 'Blinker',
                         ),
                         textAlign: TextAlign.center,
@@ -997,7 +1641,8 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
           AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             width: MediaQuery.of(context).size.width * 0.85,
-            height: isExpanded ? 420 : 50,
+            //height: isExpanded ? 420 : 50,
+            height: isExpanded ? 480 : 50,
             decoration: BoxDecoration(
               border: Border.all(
                 color: const Color.fromARGB(255, 129, 127, 127),
@@ -1029,6 +1674,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                       getTitle("心率", "PULSE"),
                                       getTitle("手臂", "ARM"),
                                       getTitle("感觉", "FEELINGS"),
+                                      getTitle("备注", "REMARKS"),
                                     ],
                                   ),
                                   const SizedBox(
@@ -1101,6 +1747,12 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                         newFilterParam: widget.filterParam,
                                       ),
                                       const SizedBox(height: 10),
+
+                                      //备注
+                                      RemarksButtonsWidget(
+                                        isSelected:
+                                            widget.filterParam.remarksSelected,
+                                      ),
                                     ],
                                   )
                                 ]),
@@ -1118,7 +1770,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                 : Center(
                     // child: Text("..."),
                     child: Image.asset(
-                      "assets/icons/filter.png",
+                      "assets/icons/filter1.png",
                       height: 25,
                       width: 25,
                     ),
@@ -1151,7 +1803,7 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
     endDate: DateTime.now(),
     armsSelected: [false, false, false, true],
     feelingsSelected: [false, false, false, true],
-    refresh: false,
+    refresh: true,
     minHeartRateController: TextEditingController(),
     maxHeartRateController: TextEditingController(),
     minSBPController: TextEditingController(),
@@ -1162,6 +1814,7 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
     startMinuteController: TextEditingController(),
     endHourController: TextEditingController(),
     endMinuteController: TextEditingController(),
+    remarksSelected: [false, false, true],
   );
 
   List<bool> prevArmsSelected = [false, false, false, true];
@@ -1244,7 +1897,7 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
                     const PageTitle(
                         title: "血压数据表",
                         icons: "assets/icons/bloodPressure.png"),
-                    GestureDetector(
+                    /* GestureDetector(
                       onTap: () {
                         print("哈哈哈哈");
                       },
@@ -1253,7 +1906,7 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
                         height: 30,
                         width: 30,
                       ),
-                    )
+                    ) */
                   ],
                 ),
               ),
@@ -1273,84 +1926,6 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
               filterParam: filterParam,
               oldParam: isOldParam,
               updateGraph: updateGraph,
-            ),
-
-            UnconstrainedBox(
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: 200,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Color.fromARGB(255, 129, 127, 127),
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                alignment: Alignment.center,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: DataTable(
-                      columns: const <DataColumn>[
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              'Name',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              'Age',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              'Role',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                            ),
-                          ),
-                        ),
-                      ],
-                      rows: const <DataRow>[
-                        DataRow(
-                          cells: <DataCell>[
-                            DataCell(Text('Sarah')),
-                            DataCell(Text('19')),
-                            DataCell(Text('Student')),
-                          ],
-                        ),
-                        DataRow(
-                          cells: <DataCell>[
-                            DataCell(Text('Janine')),
-                            DataCell(Text('43')),
-                            DataCell(Text('Professor')),
-                          ],
-                        ),
-                        DataRow(
-                          cells: <DataCell>[
-                            DataCell(Text('William')),
-                            DataCell(Text('27')),
-                            DataCell(Text('Associate Professor')),
-                          ],
-                        ),
-                        DataRow(
-                          cells: <DataCell>[
-                            DataCell(Text('William')),
-                            DataCell(Text('27')),
-                            DataCell(Text('Associate Professor')),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ),
           ]),
         ),

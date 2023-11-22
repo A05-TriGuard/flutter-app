@@ -319,7 +319,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
+    //print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
 
     /* BloodPressureGraph graph =  BloodPressureGraph(
       date: widget.date,
