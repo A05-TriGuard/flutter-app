@@ -161,10 +161,28 @@ https://stackoverflow.com/questions/55046638/draggable-floatingactionbutton-in-f
 #### 限制键盘只输入数字
 https://stackoverflow.com/questions/49577781/how-to-create-number-input-field-in-flutter
 `import 'package:flutter/services.dart';`
+
 ```new TextField(
               decoration: new InputDecoration(labelText: "Enter your number"),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], // Only numbers can be entered
-            ),```
+            ),
+```
+          
+
+#### path_provider 安装问题
+`flutter pub add path_provider`出现
+```
+Building with plugins requires symlink support.
+Please enable Developer Mode in your system settings. Run
+  start ms-settings:developers
+to open settings.
+```
+https://stackoverflow.com/questions/68089177/flutter-building-with-plugins-requires-symlink-support
+
+
+#### AndroidManifest.xml位置 与 添加权限
+https://medium.com/@santokimaulik/flutter-location-permission-with-permission-handler-ad2c7564b596
+https://stackoverflow.com/questions/76028672/flutter-exact-place-to-put-permissions-in-androidmanifest-files-for-flutter
