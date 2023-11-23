@@ -157,3 +157,14 @@ https://pub.dev/packages/flutter_cupertino_date_picker_fork
 
 #### Draggable FloatingActionButton in Flutter
 https://stackoverflow.com/questions/55046638/draggable-floatingactionbutton-in-flutter
+
+#### 限制键盘只输入数字
+https://stackoverflow.com/questions/49577781/how-to-create-number-input-field-in-flutter
+`import 'package:flutter/services.dart';`
+```new TextField(
+              decoration: new InputDecoration(labelText: "Enter your number"),
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], // Only numbers can be entered
+            ),```

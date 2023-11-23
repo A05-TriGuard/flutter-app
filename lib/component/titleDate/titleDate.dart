@@ -413,7 +413,7 @@ class _DatePicker2State extends State<DatePicker2> {
               child: IconButton(
                 padding: EdgeInsets.all(0),
                 icon: const Icon(Icons.calendar_month),
-                iconSize: 25,
+                iconSize: 22,
                 /* onPressed: () {
                             print("editDate");
                           }, */
@@ -498,9 +498,9 @@ class _DatePicker2State extends State<DatePicker2> {
                         ],
                       ),
                     ),
-                    const SizedBox(
+                    /* const SizedBox(
                       height: 5,
-                    ),
+                    ), */
                   ],
                 )),
               ),
