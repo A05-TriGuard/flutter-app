@@ -78,8 +78,8 @@ class _TitleDateState extends State<TitleDate> {
 
                       // 日期选择
                       SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 30,
+                        height: 30,
                         child: IconButton(
                           padding: EdgeInsets.all(0),
                           icon: const Icon(Icons.calendar_month),
@@ -479,6 +479,156 @@ class _DatePicker2State extends State<DatePicker2> {
                                   oldDate = widget.date;
                                   print("确定更改日期为 ${widget.date}");
                                   widget.updateDate(widget.date);
+                                });
+
+                                Navigator.of(context).pop();
+                              },
+                              style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Color.fromARGB(255, 118, 241, 250))),
+                              child: const Text(
+                                '确定',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 15),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                  ],
+                )),
+              ),
+            )
+          ]),
+    );
+  }
+}
+
+// hour and minute picker ,must 2 digit number
+class TimePicker extends StatefulWidget {
+  DateTime time = DateTime(2023, 11, 11, 00, 00);
+  final UpdateDateCallback updateTime;
+  TimePicker({super.key, required this.time, required this.updateTime});
+  @override
+  State<TimePicker> createState() => _TimePickerState();
+}
+
+class _TimePickerState extends State<TimePicker> {
+  //DateTime date = DateTime(2023, 11, 11);
+  DateTime oldTime =
+      DateTime(2023, 11, 11, DateTime.now().hour, DateTime.now().minute);
+
+  void _showDialog(Widget child) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 250,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: SafeArea(
+          top: false,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Row(
+          //mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              //"${widget.date.year}年${widget.date.month}月${widget.date.day}日",
+              //'${widget.date.year}年${widget.date.month}月${widget.date.day}日',
+              // '${widget.time.hour}:${widget.time.minute}',
+              '${widget.time.hour.toString().padLeft(2, '0')}:${widget.time.minute.toString().padLeft(2, '0')}',
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontFamily: "BalooBhai",
+                  color: Color.fromRGBO(48, 48, 48, 1)),
+            ),
+            const SizedBox(width: 2),
+
+            // 日期选择
+            SizedBox(
+              width: 30,
+              height: 30,
+              child: IconButton(
+                padding: EdgeInsets.all(0),
+                icon:
+                    Image.asset("assets/icons/time.png", width: 20, height: 30),
+                /* onPressed: () {
+                            print("editDate");
+                          }, */
+
+                onPressed: () => _showDialog(Column(
+                  children: [
+                    Expanded(
+                      //height: 220,
+                      child: CupertinoDatePicker(
+                        initialDateTime: widget.time,
+                        //mode: CupertinoDatePickerMode.date,
+                        mode: CupertinoDatePickerMode.time,
+
+                        use24hFormat: true,
+                        showDayOfWeek: true,
+                        onDateTimeChanged: (DateTime newTime) {
+                          widget.time = newTime;
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      height: 40,
+                      width: 320,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          //取消
+                          Container(
+                            width: 120,
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  widget.time = oldTime;
+                                  widget.updateTime(widget.time);
+                                });
+
+                                Navigator.of(context).pop();
+                              },
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                  Color.fromARGB(255, 221, 223, 223),
+                                ),
+                              ),
+                              child: const Text(
+                                '取消',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 15),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          //确定
+                          Container(
+                            width: 120,
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  oldTime = widget.time;
+                                  print("确定更改时间为 ${widget.time}");
+                                  widget.updateTime(widget.time);
                                 });
 
                                 Navigator.of(context).pop();

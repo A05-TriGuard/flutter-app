@@ -21,8 +21,9 @@ List<bool> prevFeelingsSelected1 = [false, false, false, true];
 
 class BloodPressureFilterParam {
   DateTime startDate = DateTime.now().subtract(const Duration(days: 7));
-
   DateTime endDate = DateTime.now();
+  DateTime startTime = DateTime(2023, 11, 11, 00, 00);
+  DateTime endTime = DateTime(2023, 11, 11, 23, 59);
   List<bool> armsSelected = [false, false, false, true];
   List<bool> feelingsSelected = [false, false, false, true];
   List<bool> remarksSelected = [false, false, true];
@@ -40,6 +41,8 @@ class BloodPressureFilterParam {
   BloodPressureFilterParam({
     required this.startDate,
     required this.endDate,
+    required this.startTime,
+    required this.endTime,
     required this.armsSelected,
     required this.feelingsSelected,
     required this.refresh,
@@ -59,7 +62,10 @@ class BloodPressureFilterParam {
   void printFilterParams() {
     print('日期：${startDate} ~ ${endDate}');
     print(
-        '时间： ${startHourController.text}:${startMinuteController.text} ~ ${endHourController.text}:${endMinuteController.text}');
+        '时间1： ${startHourController.text}:${startMinuteController.text} ~ ${endHourController.text}:${endMinuteController.text}');
+    print(
+        '时间2： ${startTime.hour}:${startTime.minute} ~ ${endTime.hour}:${endTime.minute}');
+
     print('收缩压： ${minSBPController.text} ~  ${maxSBPController.text}');
     print('舒张压： ${minDBPController.text} ~  ${maxDBPController.text}');
     print(
@@ -72,6 +78,8 @@ class BloodPressureFilterParam {
   }
 
   void tackle() {
+    // startTime and endTime pad 0
+
     if (startHourController.text == "") {
       startHourController.text = "00";
     }
@@ -170,7 +178,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       int minute = int.parse(bpAllData[i]["time"].toString().split(":")[1]);
       //print(
       //    "${bpAllData[i]["time"].toString().split(":")[0]} ::: ${bpAllData[i]["time"].toString().split(":")[1]}");
-      DateTime time = DateTime(2023, 06, 11, hour, minute);
+      /* DateTime time = DateTime(2023, 06, 11, hour, minute);
       if (!(time.isAfter(DateTime(
             2023,
             06,
@@ -185,6 +193,18 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
             int.parse(widget.filterParam.endHourController.text),
             int.parse(widget.filterParam.endMinuteController.text),
           )))) {
+        continue;
+      } */
+
+      DateTime time = DateTime(2023, 06, 11, hour, minute);
+      if (!(time.isAfter(DateTime(
+              2023,
+              06,
+              11,
+              widget.filterParam.startTime.hour,
+              widget.filterParam.startTime.minute)) &&
+          time.isBefore(DateTime(2023, 06, 11, widget.filterParam.endTime.hour,
+              widget.filterParam.endTime.minute)))) {
         continue;
       }
 
@@ -539,9 +559,9 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         UnconstrainedBox(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.85,
-            height: filteredData.length < 6
+            height: filteredData.length < 9
                 ? ((filteredData.length + 1) * 50) + 50
-                : (50 * 6) + 50,
+                : (50 * 9) + 50,
             /* decoration: BoxDecoration(
             border: Border.all(
               color: Color.fromARGB(255, 129, 127, 127),
@@ -572,9 +592,9 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                 UnconstrainedBox(
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
-                    height: filteredData.length < 6
+                    height: filteredData.length < 9
                         ? (filteredData.length + 1) * 50
-                        : 50 * 6,
+                        : 50 * 9,
                     //height: MediaQuery.of(context).size.height * 0.5,
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -795,6 +815,8 @@ class _ArmButtonsWidgetState extends State<ArmButtonsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      alignment: Alignment.center,
+      height: 41,
       child: getButtonSet(),
     );
   }
@@ -900,6 +922,8 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
     } */
 
     return Container(
+      alignment: Alignment.center,
+      height: 41,
       child: getButtonSet(),
     );
   }
@@ -927,52 +951,56 @@ class _PulseFilterWidgetState extends State<PulseFilterWidget> {
   // final TextEditingController maxHeartRateController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 75,
-          height: 40,
-          child: TextFormField(
-            maxLength: 3,
-            controller: widget.minHeartRateController,
-            //initialValue: widget.heartRate,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "-",
-                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+    return Container(
+      alignment: Alignment.center,
+      height: 41,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 75,
+            height: 40,
+            child: TextFormField(
+              maxLength: 3,
+              controller: widget.minHeartRateController,
+              //initialValue: widget.heartRate,
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: "-",
+                  contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
           ),
-        ),
-        SizedBox(width: 5),
-        const Text(
-          "至",
-          style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
-        ),
-        SizedBox(width: 5),
-        SizedBox(
-          width: 75,
-          height: 40,
-          child: TextFormField(
-            maxLength: 3,
-            controller: widget.maxHeartRateController,
-            //initialValue: widget.heartRate,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "-",
-                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+          SizedBox(width: 5),
+          const Text(
+            "至",
+            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
-        ),
-        SizedBox(width: 2),
-        const Text(
-          "次/分",
-          style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
-        ),
-      ],
+          SizedBox(width: 5),
+          SizedBox(
+            width: 75,
+            height: 40,
+            child: TextFormField(
+              maxLength: 3,
+              controller: widget.maxHeartRateController,
+              //initialValue: widget.heartRate,
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: "-",
+                  contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
+          ),
+          SizedBox(width: 2),
+          const Text(
+            "次/分",
+            style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -995,52 +1023,56 @@ class SBPFilterWidget extends StatefulWidget {
 class _SBPFilterWidgetState extends State<SBPFilterWidget> {
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 75,
-          height: 40,
-          child: TextFormField(
-            maxLength: 3,
-            controller: widget.minSBPController,
-            //initialValue: widget.heartRate,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "-",
-                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+    return Container(
+      alignment: Alignment.center,
+      height: 41,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 75,
+            height: 40,
+            child: TextFormField(
+              maxLength: 3,
+              controller: widget.minSBPController,
+              //initialValue: widget.heartRate,
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: "-",
+                  contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
           ),
-        ),
-        SizedBox(width: 5),
-        const Text(
-          "至",
-          style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
-        ),
-        SizedBox(width: 5),
-        SizedBox(
-          width: 75,
-          height: 40,
-          child: TextFormField(
-            maxLength: 3,
-            controller: widget.maxSBPController,
-            //initialValue: widget.heartRate,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "-",
-                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+          SizedBox(width: 5),
+          const Text(
+            "至",
+            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
-        ),
-        SizedBox(width: 2),
-        const Text(
-          "mmHg",
-          style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
-        ),
-      ],
+          SizedBox(width: 5),
+          SizedBox(
+            width: 75,
+            height: 40,
+            child: TextFormField(
+              maxLength: 3,
+              controller: widget.maxSBPController,
+              //initialValue: widget.heartRate,
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: "-",
+                  contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
+          ),
+          SizedBox(width: 2),
+          const Text(
+            "mmHg",
+            style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1065,52 +1097,56 @@ class _DBPFilterWidgetState extends State<DBPFilterWidget> {
   // final TextEditingController maxHeartRateController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 75,
-          height: 40,
-          child: TextFormField(
-            maxLength: 3,
-            controller: widget.minDBPController,
-            //initialValue: widget.heartRate,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "-",
-                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+    return Container(
+      alignment: Alignment.center,
+      height: 41,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 75,
+            height: 40,
+            child: TextFormField(
+              maxLength: 3,
+              controller: widget.minDBPController,
+              //initialValue: widget.heartRate,
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: "-",
+                  contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
           ),
-        ),
-        SizedBox(width: 5),
-        const Text(
-          "至",
-          style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
-        ),
-        SizedBox(width: 5),
-        SizedBox(
-          width: 75,
-          height: 40,
-          child: TextFormField(
-            maxLength: 3,
-            controller: widget.maxDBPController,
-            //initialValue: widget.heartRate,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "-",
-                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+          SizedBox(width: 5),
+          const Text(
+            "至",
+            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
-        ),
-        SizedBox(width: 2),
-        const Text(
-          "mmHg",
-          style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
-        ),
-      ],
+          SizedBox(width: 5),
+          SizedBox(
+            width: 75,
+            height: 40,
+            child: TextFormField(
+              maxLength: 3,
+              controller: widget.maxDBPController,
+              //initialValue: widget.heartRate,
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: "-",
+                  contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
+          ),
+          SizedBox(width: 2),
+          const Text(
+            "mmHg",
+            style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1231,6 +1267,47 @@ class _TimeFilterWidgetState extends State<TimeFilterWidget> {
   }
 }
 
+class TimeFilterWidget2 extends StatefulWidget {
+  DateTime startTime = DateTime.now();
+  DateTime endTime = DateTime.now();
+  final UpdateDateCallback updateStartTime;
+  final UpdateDateCallback updateEndTime;
+
+  TimeFilterWidget2(
+      {Key? key,
+      required this.startTime,
+      required this.endTime,
+      required this.updateStartTime,
+      required this.updateEndTime})
+      : super(key: key);
+
+  @override
+  State<TimeFilterWidget2> createState() => _TimeFilterWidget2State();
+}
+
+class _TimeFilterWidget2State extends State<TimeFilterWidget2> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      height: 41,
+      child: Row(
+        children: [
+          TimePicker(
+              time: widget.startTime, updateTime: widget.updateStartTime),
+          const SizedBox(width: 5),
+          const Text(
+            "至",
+            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
+          ),
+          const SizedBox(width: 5),
+          TimePicker(time: widget.endTime, updateTime: widget.updateEndTime),
+        ],
+      ),
+    );
+  }
+}
+
 // 日期选择
 class DateFilterWidget extends StatefulWidget {
   DateTime startDate = DateTime.now();
@@ -1255,17 +1332,22 @@ class DateFilterWidget extends StatefulWidget {
 class _DateFilterWidgetState extends State<DateFilterWidget> {
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        DatePicker2(date: widget.startDate, updateDate: widget.updateStartDate),
-        const SizedBox(width: 10),
-        const Text(
-          "至",
-          style: TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
-        ),
-        const SizedBox(width: 10),
-        DatePicker2(date: widget.endDate, updateDate: widget.updateEndDate),
-      ],
+    return Container(
+      alignment: Alignment.center,
+      height: 41,
+      child: Row(
+        children: [
+          DatePicker2(
+              date: widget.startDate, updateDate: widget.updateStartDate),
+          const SizedBox(width: 10),
+          const Text(
+            "至",
+            style: TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
+          ),
+          const SizedBox(width: 10),
+          DatePicker2(date: widget.endDate, updateDate: widget.updateEndDate),
+        ],
+      ),
     );
   }
 }
@@ -1320,7 +1402,7 @@ class _RemarksButtonsWidgetState extends State<RemarksButtonsWidget> {
         child: Row(children: [
           Container(
             height: 40,
-            width: 65,
+            width: 68,
             padding: EdgeInsets.all(0.0),
             decoration: BoxDecoration(
               color: widget.isSelected[index] == true
@@ -1364,6 +1446,8 @@ class _RemarksButtonsWidgetState extends State<RemarksButtonsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      alignment: Alignment.center,
+      height: 41,
       child: getButtonSet(),
     );
   }
@@ -1415,16 +1499,18 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
             widget.filterParam.startDate =
                 DateTime.now().subtract(const Duration(days: 7));
             widget.filterParam.endDate = DateTime.now();
-            widget.filterParam.startHourController.text = "";
-            widget.filterParam.startMinuteController.text = "";
-            widget.filterParam.endHourController.text = "";
-            widget.filterParam.endMinuteController.text = "";
-            widget.filterParam.minSBPController.text = "";
-            widget.filterParam.maxSBPController.text = "";
-            widget.filterParam.minDBPController.text = "";
-            widget.filterParam.maxDBPController.text = "";
-            widget.filterParam.minHeartRateController.text = "";
-            widget.filterParam.maxHeartRateController.text = "";
+            widget.filterParam.startTime = DateTime(2023, 11, 11, 00, 00);
+            widget.filterParam.endTime = DateTime(2023, 11, 11, 23, 59);
+            widget.filterParam.startHourController.text = "00";
+            widget.filterParam.startMinuteController.text = "00";
+            widget.filterParam.endHourController.text = "23";
+            widget.filterParam.endMinuteController.text = "59";
+            widget.filterParam.minSBPController.text = "70";
+            widget.filterParam.maxSBPController.text = "140";
+            widget.filterParam.minDBPController.text = "70";
+            widget.filterParam.maxDBPController.text = "140";
+            widget.filterParam.minHeartRateController.text = "70";
+            widget.filterParam.maxHeartRateController.text = "150";
             widget.filterParam.armsSelected = [false, false, false, true];
             widget.filterParam.feelingsSelected = [false, false, false, true];
             widget.filterParam.remarksSelected = [false, false, true];
@@ -1526,6 +1612,8 @@ class BloodPressureFilterWidget extends StatefulWidget {
   final VoidCallback updateGraph;
   final UpdateDateCallback updateStartDate;
   final UpdateDateCallback updateEndDate;
+  final UpdateDateCallback updateStartTime;
+  final UpdateDateCallback updateEndTime;
 
   BloodPressureFilterWidget({
     Key? key,
@@ -1535,6 +1623,8 @@ class BloodPressureFilterWidget extends StatefulWidget {
     required this.prevFeelingsSelected,
     required this.updateStartDate,
     required this.updateEndDate,
+    required this.updateStartTime,
+    required this.updateEndTime,
   }) : super(key: key);
 
   @override
@@ -1641,7 +1731,6 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
           AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             width: MediaQuery.of(context).size.width * 0.85,
-            //height: isExpanded ? 420 : 50,
             height: isExpanded ? 480 : 50,
             decoration: BoxDecoration(
               border: Border.all(
@@ -1661,7 +1750,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                           children: [
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Column(
                                     children: [
@@ -1683,6 +1772,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       // 日期
                                       DateFilterWidget(
@@ -1697,7 +1787,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                       const SizedBox(height: 10),
 
                                       //时间
-                                      TimeFilterWidget(
+                                      /* TimeFilterWidget(
                                         startHourController: widget
                                             .filterParam.startHourController,
                                         startMinuteController: widget
@@ -1706,7 +1796,14 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                             .filterParam.endHourController,
                                         endMinuteController: widget
                                             .filterParam.endMinuteController,
-                                      ),
+                                      ), */
+                                      TimeFilterWidget2(
+                                          startTime:
+                                              widget.filterParam.startTime,
+                                          endTime: widget.filterParam.endTime,
+                                          updateStartTime:
+                                              widget.updateStartTime,
+                                          updateEndTime: widget.updateEndTime),
 
                                       //
                                       const SizedBox(height: 10),
@@ -1801,6 +1898,8 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
   BloodPressureFilterParam filterParam = BloodPressureFilterParam(
     startDate: DateTime.now().subtract(const Duration(days: 7)),
     endDate: DateTime.now(),
+    startTime: DateTime(2023, 11, 11, 00, 00),
+    endTime: DateTime(2023, 11, 11, 23, 59),
     armsSelected: [false, false, false, true],
     feelingsSelected: [false, false, false, true],
     refresh: true,
@@ -1835,6 +1934,18 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
   void updateEndDate(DateTime newDate) {
     setState(() {
       filterParam.endDate = newDate;
+    });
+  }
+
+  void updateStartTime(DateTime newTime) {
+    setState(() {
+      filterParam.startTime = newTime;
+    });
+  }
+
+  void updateEndTime(DateTime newTime) {
+    setState(() {
+      filterParam.endTime = newTime;
     });
   }
 
@@ -1897,16 +2008,18 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
                     const PageTitle(
                         title: "血压数据表",
                         icons: "assets/icons/bloodPressure.png"),
-                    /* GestureDetector(
-                      onTap: () {
-                        print("哈哈哈哈");
-                      },
-                      child: Image.asset(
-                        "assets/icons/filter.png",
-                        height: 30,
-                        width: 30,
+                    Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          print("哈哈哈哈");
+                        },
+                        child: Image.asset(
+                          "assets/icons/filter.png",
+                          height: 25,
+                          width: 25,
+                        ),
                       ),
-                    ) */
+                    ),
                   ],
                 ),
               ),
@@ -1919,6 +2032,8 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
               updateGraph: updateGraph,
               updateStartDate: updateStartDate,
               updateEndDate: updateEndDate,
+              updateStartTime: updateStartTime,
+              updateEndTime: updateEndTime,
             ),
 
             // table数据表格
