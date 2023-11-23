@@ -230,4 +230,89 @@ class MyIcons {
       height: 20,
     );
   }
+
+  // ==================== 动态模块 ====================
+  Image bloodLipid() {
+    return Image.asset(
+      "assets/icons/bloodLipid.png",
+      height: 25,
+    );
+  }
+
+  Image bloodLipidBig() {
+    return Image.asset(
+      "assets/icons/bloodLipid.png",
+      height: 40,
+    );
+  }
+
+  Image bloodSugar() {
+    return Image.asset(
+      "assets/icons/bloodSugar.png",
+      height: 25,
+    );
+  }
+
+  Image bloodSugarBig() {
+    return Image.asset(
+      "assets/icons/bloodSugar.png",
+      height: 40,
+    );
+  }
+
+  Image bloodPressure2() {
+    return Image.asset(
+      "assets/icons/bloodPressure2.png",
+      height: 25,
+    );
+  }
+
+  Image bloodPressure2Big() {
+    return Image.asset(
+      "assets/icons/bloodPressure2.png",
+      height: 40,
+    );
+  }
+
+  Image collection() {
+    return Image.asset(
+      "assets/icons/star.png",
+      height: 15,
+    );
+  }
+
+  Image collectionAdded() {
+    return Image.asset(
+      "assets/icons/starr.png",
+      height: 15,
+    );
+  }
+
+  Image comment() {
+    return Image.asset(
+      "assets/icons/comment.png",
+      height: 15,
+    );
+  }
+
+  Image like() {
+    return Image.asset(
+      "assets/icons/like.png",
+      height: 15,
+    );
+  }
+
+  Image liked() {
+    return Image.asset(
+      "assets/icons/liked.png",
+      height: 15,
+    );
+  }
+
+  Image share() {
+    return Image.asset(
+      "assets/icons/share.png",
+      height: 15,
+    );
+  }
 }

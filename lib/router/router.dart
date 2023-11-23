@@ -11,9 +11,13 @@ import '../articles/prevention.dart';
 import '../articles/collection.dart';
 // 饮食模块
 import '../fooddiary/fooddiary.dart';
+// 动态模块
+import '../moment/moment.dart';
 
 Map routes = {
-  '/': (context) => const FoodDiary(),
+  '/': (context) => const Moment(),
+  // -------------------- 动态模块 ====================
+  '/moment': (context) => const Moment(),
   // ==================== 饮食模块 ====================
   '/fooddiary': (context) => const FoodDiary(),
   // ==================== 科普模块 ====================

@@ -35,6 +35,8 @@ class _FoodsearchState extends State<Foodsearch> {
     createCardList();
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+
       appBar: AppBar(
         title: const Text(
           "食物成分",
@@ -113,6 +115,9 @@ class _FoodsearchState extends State<Foodsearch> {
               ),
             ),
             Visibility(
+              maintainState: true,
+              maintainAnimation: true,
+              maintainSize: true,
               visible: showResult,
               child: Column(
                 children: [
