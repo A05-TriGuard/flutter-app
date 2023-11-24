@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:triguard/component/titleDate/titleDate.dart';
+
 import '../../component/header/header.dart';
 import "bpData.dart";
 
@@ -17,24 +20,25 @@ late List<Widget> dataWidget;
 late Widget titleDateWidget;
 Widget addDataButtonWidget = addDataButton();
 int randomId = 100;
+typedef UpdateTimeCallback = void Function(DateTime newTime);
 
 class newValue {
   int id = 0;
-  int hour = 0;
-  int minute = 0;
+  //int hour = 0;
+  //int minute = 0;
+  DateTime time = DateTime.now();
   int SBloodpressure = 0;
   int DBloodpressure = 0;
   int heartRate = 0;
   int armIndex = 0;
   int feelingIndex = 0;
 
-  newValue(this.id, this.hour, this.minute, this.SBloodpressure,
-      this.DBloodpressure, this.heartRate, this.armIndex, this.feelingIndex);
+  newValue(this.id, this.time, this.SBloodpressure, this.DBloodpressure,
+      this.heartRate, this.armIndex, this.feelingIndex);
 
   void clear() {
     id = 0;
-    hour = 0;
-    minute = 0;
+    time = DateTime.now();
     SBloodpressure = 0;
     DBloodpressure = 0;
     heartRate = 0;
@@ -44,8 +48,9 @@ class newValue {
 
   void printValue() {
     print("id: $id");
-    print("hour: $hour");
-    print("minute: $minute");
+    //print("hour: $hour");
+    //print("minute: $minute");
+    print("time: $time");
     print("SBloodpressure: $SBloodpressure");
     print("DBloodpressure: $DBloodpressure");
     print("heartRate: $heartRate");
@@ -84,8 +89,34 @@ void setDataById(int id, String type, int value) {
   print("set failed");
 }
 
+DateTime getTimeById(int id) {
+  for (int i = 0; i < bpdata.length; i++) {
+    if (bpdata[i]["id"] == id) {
+      int hour = int.parse(bpdata[i]["time"].toString().split(":")[0]);
+      int minute = int.parse(bpdata[i]["time"].toString().split(":")[1]);
+      return DateTime(2023, 11, 11, hour, minute);
+    }
+  }
+  return DateTime.now();
+}
+
+void setTimeById(int id, DateTime time) {
+  for (int i = 0; i < bpdata.length; i++) {
+    if (bpdata[i]["id"] == id) {
+      bpdata[i]["time"] =
+          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+      return;
+    }
+  }
+  print("set failed");
+}
+
 late newValue afterEditedValue; //= newValue(0, "0", "0", "0", "0", "0", 0, 0);
 bool deleteDataMark = false;
+
+int invalidValue() {
+  return 0;
+}
 
 // =================================================================================
 
@@ -132,10 +163,13 @@ class _addDataButtonState extends State<addDataButton> {
   }
 }
 
+// ignore: must_be_immutable
 class addDataWidget extends StatefulWidget {
   final VoidCallback updateParent;
+  DateTime time = DateTime.now();
 
-  const addDataWidget({Key? key, required this.updateParent}) : super(key: key);
+  addDataWidget({Key? key, required this.updateParent, required this.time})
+      : super(key: key);
 
   @override
   State<addDataWidget> createState() => _addDataWidgetState();
@@ -144,18 +178,27 @@ class addDataWidget extends StatefulWidget {
 class _addDataWidgetState extends State<addDataWidget> {
   final TextEditingController hourController = TextEditingController();
   final TextEditingController minuteController = TextEditingController();
+
   final TextEditingController SBloodpressureController =
       TextEditingController();
   final TextEditingController DBloodpressureController =
       TextEditingController();
   final TextEditingController heartRateController = TextEditingController();
   final TextEditingController remarkController = TextEditingController();
-  CustomButtonRow armButtons = CustomButtonRow(
+  ArmButtonsRow armButtons = ArmButtonsRow(
     selectedIndex: 2,
   );
-  CustomIconButtonRow feelingsButtons = CustomIconButtonRow(
+  FeelingsButtonsRow feelingsButtons = FeelingsButtonsRow(
     selectedIndex: 1,
   );
+  DateTime time = DateTime.now();
+
+  void updateTime(DateTime newTime) {
+    setState(() {
+      widget.time = newTime;
+    });
+    //widget.updateParent();
+  }
 
   Widget getTitle(String TitleChn, String TitleEng) {
     return Column(
@@ -225,17 +268,12 @@ class _addDataWidgetState extends State<addDataWidget> {
 
                     // 右边的子容器
                     Container(
-                      //height: 100,
-                      //width: MediaQuery.of(context).size.width * 0.85 * 0.4,
-                      //color: Colors.green, // 右边容器的颜色
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // 时间
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.start,
-                            //crossAxisAlignment: CrossAxisAlignment.start,
+                          /* Row(
                             children: [
                               SizedBox(
                                 width: 50,
@@ -243,6 +281,10 @@ class _addDataWidgetState extends State<addDataWidget> {
                                 child: TextField(
                                   maxLength: 2,
                                   controller: hourController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
                                   //initialValue: widget.hour,
                                   decoration: InputDecoration(
                                       counterText: "",
@@ -266,6 +308,10 @@ class _addDataWidgetState extends State<addDataWidget> {
                                 child: TextField(
                                   maxLength: 2,
                                   controller: minuteController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
                                   //initialValue: widget.minute,
                                   decoration: InputDecoration(
                                       counterText: "",
@@ -280,15 +326,19 @@ class _addDataWidgetState extends State<addDataWidget> {
                               ),
                               const Text(
                                 "分",
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 16, fontFamily: "BalooBhai"),
                               ),
                             ],
-                          ),
+                          ), */
 
+                          TimePicker(time: widget.time, updateTime: updateTime),
+
+                          //
                           const SizedBox(
                             height: 5,
                           ),
+
                           // 修改收缩压
                           Row(
                             //mainAxisAlignment: MainAxisAlignment.start,
@@ -300,8 +350,12 @@ class _addDataWidgetState extends State<addDataWidget> {
                                 child: TextField(
                                   maxLength: 3,
                                   controller: SBloodpressureController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
                                   //initialValue: widget.SBloodpressure,
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "100",
                                       contentPadding:
@@ -312,17 +366,20 @@ class _addDataWidgetState extends State<addDataWidget> {
                                       fontSize: 30, fontFamily: "BalooBhai"),
                                 ),
                               ),
-                              SizedBox(width: 2),
+                              const SizedBox(width: 2),
                               const Text(
                                 "mmHg",
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 16, fontFamily: "Blinker"),
                               ),
                             ],
                           ),
+
+                          //
                           const SizedBox(
                             height: 5,
                           ),
+
                           // 修改舒张压
                           Row(
                             //mainAxisAlignment: MainAxisAlignment.start,
@@ -334,8 +391,12 @@ class _addDataWidgetState extends State<addDataWidget> {
                                 child: TextField(
                                   maxLength: 3,
                                   controller: DBloodpressureController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
                                   //initialValue: widget.DBloodpressure,
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "80",
                                       contentPadding:
@@ -346,17 +407,20 @@ class _addDataWidgetState extends State<addDataWidget> {
                                       fontSize: 30, fontFamily: "BalooBhai"),
                                 ),
                               ),
-                              SizedBox(width: 2),
+                              const SizedBox(width: 2),
                               const Text(
                                 "mmHg",
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 16, fontFamily: "Blinker"),
                               ),
                             ],
                           ),
+
+                          //
                           const SizedBox(
                             height: 5,
                           ),
+
                           // 修改心率
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -368,8 +432,12 @@ class _addDataWidgetState extends State<addDataWidget> {
                                 child: TextField(
                                   maxLength: 3,
                                   controller: heartRateController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
                                   //initialValue: widget.heartRate,
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "90",
                                       contentPadding:
@@ -383,38 +451,39 @@ class _addDataWidgetState extends State<addDataWidget> {
                               SizedBox(width: 2),
                               const Text(
                                 "次/分",
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 16, fontFamily: "Blinker"),
                               ),
                             ],
                           ),
+
+                          //
                           const SizedBox(
                             height: 5,
                           ),
+
                           // 修改手臂
                           armButtons,
-                          /* CustomButtonRow(
-                        initialSelectedIndex: widget.arm,
-                      ), */
+
+                          //
                           const SizedBox(
                             height: 5,
                           ),
-                          //修改感觉
 
-                          /* CustomIconButtonRow(
-                        initialSelectedIndex: widget.feeling,
-                      ), */
+                          //修改感觉
                           feelingsButtons,
                           const SizedBox(
                             height: 5,
                           ),
+
+                          //备注
                           SizedBox(
                             width: 150,
                             height: 40,
                             child: TextFormField(
                               controller: remarkController,
                               //initialValue: widget.SBloodpressure,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                   counterText: "",
                                   hintText: "-",
                                   contentPadding:
@@ -426,6 +495,7 @@ class _addDataWidgetState extends State<addDataWidget> {
                             ),
                           ),
 
+                          //
                           const SizedBox(height: 10),
                         ],
                       ),
@@ -435,8 +505,8 @@ class _addDataWidgetState extends State<addDataWidget> {
                 const SizedBox(
                   height: 20,
                 ),
-                //删除，取消，确定
 
+                //删除，取消，确定
                 Container(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -457,10 +527,17 @@ class _addDataWidgetState extends State<addDataWidget> {
                       OtherButton(
                           onPressed: () {
                             randomId += 1;
+
+                            print("确定添加数据：${widget.time}");
                             bpdata.insert(0, {
                               "id": randomId,
-                              "hour": int.parse(hourController.text),
-                              "minute": int.parse(minuteController.text),
+                              //"hour": int.parse(hourController.text),
+                              //"minute": int.parse(minuteController.text),
+                              // time pad 0, example 09:03
+                              "time":
+                                  "${widget.time.hour.toString().padLeft(2, '0')}:${widget.time.minute.toString().padLeft(2, '0')}",
+                              "hour": widget.time.hour,
+                              "minute": widget.time.minute,
                               "sbp": int.parse(SBloodpressureController.text),
                               "dbp": int.parse(DBloodpressureController.text),
                               "heartRate": int.parse(heartRateController.text),
@@ -473,8 +550,9 @@ class _addDataWidgetState extends State<addDataWidget> {
 
                             Widget newWidget = BloodPressureEditWidgetLess(
                               id: randomId,
-                              hour: int.parse(hourController.text),
-                              minute: int.parse(minuteController.text),
+                              //hour: int.parse(hourController.text),
+                              // minute: int.parse(minuteController.text),
+                              time: widget.time,
                               SBloodpressure:
                                   int.parse(SBloodpressureController.text),
                               DBloodpressure:
@@ -573,12 +651,12 @@ class _OtherButtonState extends State<OtherButton> {
 }
 
 // 手臂的按钮
-class CustomButton extends StatefulWidget {
+class ArmButton extends StatefulWidget {
   final VoidCallback onPressed;
   final String text;
   final bool isSelected;
 
-  const CustomButton(
+  const ArmButton(
       {Key? key,
       required this.onPressed,
       required this.text,
@@ -586,10 +664,10 @@ class CustomButton extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<CustomButton> createState() => _CustomButtonState();
+  State<ArmButton> createState() => _ArmButtonState();
 }
 
-class _CustomButtonState extends State<CustomButton> {
+class _ArmButtonState extends State<ArmButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -626,22 +704,22 @@ class _CustomButtonState extends State<CustomButton> {
   }
 }
 
-class CustomIconButton extends StatefulWidget {
+class FeelingsButton extends StatefulWidget {
   final VoidCallback onPressed;
   final String iconPath;
   final bool isSelected;
 
-  const CustomIconButton({
+  const FeelingsButton({
     required this.onPressed,
     required this.iconPath,
     required this.isSelected,
   });
 
   @override
-  State<CustomIconButton> createState() => _CustomIconButtonState();
+  State<FeelingsButton> createState() => _FeelingsButtonState();
 }
 
-class _CustomIconButtonState extends State<CustomIconButton> {
+class _FeelingsButtonState extends State<FeelingsButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -676,20 +754,20 @@ class _CustomIconButtonState extends State<CustomIconButton> {
 }
 
 // ignore: must_be_immutable
-class CustomButtonRow extends StatefulWidget {
+class ArmButtonsRow extends StatefulWidget {
   int selectedIndex;
 
-  CustomButtonRow({required this.selectedIndex});
+  ArmButtonsRow({required this.selectedIndex});
 
   @override
-  _CustomButtonRowState createState() => _CustomButtonRowState();
+  _ArmButtonsRowState createState() => _ArmButtonsRowState();
 
   int getSelectedButtonIndex() {
     return selectedIndex;
   }
 }
 
-class _CustomButtonRowState extends State<CustomButtonRow> {
+class _ArmButtonsRowState extends State<ArmButtonsRow> {
   //late int selectedButtonIndex;
 
   @override
@@ -703,7 +781,7 @@ class _CustomButtonRowState extends State<CustomButtonRow> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        CustomButton(
+        ArmButton(
           onPressed: () {
             setState(() {
               widget.selectedIndex = 0;
@@ -714,7 +792,7 @@ class _CustomButtonRowState extends State<CustomButtonRow> {
           isSelected: widget.selectedIndex == 0,
         ),
         const SizedBox(width: 5),
-        CustomButton(
+        ArmButton(
           onPressed: () {
             setState(() {
               widget.selectedIndex = 1;
@@ -725,7 +803,7 @@ class _CustomButtonRowState extends State<CustomButtonRow> {
           isSelected: widget.selectedIndex == 1,
         ),
         const SizedBox(width: 5),
-        CustomButton(
+        ArmButton(
           onPressed: () {
             setState(() {
               widget.selectedIndex = 2;
@@ -741,20 +819,20 @@ class _CustomButtonRowState extends State<CustomButtonRow> {
 }
 
 // ignore: must_be_immutable
-class CustomIconButtonRow extends StatefulWidget {
+class FeelingsButtonsRow extends StatefulWidget {
   int selectedIndex;
 
-  CustomIconButtonRow({required this.selectedIndex});
+  FeelingsButtonsRow({required this.selectedIndex});
 
   @override
-  _CustomIconButtonRowState createState() => _CustomIconButtonRowState();
+  _FeelingsButtonsRowState createState() => _FeelingsButtonsRowState();
 
   int getSelectedButtonIndex() {
     return selectedIndex;
   }
 }
 
-class _CustomIconButtonRowState extends State<CustomIconButtonRow> {
+class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
   @override
   void initState() {
     super.initState();
@@ -766,7 +844,7 @@ class _CustomIconButtonRowState extends State<CustomIconButtonRow> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        CustomIconButton(
+        FeelingsButton(
           onPressed: () {
             setState(() {
               widget.selectedIndex = 0;
@@ -777,7 +855,7 @@ class _CustomIconButtonRowState extends State<CustomIconButtonRow> {
           isSelected: widget.selectedIndex == 0,
         ),
         const SizedBox(width: 5),
-        CustomIconButton(
+        FeelingsButton(
           onPressed: () {
             setState(() {
               widget.selectedIndex = 1;
@@ -788,7 +866,7 @@ class _CustomIconButtonRowState extends State<CustomIconButtonRow> {
           isSelected: widget.selectedIndex == 1,
         ),
         const SizedBox(width: 5),
-        CustomIconButton(
+        FeelingsButton(
           onPressed: () {
             setState(() {
               widget.selectedIndex = 2;
@@ -799,135 +877,6 @@ class _CustomIconButtonRowState extends State<CustomIconButtonRow> {
           isSelected: widget.selectedIndex == 2,
         ),
       ],
-    );
-  }
-}
-
-// ----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------
-// 页面模块
-
-// 此页面
-class BloodPressureEdit extends StatefulWidget {
-  //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
-  @override
-  _BloodPressureEditState createState() => _BloodPressureEditState();
-}
-
-class _BloodPressureEditState extends State<BloodPressureEdit> {
-  // initial
-  @override
-  void initState() {
-    super.initState();
-    // 先从后端获取数据
-
-    titleDateWidget = TitleDate(date: DateTime.now());
-    dataWidget = [];
-    dataWidget.add(titleDateWidget);
-
-    for (int i = 0; i < bpdata.length; i++) {
-      dataWidget.add(UnconstrainedBox(
-        child: BloodPressureEditWidget(
-          id: bpdata[i]["id"],
-          hour: bpdata[i]["hour"],
-          minute: bpdata[i]["minute"],
-          SBloodpressure: bpdata[i]["sbp"],
-          DBloodpressure: bpdata[i]["dbp"],
-          heartRate: bpdata[i]["heartRate"],
-          arm: bpdata[i]["arm"],
-          feeling: bpdata[i]["feeling"],
-          isExpanded: bpdata[i]["isExpanded"],
-          remark: bpdata[i]["remark"],
-          updateParent: updateView,
-        ),
-      ));
-    }
-
-    // TODO 添加的模块
-    //dataWidget.add(addDataButtonWidget);
-  }
-
-  void updateView() {
-    // TODO 更新ListView.builder
-    setState(() {
-      /* if (deleteDataMark) {
-        dataWidget.removeAt(0);
-        deleteDataMark = false;
-        return;
-      } */
-
-      titleDateWidget = TitleDate(date: DateTime.now());
-      dataWidget.clear();
-      dataWidget.add(titleDateWidget);
-
-      for (int i = 0; i < bpdata.length; i++) {
-        dataWidget.add(UnconstrainedBox(
-          child: BloodPressureEditWidget(
-            id: bpdata[i]["id"],
-            hour: bpdata[i]["hour"],
-            minute: bpdata[i]["minute"],
-            SBloodpressure: bpdata[i]["sbp"],
-            DBloodpressure: bpdata[i]["dbp"],
-            heartRate: bpdata[i]["heartRate"],
-            arm: bpdata[i]["arm"],
-            feeling: bpdata[i]["feeling"],
-            isExpanded: bpdata[i]["isExpanded"],
-            remark: (bpdata[i]["remark"].toString()).isEmpty
-                ? "暂无备注"
-                : bpdata[i]["remark"].toString(),
-            updateParent: updateView,
-          ),
-        ));
-      }
-
-      //dataWidget.add(addDataButtonWidget);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // print("血压修改页面刷新");
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "TriGuard",
-          style: TextStyle(
-            fontFamily: 'BalooBhai',
-            fontSize: 26,
-            color: Colors.black,
-          ),
-        ),
-        flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-            (MediaQuery.of(context).size.height * 0.1 + 11)),
-      ),
-      body: Container(
-        color: Colors.white,
-        child: ListView.builder(
-          itemCount: dataWidget.length,
-          itemBuilder: (BuildContext context, int index) {
-            return dataWidget[index];
-          },
-        ),
-      ),
-
-      // 添加数据的按钮
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print("我要添加数据");
-          setState(() {
-            //dataWidget.add(addDataButtonWidget);
-            //dataWidget.insert(1, addDataButtonWidget);
-            dataWidget.insert(1, addDataWidget(updateParent: updateView));
-          });
-        },
-        shape: CircleBorder(),
-        backgroundColor: Color.fromARGB(255, 237, 136, 247),
-        child: Icon(Icons.add, size: 30, color: Colors.white),
-      ),
     );
   }
 }
@@ -1115,8 +1064,7 @@ class _TitleDateState extends State<TitleDate> {
 // ignore: must_be_immutable
 class BloodPressureEditWidget extends StatefulWidget {
   final int id;
-  final int hour;
-  final int minute;
+  DateTime time = DateTime.now();
   final int SBloodpressure;
   final int DBloodpressure;
   final int heartRate;
@@ -1129,8 +1077,7 @@ class BloodPressureEditWidget extends StatefulWidget {
   BloodPressureEditWidget({
     Key? key,
     required this.id,
-    required this.hour,
-    required this.minute,
+    required this.time,
     required this.SBloodpressure,
     required this.DBloodpressure,
     required this.heartRate,
@@ -1190,8 +1137,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                   ? SingleChildScrollView(
                       child: BloodPressureEditWidgetMore(
                         id: widget.id,
-                        hour: widget.hour,
-                        minute: widget.minute,
+                        time: widget.time,
                         SBloodpressure: widget.SBloodpressure,
                         DBloodpressure: widget.DBloodpressure,
                         heartRate: widget.heartRate,
@@ -1216,13 +1162,21 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                           });
                         },
                         confirmEditData: () {
+                          //print("======================");
                           afterEditedValue.printValue();
+                          //print("======================");
                           setState(() {
+                            // print(
+                            //   "confirm edit data ：${DateTime(2023, 11, 11, afterEditedValue.time.hour, afterEditedValue.time.minute)}");
                             setDataById(widget.id, "isExpanded", 0);
-                            setDataById(
-                                widget.id, "hour", afterEditedValue.hour);
-                            setDataById(
-                                widget.id, "minute", afterEditedValue.minute);
+                            setTimeById(
+                                widget.id,
+                                DateTime(
+                                    2023,
+                                    11,
+                                    11,
+                                    afterEditedValue.time.hour,
+                                    afterEditedValue.time.minute));
                             setDataById(widget.id, "sbp",
                                 afterEditedValue.SBloodpressure);
                             setDataById(widget.id, "dbp",
@@ -1242,8 +1196,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                   : SingleChildScrollView(
                       child: BloodPressureEditWidgetLess(
                         id: widget.id,
-                        hour: getDataById(widget.id, "hour"),
-                        minute: getDataById(widget.id, "minute"),
+                        time: getTimeById(widget.id),
                         SBloodpressure: getDataById(widget.id, "sbp"),
                         DBloodpressure: getDataById(widget.id, "dbp"),
                         heartRate: getDataById(widget.id, "heartRate"),
@@ -1261,8 +1214,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
 // 只展示
 class BloodPressureEditWidgetLess extends StatefulWidget {
   final int id;
-  final int hour;
-  final int minute;
+  DateTime time;
   final int SBloodpressure;
   final int DBloodpressure;
   final int heartRate;
@@ -1270,11 +1222,10 @@ class BloodPressureEditWidgetLess extends StatefulWidget {
   final int feeling;
   final String remark;
 
-  const BloodPressureEditWidgetLess(
+  BloodPressureEditWidgetLess(
       {Key? key,
       required this.id,
-      required this.hour,
-      required this.minute,
+      required this.time,
       required this.SBloodpressure,
       required this.DBloodpressure,
       required this.heartRate,
@@ -1314,7 +1265,7 @@ class _BloodPressureEditWidgetLessState
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Text(
-                '${widget.hour < 10 ? "0${widget.hour}" : widget.hour}:${widget.minute < 10 ? "0${widget.minute}" : widget.minute}',
+                '${widget.time.hour < 10 ? "0${widget.time.hour}" : widget.time.hour}:${widget.time.minute < 10 ? "0${widget.time.minute}" : widget.time.minute}',
                 style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai")),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1507,8 +1458,7 @@ class _BloodPressureEditWidgetLessState
 // 可编辑
 class BloodPressureEditWidgetMore extends StatefulWidget {
   final int id;
-  final int hour;
-  final int minute;
+  DateTime time;
   final int SBloodpressure;
   final int DBloodpressure;
   final int heartRate;
@@ -1519,11 +1469,10 @@ class BloodPressureEditWidgetMore extends StatefulWidget {
   final VoidCallback cancelEditData;
   final VoidCallback confirmEditData;
 
-  const BloodPressureEditWidgetMore({
+  BloodPressureEditWidgetMore({
     Key? key,
     required this.id,
-    required this.hour,
-    required this.minute,
+    required this.time,
     required this.SBloodpressure,
     required this.DBloodpressure,
     required this.heartRate,
@@ -1542,6 +1491,14 @@ class BloodPressureEditWidgetMore extends StatefulWidget {
 
 class _BloodPressureEditWidgetMoreState
     extends State<BloodPressureEditWidgetMore> {
+  void updateTime(DateTime newTime) {
+    print("????");
+    setState(() {
+      widget.time = newTime;
+    });
+    //widget.updateParent();
+  }
+
   Widget getTitle(String TitleChn, String TitleEng) {
     return Column(
       //crossAxisAlignment: CrossAxisAlignment.center,
@@ -1565,10 +1522,6 @@ class _BloodPressureEditWidgetMoreState
   @override
   Widget build(BuildContext context) {
     // 输入的controller
-    final TextEditingController hourController =
-        TextEditingController(text: widget.hour.toString());
-    final TextEditingController minuteController =
-        TextEditingController(text: widget.minute.toString());
     final TextEditingController SBloodpressureController =
         TextEditingController(text: widget.SBloodpressure.toString());
     final TextEditingController DBloodpressureController =
@@ -1577,14 +1530,29 @@ class _BloodPressureEditWidgetMoreState
         TextEditingController(text: widget.heartRate.toString());
     final TextEditingController remarkController =
         TextEditingController(text: widget.remark);
-    CustomButtonRow armButtons = CustomButtonRow(
+    ArmButtonsRow armButtons = ArmButtonsRow(
       selectedIndex: widget.arm,
     );
-    CustomIconButtonRow feelingsButtons = CustomIconButtonRow(
+    FeelingsButtonsRow feelingsButtons = FeelingsButtonsRow(
       selectedIndex: widget.feeling,
     );
 
+    //DateTime time = DateTime.now();
+
     return Container(
+      decoration: BoxDecoration(
+        //color: Colors.white,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.0),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromARGB(120, 151, 151, 151),
+            offset: Offset(0, 5),
+            blurRadius: 5.0,
+            spreadRadius: 0.0,
+          ),
+        ],
+      ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
         child: Column(
@@ -1620,7 +1588,7 @@ class _BloodPressureEditWidgetMoreState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 时间
-                      Row(
+                      /* Row(
                         //mainAxisAlignment: MainAxisAlignment.start,
                         //crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1630,6 +1598,10 @@ class _BloodPressureEditWidgetMoreState
                             child: TextFormField(
                               maxLength: 2,
                               controller: hourController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
                               //initialValue: widget.hour,
                               decoration: InputDecoration(
                                   counterText: "",
@@ -1653,6 +1625,10 @@ class _BloodPressureEditWidgetMoreState
                             child: TextFormField(
                               maxLength: 2,
                               controller: minuteController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
                               //initialValue: widget.minute,
                               decoration: InputDecoration(
                                   counterText: "",
@@ -1671,7 +1647,9 @@ class _BloodPressureEditWidgetMoreState
                                 fontSize: 16, fontFamily: "BalooBhai"),
                           ),
                         ],
-                      ),
+                      ), */
+
+                      TimePicker(time: widget.time, updateTime: updateTime),
 
                       const SizedBox(
                         height: 5,
@@ -1687,6 +1665,10 @@ class _BloodPressureEditWidgetMoreState
                             child: TextFormField(
                               maxLength: 3,
                               controller: SBloodpressureController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
                               //initialValue: widget.SBloodpressure,
                               decoration: InputDecoration(
                                   counterText: "",
@@ -1721,6 +1703,10 @@ class _BloodPressureEditWidgetMoreState
                             child: TextFormField(
                               maxLength: 3,
                               controller: DBloodpressureController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
                               //initialValue: widget.DBloodpressure,
                               decoration: InputDecoration(
                                   counterText: "",
@@ -1755,6 +1741,10 @@ class _BloodPressureEditWidgetMoreState
                             child: TextFormField(
                               maxLength: 3,
                               controller: heartRateController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
                               //initialValue: widget.heartRate,
                               decoration: InputDecoration(
                                   counterText: "",
@@ -1780,21 +1770,15 @@ class _BloodPressureEditWidgetMoreState
                       ),
                       // 修改手臂
                       armButtons,
-                      /* CustomButtonRow(
-                        initialSelectedIndex: widget.arm,
-                      ), */
+                      //
                       const SizedBox(
                         height: 5,
                       ),
                       //修改感觉
-
-                      /* CustomIconButtonRow(
-                        initialSelectedIndex: widget.feeling,
-                      ), */
                       feelingsButtons,
-
+                      //
                       const SizedBox(height: 5),
-
+                      // 备注
                       SizedBox(
                         width: 150,
                         height: 40,
@@ -1840,8 +1824,9 @@ class _BloodPressureEditWidgetMoreState
                       OtherButton(
                           onPressed: () {
                             print(widget.id);
-                            print(hourController.text);
-                            print(minuteController.text);
+                            //print(hourController.text);
+                            //print(minuteController.text);
+                            print(widget.time);
                             print(SBloodpressureController.text);
                             print(DBloodpressureController.text);
                             print(heartRateController.text);
@@ -1851,8 +1836,9 @@ class _BloodPressureEditWidgetMoreState
 
                             afterEditedValue = newValue(
                                 widget.id,
-                                int.parse(hourController.text),
-                                int.parse(minuteController.text),
+                                //int.parse(hourController.text),
+                                ////int.parse(minuteController.text),
+                                widget.time,
                                 int.parse(SBloodpressureController.text),
                                 int.parse(DBloodpressureController.text),
                                 int.parse(heartRateController.text),
@@ -1868,6 +1854,153 @@ class _BloodPressureEditWidgetMoreState
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
+// 页面模块
+
+// 此页面
+class BloodPressureEdit extends StatefulWidget {
+  //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
+  @override
+  _BloodPressureEditState createState() => _BloodPressureEditState();
+}
+
+class _BloodPressureEditState extends State<BloodPressureEdit> {
+  DateTime addTime = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    // 先从后端获取数据
+
+    titleDateWidget = TitleDate(date: DateTime.now());
+    dataWidget = [];
+    dataWidget.add(titleDateWidget);
+
+    for (int i = 0; i < bpdata.length; i++) {
+      int hour = int.parse(bpdata[i]["time"].toString().split(":")[0]);
+      int minute = int.parse(bpdata[i]["time"].toString().split(":")[1]);
+      dataWidget.add(UnconstrainedBox(
+        child: BloodPressureEditWidget(
+          id: bpdata[i]["id"],
+          time: DateTime(2023, 11, 11, hour, minute),
+          SBloodpressure: bpdata[i]["sbp"],
+          DBloodpressure: bpdata[i]["dbp"],
+          heartRate: bpdata[i]["heartRate"],
+          arm: bpdata[i]["arm"],
+          feeling: bpdata[i]["feeling"],
+          isExpanded: bpdata[i]["isExpanded"],
+          remark: bpdata[i]["remark"],
+          updateParent: updateView,
+        ),
+      ));
+    }
+
+    // TODO 添加的模块
+    //dataWidget.add(addDataButtonWidget);
+  }
+
+  void updateView() {
+    // TODO 更新ListView.builder
+    setState(() {
+      /* if (deleteDataMark) {
+        dataWidget.removeAt(0);
+        deleteDataMark = false;
+        return;
+      } */
+
+      titleDateWidget = TitleDate(date: DateTime.now());
+      dataWidget.clear();
+      dataWidget.add(titleDateWidget);
+
+      for (int i = 0; i < bpdata.length; i++) {
+        // 09:03 提取小时和分钟
+        int hour = int.parse(bpdata[i]["time"].toString().split(":")[0]);
+        int minute = int.parse(bpdata[i]["time"].toString().split(":")[1]);
+
+        dataWidget.add(UnconstrainedBox(
+          child: BloodPressureEditWidget(
+            id: bpdata[i]["id"],
+            time: DateTime(2023, 11, 11, hour, minute),
+            SBloodpressure: bpdata[i]["sbp"],
+            DBloodpressure: bpdata[i]["dbp"],
+            heartRate: bpdata[i]["heartRate"],
+            arm: bpdata[i]["arm"],
+            feeling: bpdata[i]["feeling"],
+            isExpanded: bpdata[i]["isExpanded"],
+            remark: (bpdata[i]["remark"].toString()).isEmpty
+                ? "暂无备注"
+                : bpdata[i]["remark"].toString(),
+            updateParent: updateView,
+          ),
+        ));
+      }
+
+      //dataWidget.add(addDataButtonWidget);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // print("血压修改页面刷新");
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "TriGuard",
+          style: TextStyle(
+            fontFamily: 'BalooBhai',
+            fontSize: 26,
+            color: Colors.black,
+          ),
+        ),
+        flexibleSpace: getHeader(MediaQuery.of(context).size.width,
+            (MediaQuery.of(context).size.height * 0.1 + 11)),
+      ),
+      body: Container(
+        color: Colors.white,
+        child: ListView.builder(
+          itemCount: dataWidget.length,
+          itemBuilder: (BuildContext context, int index) {
+            return dataWidget[index];
+          },
+        ),
+      ),
+
+      // 添加数据的按钮
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          print("我要添加数据");
+          setState(() {
+            /* DateTime time = DateTime.now();
+
+             void updateTime(DateTime newTime) {
+                print("!!!");
+                setState(() {
+                  time = newTime;
+                });
+              }  */
+            //dataWidget.add(addDataButtonWidget);
+            //dataWidget.insert(1, addDataButtonWidget);
+            dataWidget.insert(
+                1,
+                addDataWidget(
+                  time: addTime,
+                  updateParent: updateView,
+                ));
+          });
+        },
+        shape: const CircleBorder(),
+        backgroundColor: const Color.fromARGB(255, 237, 136, 247),
+        child: const Icon(Icons.add, size: 30, color: Colors.white),
       ),
     );
   }

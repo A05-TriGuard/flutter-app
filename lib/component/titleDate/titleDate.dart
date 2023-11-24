@@ -554,7 +554,7 @@ class _TimePickerState extends State<TimePicker> {
               // '${widget.time.hour}:${widget.time.minute}',
               '${widget.time.hour.toString().padLeft(2, '0')}:${widget.time.minute.toString().padLeft(2, '0')}',
               style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 22,
                   fontFamily: "BalooBhai",
                   color: Color.fromRGBO(48, 48, 48, 1)),
             ),
@@ -567,7 +567,7 @@ class _TimePickerState extends State<TimePicker> {
               child: IconButton(
                 padding: EdgeInsets.all(0),
                 icon:
-                    Image.asset("assets/icons/time.png", width: 20, height: 30),
+                    Image.asset("assets/icons/time.png", width: 25, height: 35),
                 /* onPressed: () {
                             print("editDate");
                           }, */

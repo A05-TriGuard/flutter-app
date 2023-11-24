@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 List<Map> bpdata = [
   {
     "id": 0,
-    "hour": 9,
-    "minute": 32,
+    "time": "09:32",
     "sbp": 101,
     "dbp": 97,
     "heartRate": 88,
@@ -16,8 +15,7 @@ List<Map> bpdata = [
   },
   {
     "id": 1,
-    "hour": 12,
-    "minute": 12,
+    "time": "12:12",
     "sbp": 103,
     "dbp": 95,
     "heartRate": 93,
@@ -28,8 +26,7 @@ List<Map> bpdata = [
   },
   {
     "id": 2,
-    "hour": 15,
-    "minute": 45,
+    "time": "15:45",
     "sbp": 106,
     "dbp": 99,
     "heartRate": 89,
@@ -40,8 +37,7 @@ List<Map> bpdata = [
   },
   {
     "id": 3,
-    "hour": 22,
-    "minute": 6,
+    "time": "22:06",
     "sbp": 99,
     "dbp": 91,
     "heartRate": 87,
