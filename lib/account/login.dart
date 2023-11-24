@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import './token.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -43,6 +46,17 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             isLoginFailed = false;
           });
+
+          // 保存token
+
+          await storage.write(
+              key: "token", value: response.data["data"]["token"]);
+          /* print(response.data["data"]["token"]);
+          print("-==============================");
+          var value = await storage.read(key: 'token');
+          print(value);
+          print("-=============================="); */
+
           Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
           //Navigator.pushReplacement(context, '/mainPages', arguments: {"id": 1});
         } else if (response.data['code'] == 403) {

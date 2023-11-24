@@ -4,7 +4,7 @@ import 'package:flutter_echarts/flutter_echarts.dart';
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/gradientBorder/gradient_borders.dart';
-import './bpData.dart';
+import './bpData2.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
 typedef UpdateDateCallback = void Function(DateTime newDate);
@@ -319,7 +319,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 
   @override
   Widget build(BuildContext context) {
-    //print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
+    print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
 
     /* BloodPressureGraph graph =  BloodPressureGraph(
       date: widget.date,
@@ -804,7 +804,7 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // print('血压展示列表数据更新: ${widget.date}');
+    print('血压展示列表数据更新: ${widget.date}');
 
     return Center(
       child: Container(

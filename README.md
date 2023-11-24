@@ -186,3 +186,16 @@ https://stackoverflow.com/questions/68089177/flutter-building-with-plugins-requi
 #### AndroidManifest.xml位置 与 添加权限
 https://medium.com/@santokimaulik/flutter-location-permission-with-permission-handler-ad2c7564b596
 https://stackoverflow.com/questions/76028672/flutter-exact-place-to-put-permissions-in-androidmanifest-files-for-flutter
+
+
+
+#### setState() called after dispose():
+https://medium.com/@nehatanwar.dev/setstate-called-after-dispose-b022d6a7a4a7
+https://stackoverflow.com/questions/49340116/setstate-called-after-dispose
+```
+if (this.mounted) {
+  setState(() {
+    // Your state change code goes here
+  });
+}
+```
