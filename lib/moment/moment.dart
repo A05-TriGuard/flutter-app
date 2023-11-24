@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../component/icons.dart';
 import 'media.dart';
-import 'package:flutter/services.dart';
+import 'post.dart';
 
 class PostInfo {
   final String username;
@@ -106,314 +106,340 @@ class _MomentState extends State<Moment> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                InkWell(
-                    onTap: () {
-                      setState(() {
-                        classSelected[curSelClassInd] = false;
-                        classSelected[0] = true;
-                        curSelClassInd = 0;
-                      });
-                    },
-                    child: ClassButton(
-                        title: className[0],
-                        icon: MyIcons().bloodLipid(),
-                        selected: classSelected[0])),
-                InkWell(
-                    onTap: () {
-                      setState(() {
-                        classSelected[curSelClassInd] = false;
-                        classSelected[1] = true;
-                        curSelClassInd = 1;
-                      });
-                    },
-                    child: ClassButton(
-                        title: className[1],
-                        icon: MyIcons().bloodPressure2(),
-                        selected: classSelected[1])),
-                InkWell(
-                    onTap: () {
-                      setState(() {
-                        classSelected[curSelClassInd] = false;
-                        classSelected[2] = true;
-                        curSelClassInd = 2;
-                      });
-                    },
-                    child: ClassButton(
-                        title: className[2],
-                        icon: MyIcons().bloodSugar(),
-                        selected: classSelected[2]))
+                Expanded(
+                  flex: 1,
+                  child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          classSelected[curSelClassInd] = false;
+                          classSelected[0] = true;
+                          curSelClassInd = 0;
+                        });
+                      },
+                      child: ClassButton(
+                          title: className[0],
+                          icon: MyIcons().bloodLipid(),
+                          selected: classSelected[0])),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  flex: 1,
+                  child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          classSelected[curSelClassInd] = false;
+                          classSelected[1] = true;
+                          curSelClassInd = 1;
+                        });
+                      },
+                      child: ClassButton(
+                          title: className[1],
+                          icon: MyIcons().bloodPressure2(),
+                          selected: classSelected[1])),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  flex: 1,
+                  child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          classSelected[curSelClassInd] = false;
+                          classSelected[2] = true;
+                          curSelClassInd = 2;
+                        });
+                      },
+                      child: ClassButton(
+                          title: className[2],
+                          icon: MyIcons().bloodSugar(),
+                          selected: classSelected[2])),
+                )
               ],
             ),
           ),
-          // 下面整堆
+          // 主要内容 & 发帖按钮
           Stack(
             children: [
-              // 打底块
+              // 主要内容
               SizedBox(
-                width: screenWidth,
                 height: screenHeight * 0.7,
-              ),
-              // 按钮之外的
-              Positioned(
-                left: screenWidth * 0.15 * 0.5,
-                child: SizedBox(
-                  height: screenHeight * 0.7,
-                  width: screenWidth * 0.85,
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 上面那叠
-                        Stack(children: [
-                          // 打底
+                child: Column(children: [
+                  // 主题 Header
+                  Stack(children: [
+                    // 打底
+                    Container(
+                      height: 80,
+                      color: Colors.transparent,
+                    ),
+                    // 后面白色阴影
+                    Positioned(
+                      top: 40,
+                      child: Container(
+                        width: screenWidth,
+                        height: 40,
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black26,
+                                  offset: Offset(0, 3),
+                                  blurRadius: 3)
+                            ]),
+                      ),
+                    ),
+                    // 标题那栏
+                    Positioned(
+                      left: 30,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 主题图标
                           Container(
-                            width: screenWidth * 0.85,
-                            height: 80,
-                            color: Colors.transparent,
+                            padding: const EdgeInsets.all(15),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: const [
+                                  BoxShadow(
+                                      color: Colors.black38,
+                                      offset: Offset(3, 3),
+                                      blurRadius: 5)
+                                ]),
+                            child: iconSelected[curSelClassInd],
                           ),
-                          // 后面白色阴影
-                          Positioned(
-                            top: 40,
-                            child: Container(
-                              width: screenWidth * 0.85,
-                              height: 40,
-                              decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: Colors.black26,
-                                        offset: Offset(0, 3),
-                                        blurRadius: 3)
-                                  ]),
-                            ),
-                          ),
-                          // 标题那栏
-                          Positioned(
-                            left: 10,
-                            child: Row(
+                          // 主题名称 & 分类
+                          Container(
+                            padding: const EdgeInsets.only(left: 20, right: 40),
+                            width: screenWidth - 100,
+                            height: 70,
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                // 主题图标
-                                Container(
-                                  padding: const EdgeInsets.all(15),
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                            color: Colors.black38,
-                                            offset: Offset(3, 3),
-                                            blurRadius: 5)
-                                      ]),
-                                  child: iconSelected[curSelClassInd],
+                                // 主题名称
+                                Text(
+                                  className[curSelClassInd],
+                                  style: const TextStyle(
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 2),
                                 ),
-                                // 主题名称 & 分类
-                                Container(
-                                  padding:
-                                      const EdgeInsets.only(left: 10, right: 7),
-                                  width: screenWidth * 0.85 - 83,
-                                  height: 70,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Text(
-                                        className[curSelClassInd],
-                                        style: const TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 2),
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          InkWell(
-                                              onTap: () {
-                                                setState(() {
-                                                  curSelCatInd = 0;
-                                                });
-                                              },
-                                              child: CategoryButton(
-                                                  curInd: curSelCatInd,
-                                                  catInd: 0,
-                                                  title: "饮食")),
-                                          InkWell(
-                                              onTap: () {
-                                                setState(() {
-                                                  curSelCatInd = 1;
-                                                });
-                                              },
-                                              child: CategoryButton(
-                                                  curInd: curSelCatInd,
-                                                  catInd: 1,
-                                                  title: "运动")),
-                                          InkWell(
-                                              onTap: () {
-                                                setState(() {
-                                                  curSelCatInd = 2;
-                                                });
-                                              },
-                                              child: CategoryButton(
-                                                  curInd: curSelCatInd,
-                                                  catInd: 2,
-                                                  title: "生活")),
-                                          InkWell(
-                                              onTap: () {
-                                                setState(() {
-                                                  curSelCatInd = 3;
-                                                });
-                                              },
-                                              child: CategoryButton(
-                                                  curInd: curSelCatInd,
-                                                  catInd: 3,
-                                                  title: "其他")),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                ),
+                                // 话题分类
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      flex: 1,
+                                      child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              curSelCatInd = 0;
+                                            });
+                                          },
+                                          child: CategoryButton(
+                                              curInd: curSelCatInd,
+                                              catInd: 0,
+                                              title: "饮食")),
+                                    ),
+                                    const SizedBox(
+                                      width: 8,
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              curSelCatInd = 1;
+                                            });
+                                          },
+                                          child: CategoryButton(
+                                              curInd: curSelCatInd,
+                                              catInd: 1,
+                                              title: "运动")),
+                                    ),
+                                    const SizedBox(
+                                      width: 8,
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              curSelCatInd = 2;
+                                            });
+                                          },
+                                          child: CategoryButton(
+                                              curInd: curSelCatInd,
+                                              catInd: 2,
+                                              title: "生活")),
+                                    ),
+                                    const SizedBox(
+                                      width: 8,
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              curSelCatInd = 3;
+                                            });
+                                          },
+                                          child: CategoryButton(
+                                              curInd: curSelCatInd,
+                                              catInd: 3,
+                                              title: "其他")),
+                                    ),
+                                  ],
+                                )
                               ],
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                  // 筛选框 & 搜索框
+                  Container(
+                    height: 50,
+                    padding: const EdgeInsets.only(left: 30, right: 30),
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 0),
+                              blurRadius: 3)
                         ]),
-                        // 中间那叠
-                        Container(
-                          width: screenWidth * 0.85,
-                          height: 50,
-                          decoration: const BoxDecoration(
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Colors.black26,
-                                    offset: Offset(0, 0),
-                                    blurRadius: 3)
-                              ]),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                // 筛选框
-                                Container(
-                                  height: 25,
-                                  padding: const EdgeInsets.only(
-                                      left: 10, bottom: 5),
-                                  color: Colors.black12,
-                                  child: DropdownButton(
-                                    icon: const Icon(Icons.arrow_drop_down),
-                                    iconSize: 30,
-                                    hint: Text(selectedFilter,
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.bold)),
-                                    style: const TextStyle(
-                                        fontSize: 16, color: Colors.black),
-                                    items: const [
-                                      DropdownMenuItem(
-                                          value: "最新发布", child: Text("最新发布")),
-                                      DropdownMenuItem(
-                                          value: "最受欢迎", child: Text("最受欢迎")),
-                                      DropdownMenuItem(
-                                          value: "我的帖子", child: Text("我的帖子")),
-                                      DropdownMenuItem(
-                                          value: "我的点赞", child: Text("我的点赞")),
-                                      DropdownMenuItem(
-                                          value: "我的收藏", child: Text("我的收藏")),
-                                    ],
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedFilter = value!;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                // 搜索框
-                                Container(
-                                  width: screenWidth * 0.5,
-                                  height: 25,
-                                  decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black)),
-                                  child: TextField(
-                                    onTap: () {},
-                                    decoration: InputDecoration(
-                                        hintText: "关键词搜索",
-                                        hintStyle: const TextStyle(
-                                            color: Colors.black26,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 14),
-                                        contentPadding:
-                                            const EdgeInsets.only(left: 10),
-                                        enabledBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.transparent),
-                                        ),
-                                        focusedBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Colors.transparent,
-                                                width: 2)),
-                                        suffixIcon: IconButton(
-                                          onPressed: () {},
-                                          icon: Image.asset(
-                                              "assets/icons/searchWhite.png",
-                                              width: 10),
-                                          padding:
-                                              const EdgeInsets.only(right: 0),
-                                        )),
-                                    textAlign: TextAlign.left,
-                                  ),
-                                )
-                              ]),
-                        ),
-                        // 下面那栏
-                        Container(
-                          clipBehavior: Clip.hardEdge,
-                          height: screenHeight * 0.53,
-                          decoration: const BoxDecoration(
-                              color: Color.fromARGB(255, 225, 224, 224),
-                              borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(30),
-                                  bottomRight: Radius.circular(30)),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Colors.black26,
-                                    offset: Offset(0, 1),
-                                    blurRadius: 5)
-                              ]),
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: [
-                              PostTile(
-                                  width: screenWidth * 0.85, curPost: testPost),
-                              PostTile(
-                                  width: screenWidth * 0.85,
-                                  curPost: testPost2),
-                            ],
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          // 筛选框
+                          Container(
+                            height: 30,
+                            padding: const EdgeInsets.only(left: 10, bottom: 5),
+                            color: Colors.black12,
+                            child: DropdownButton(
+                              icon: const Icon(Icons.arrow_drop_down),
+                              iconSize: 30,
+                              hint: Text(selectedFilter,
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold)),
+                              style: const TextStyle(
+                                  fontSize: 18, color: Colors.black),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: "最新发布", child: Text("最新发布")),
+                                DropdownMenuItem(
+                                    value: "最受欢迎", child: Text("最受欢迎")),
+                                DropdownMenuItem(
+                                    value: "我的帖子", child: Text("我的帖子")),
+                                DropdownMenuItem(
+                                    value: "我的点赞", child: Text("我的点赞")),
+                                DropdownMenuItem(
+                                    value: "我的收藏", child: Text("我的收藏")),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedFilter = value!;
+                                });
+                              },
+                            ),
                           ),
-                        )
-                      ]),
-                ),
-              ),
-              // 悬浮按钮
-              Positioned(
-                top: screenHeight * 0.55,
-                left: screenWidth * 0.81,
-                child: FloatingActionButton(
-                  onPressed: () {},
-                  foregroundColor: const Color.fromARGB(255, 250, 209, 252),
-                  backgroundColor: Colors.white,
-                  splashColor: const Color.fromARGB(255, 250, 209, 252),
-                  elevation: 10,
-                  tooltip: "发布帖子",
-                  child: const Icon(
-                    Icons.add,
-                    size: 50,
+                          // 搜索框
+                          Expanded(
+                            child: Container(
+                              width: screenWidth * 0.5,
+                              height: 30,
+                              child: TextField(
+                                onTap: () {},
+                                decoration: InputDecoration(
+                                    hintText: "关键词搜索",
+                                    hintStyle: const TextStyle(
+                                        color: Colors.black26,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 16),
+                                    contentPadding:
+                                        const EdgeInsets.only(left: 10),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Color.fromARGB(
+                                                255, 250, 209, 252),
+                                            width: 2)),
+                                    suffixIcon: IconButton(
+                                      onPressed: () {},
+                                      icon: Image.asset(
+                                          "assets/icons/searchWhite.png",
+                                          width: 10),
+                                      padding: const EdgeInsets.only(right: 0),
+                                    )),
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                          )
+                        ]),
                   ),
-                ),
-              )
+                  // 帖子 & 按钮重叠
+                  Container(
+                    height: 7,
+                    decoration: BoxDecoration(color: Colors.black12),
+                  ),
+                  Stack(
+                    children: [
+                      Container(
+                        height: screenHeight * 0.7 - 137,
+                        decoration: BoxDecoration(color: Colors.black12),
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: [
+                            PostTile(
+                                width: screenWidth - 80, curPost: testPost),
+                            PostTile(
+                                width: screenWidth - 80, curPost: testPost2),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                ]),
+              ),
+              // 发帖按钮
+              Positioned(
+                  top: screenHeight * 0.55,
+                  left: screenWidth * 0.81,
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      showDialog(
+                          barrierColor: Colors.black87,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              content: Post(width: screenWidth * 0.9),
+                            );
+                          });
+                    },
+                    foregroundColor: const Color.fromARGB(255, 250, 209, 252),
+                    backgroundColor: Colors.white,
+                    splashColor: const Color.fromARGB(255, 250, 209, 252),
+                    elevation: 10,
+                    tooltip: "发布帖子",
+                    child: const Icon(
+                      Icons.add,
+                      size: 50,
+                    ),
+                  ))
             ],
-          )
+          ),
         ]),
       ),
 
@@ -530,10 +556,11 @@ class CategoryButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10)),
       child: Text(
         title,
+        textAlign: TextAlign.center,
         style: TextStyle(
             fontWeight: curInd == catInd ? FontWeight.w900 : FontWeight.normal,
             color: curInd == catInd ? Colors.white : Colors.black,
-            fontSize: 13),
+            fontSize: 16),
       ),
     );
   }
@@ -551,10 +578,12 @@ class PostTile extends StatefulWidget {
 class _PostTileState extends State<PostTile> {
   var imageContainerList = <Widget>[];
 
-  void createImageConList(BuildContext context, List imageList) {
+  void createImageConList(
+      BuildContext context, List imageList, double imageSize) {
     imageContainerList.clear();
     for (int i = 0; i < imageList.length; ++i) {
       imageContainerList.add(
+        // 图片方块
         InkWell(
           onTap: () {
             showDialog(
@@ -567,8 +596,8 @@ class _PostTileState extends State<PostTile> {
                 });
           },
           child: Container(
-            width: 90,
-            height: 90,
+            width: imageSize,
+            height: imageSize,
             decoration: const BoxDecoration(color: Colors.white, boxShadow: [
               BoxShadow(
                   color: Colors.black45, offset: Offset(1, 1), blurRadius: 3)
@@ -580,19 +609,20 @@ class _PostTileState extends State<PostTile> {
           ),
         ),
       );
-      imageContainerList.add(const SizedBox(width: 10));
+    }
+    for (int i = 0; i < 3 - imageList.length; ++i) {
+      imageContainerList.add(SizedBox(width: imageSize));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    createImageConList(context, widget.curPost.images);
+    createImageConList(context, widget.curPost.images, widget.width * 0.33);
 
     return Column(
       children: [
-        const SizedBox(height: 5),
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(30, 15, 30, 15),
           decoration: const BoxDecoration(color: Colors.white),
           child: Column(children: [
             // 帖子 header
@@ -601,36 +631,38 @@ class _PostTileState extends State<PostTile> {
               children: [
                 // 用户头像
                 CircleAvatar(
-                  radius: 20,
+                  radius: 22,
                   backgroundColor: Colors.black45,
                   child: CircleAvatar(
-                    radius: 19.5,
+                    radius: 21,
                     backgroundColor: Colors.white,
                     backgroundImage: NetworkImage(widget.curPost.profilepic),
                   ),
                 ),
                 // 用户名 & 发布日期
-                Container(
-                  height: 40,
-                  width: widget.width - 110,
-                  padding: const EdgeInsets.fromLTRB(10, 3, 0, 3),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          widget.curPost.username,
-                          style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                        Text(
-                          widget.curPost.date,
-                          style: const TextStyle(
-                              fontSize: 9, color: Colors.black54),
-                        )
-                      ]),
+                Expanded(
+                  child: Container(
+                    height: 44,
+                    padding: const EdgeInsets.fromLTRB(12, 3, 0, 3),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            widget.curPost.username,
+                            maxLines: 1,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            widget.curPost.date,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black54),
+                          )
+                        ]),
+                  ),
                 ),
-                // 功能按键
+                // 更多功能按键
                 InkWell(
                   onTap: () {},
                   child: const Text(
@@ -640,17 +672,17 @@ class _PostTileState extends State<PostTile> {
                 ),
               ],
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 10),
             Text(
               widget.curPost.content,
-              style: const TextStyle(fontSize: 12),
+              style: const TextStyle(fontSize: 18, height: 1.5),
             ),
             const SizedBox(height: 10),
             // 照片栏 media = image
             Visibility(
               visible: widget.curPost.video == "",
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: imageContainerList,
               ),
             ),
@@ -670,54 +702,88 @@ class _PostTileState extends State<PostTile> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                InkWell(
-                  onTap: () {},
-                  child: Row(
-                    children: [
-                      MyIcons().share(),
-                      const SizedBox(width: 5),
-                      const Text("分享")
-                    ],
+                Expanded(
+                  flex: 1,
+                  child: InkWell(
+                    onTap: () {},
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        MyIcons().share(),
+                        const SizedBox(width: 5),
+                        const Text(
+                          "分享",
+                          style: TextStyle(fontSize: 16),
+                        )
+                      ],
+                    ),
                   ),
                 ),
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      widget.curPost.star = !widget.curPost.star;
-                    });
-                  },
-                  child: Row(children: [
-                    widget.curPost.star
-                        ? MyIcons().collectionAdded()
-                        : MyIcons().collection(),
-                    const SizedBox(width: 5),
-                    const Text("收藏")
-                  ]),
+                Expanded(
+                  flex: 1,
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        widget.curPost.star = !widget.curPost.star;
+                      });
+                    },
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          widget.curPost.star
+                              ? MyIcons().collectionAdded()
+                              : MyIcons().collection(),
+                          const SizedBox(width: 5),
+                          const Text(
+                            "收藏",
+                            style: TextStyle(fontSize: 16),
+                          )
+                        ]),
+                  ),
                 ),
-                InkWell(
-                  onTap: () {},
-                  child: Row(children: [
-                    MyIcons().comment(),
-                    const SizedBox(width: 5),
-                    const Text("评论")
-                  ]),
+                Expanded(
+                  flex: 1,
+                  child: InkWell(
+                    onTap: () {},
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          MyIcons().comment(),
+                          const SizedBox(width: 5),
+                          const Text(
+                            "评论",
+                            style: TextStyle(fontSize: 16),
+                          )
+                        ]),
+                  ),
                 ),
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      widget.curPost.like = !widget.curPost.like;
-                    });
-                  },
-                  child: Row(children: [
-                    widget.curPost.like ? MyIcons().liked() : MyIcons().like(),
-                    const SizedBox(width: 5),
-                    const Text("点赞")
-                  ]),
+                Expanded(
+                  flex: 1,
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        widget.curPost.like = !widget.curPost.like;
+                      });
+                    },
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          widget.curPost.like
+                              ? MyIcons().liked()
+                              : MyIcons().like(),
+                          const SizedBox(width: 5),
+                          const Text(
+                            "点赞",
+                            style: TextStyle(fontSize: 16),
+                          )
+                        ]),
+                  ),
                 ),
               ],
             ),
           ]),
-        )
+        ),
+        const SizedBox(height: 7),
       ],
     );
   }
