@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-//import 'package:photo_view/photo_view.dart';
-//import 'package:photo_view/photo_view_gallery.dart';
 import '../component/icons.dart';
 import 'media.dart';
+import 'package:flutter/services.dart';
 
 class PostInfo {
   final String username;
@@ -369,6 +368,7 @@ class _MomentState extends State<Moment> {
                         ),
                         // 下面那栏
                         Container(
+                          clipBehavior: Clip.hardEdge,
                           height: screenHeight * 0.53,
                           decoration: const BoxDecoration(
                               color: Color.fromARGB(255, 225, 224, 224),
@@ -551,162 +551,174 @@ class PostTile extends StatefulWidget {
 class _PostTileState extends State<PostTile> {
   var imageContainerList = <Widget>[];
 
-  void createImageConList(List imageList) {
+  void createImageConList(BuildContext context, List imageList) {
     imageContainerList.clear();
     for (int i = 0; i < imageList.length; ++i) {
-      imageContainerList.add(Container(
-        width: 90,
-        height: 90,
-        decoration: const BoxDecoration(boxShadow: [
-          BoxShadow(color: Colors.black45, offset: Offset(1, 1), blurRadius: 3)
-        ]),
-        child: Image.network(
-          imageList[i],
-          fit: BoxFit.cover,
+      imageContainerList.add(
+        InkWell(
+          onTap: () {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return Gallery(
+                    images: imageList,
+                    curIndex: i,
+                  );
+                });
+          },
+          child: Container(
+            width: 90,
+            height: 90,
+            decoration: const BoxDecoration(color: Colors.white, boxShadow: [
+              BoxShadow(
+                  color: Colors.black45, offset: Offset(1, 1), blurRadius: 3)
+            ]),
+            child: Image.network(
+              imageList[i],
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
-      ));
-      imageContainerList.add(SizedBox(width: 10));
+      );
+      imageContainerList.add(const SizedBox(width: 10));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    createImageConList(widget.curPost.images);
+    createImageConList(context, widget.curPost.images);
 
-    return Container(
-      child: Column(
-        children: [
-          const SizedBox(height: 5),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Column(children: [
-              // 帖子 header
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 用户头像
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Colors.black45,
-                    child: CircleAvatar(
-                      radius: 19.5,
-                      backgroundImage: NetworkImage(widget.curPost.profilepic),
-                    ),
+    return Column(
+      children: [
+        const SizedBox(height: 5),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: const BoxDecoration(color: Colors.white),
+          child: Column(children: [
+            // 帖子 header
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 用户头像
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.black45,
+                  child: CircleAvatar(
+                    radius: 19.5,
+                    backgroundColor: Colors.white,
+                    backgroundImage: NetworkImage(widget.curPost.profilepic),
                   ),
-                  // 用户名 & 发布日期
-                  Container(
-                    height: 40,
-                    width: widget.width - 110,
-                    padding: const EdgeInsets.fromLTRB(10, 3, 0, 3),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            widget.curPost.username,
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            widget.curPost.date,
-                            style: const TextStyle(
-                                fontSize: 9, color: Colors.black54),
-                          )
-                        ]),
-                  ),
-                  // 功能按键
-                  InkWell(
-                    onTap: () {},
-                    child: const Text(
-                      "。。。",
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              Text(
-                widget.curPost.content,
-                style: const TextStyle(fontSize: 12),
-              ),
-              const SizedBox(height: 10),
-              // 照片栏 media = image
-              Visibility(
-                visible: widget.curPost.video == "",
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: imageContainerList,
                 ),
-              ),
-              // 视频 media = video
-              Visibility(
-                  visible: widget.curPost.video != "",
-                  child: VideoPlayerScreen(
-                    videolink: widget.curPost.video,
-                  )),
-              const SizedBox(height: 10),
-              Container(
-                color: Colors.black12,
-                height: 1,
-              ),
-              const SizedBox(height: 10),
-              // 互动栏
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  InkWell(
-                    onTap: () {},
-                    child: Row(
+                // 用户名 & 发布日期
+                Container(
+                  height: 40,
+                  width: widget.width - 110,
+                  padding: const EdgeInsets.fromLTRB(10, 3, 0, 3),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        MyIcons().share(),
-                        const SizedBox(width: 5),
-                        const Text("分享")
-                      ],
-                    ),
+                        Text(
+                          widget.curPost.username,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          widget.curPost.date,
+                          style: const TextStyle(
+                              fontSize: 9, color: Colors.black54),
+                        )
+                      ]),
+                ),
+                // 功能按键
+                InkWell(
+                  onTap: () {},
+                  child: const Text(
+                    "。。。",
+                    textAlign: TextAlign.right,
                   ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        widget.curPost.star = !widget.curPost.star;
-                      });
-                    },
-                    child: Row(children: [
-                      widget.curPost.star
-                          ? MyIcons().collectionAdded()
-                          : MyIcons().collection(),
-                      const SizedBox(width: 5),
-                      const Text("收藏")
-                    ]),
-                  ),
-                  InkWell(
-                    onTap: () {},
-                    child: Row(children: [
-                      MyIcons().comment(),
-                      const SizedBox(width: 5),
-                      const Text("评论")
-                    ]),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        widget.curPost.like = !widget.curPost.like;
-                      });
-                    },
-                    child: Row(children: [
-                      widget.curPost.like
-                          ? MyIcons().liked()
-                          : MyIcons().like(),
-                      const SizedBox(width: 5),
-                      const Text("点赞")
-                    ]),
-                  ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 5),
+            Text(
+              widget.curPost.content,
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 10),
+            // 照片栏 media = image
+            Visibility(
+              visible: widget.curPost.video == "",
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: imageContainerList,
               ),
-            ]),
-          )
-        ],
-      ),
+            ),
+            // 视频 media = video
+            Visibility(
+              visible: widget.curPost.video != "",
+              child: VideoPlayerScreen(
+                  fullscreen: false, videolink: widget.curPost.video),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              color: Colors.black12,
+              height: 1,
+            ),
+            const SizedBox(height: 10),
+            // 互动栏
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                InkWell(
+                  onTap: () {},
+                  child: Row(
+                    children: [
+                      MyIcons().share(),
+                      const SizedBox(width: 5),
+                      const Text("分享")
+                    ],
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      widget.curPost.star = !widget.curPost.star;
+                    });
+                  },
+                  child: Row(children: [
+                    widget.curPost.star
+                        ? MyIcons().collectionAdded()
+                        : MyIcons().collection(),
+                    const SizedBox(width: 5),
+                    const Text("收藏")
+                  ]),
+                ),
+                InkWell(
+                  onTap: () {},
+                  child: Row(children: [
+                    MyIcons().comment(),
+                    const SizedBox(width: 5),
+                    const Text("评论")
+                  ]),
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      widget.curPost.like = !widget.curPost.like;
+                    });
+                  },
+                  child: Row(children: [
+                    widget.curPost.like ? MyIcons().liked() : MyIcons().like(),
+                    const SizedBox(width: 5),
+                    const Text("点赞")
+                  ]),
+                ),
+              ],
+            ),
+          ]),
+        )
+      ],
     );
   }
 }
