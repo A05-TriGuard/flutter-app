@@ -10,12 +10,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart'
     hide Column, Row, Border, Stack;
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:triguard/account/token.dart';
 
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/gradientBorder/gradient_borders.dart';
 import './bpData.dart';
 import './bpAllData.dart';
+import '../../other/other.dart';
 
 //typedef UpdateDateCallback = void Function(DateTime newDate);
 //typedef UpdateDaysCallback = void Function(String newDays);
@@ -108,22 +112,22 @@ class BloodPressureFilterParam {
     }
 
     if (minSBPController.text == "") {
-      minSBPController.text = "70";
+      minSBPController.text = "0";
     }
 
     if (maxSBPController.text == "") {
-      maxSBPController.text = "140";
+      maxSBPController.text = "150";
     }
     if (minDBPController.text == "") {
-      minDBPController.text = "70";
+      minDBPController.text = "0";
     }
 
     if (maxDBPController.text == "") {
-      maxDBPController.text = "140";
+      maxDBPController.text = "150";
     }
 
     if (minHeartRateController.text == "") {
-      minHeartRateController.text = "70";
+      minHeartRateController.text = "0";
     }
 
     if (maxHeartRateController.text == "") {
@@ -140,11 +144,11 @@ class BloodPressureFilterParam {
     startMinuteController.text = "00";
     endHourController.text = "23";
     endMinuteController.text = "59";
-    minSBPController.text = "70";
-    maxSBPController.text = "140";
-    minDBPController.text = "70";
-    maxDBPController.text = "140";
-    minHeartRateController.text = "70";
+    minSBPController.text = "0";
+    maxSBPController.text = "150";
+    minDBPController.text = "0";
+    maxDBPController.text = "150";
+    minHeartRateController.text = "0";
     maxHeartRateController.text = "150";
     armsSelected = [false, false, false, true];
     feelingsSelected = [false, false, false, true];
@@ -226,129 +230,185 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     偏高（脉搏过快）： 101-120 次/分钟
     异常： 120 次/分钟及以上
  */
-  List<int> sbpList = [1000, 0, 0, 0, 0, 0, 0, 0]; //
-  List<int> dbpList = [1000, 0, 0, 0, 0, 0, 0, 0];
-  List<int> heartRateList = [1000, 0, 0, 0, 0, 0, 0, 0];
+  List<int> sbpList = [0, 0, 0, 0, 0, 0, 0, 0]; //
+  List<int> dbpList = [0, 0, 0, 0, 0, 0, 0, 0];
+  List<int> heartRateList = [0, 0, 0, 0, 0, 0, 0, 0];
+  List<dynamic> recordData = [];
+  List<dynamic> statisticData = [];
 
-  void getFilteredData() {
-    filteredData = [];
-    for (int i = 0; i < bpAllData.length; i++) {
-      DateTime date = DateTime.parse(bpAllData[i]["date"]);
-      DateTime dateTime = DateTime(date.year, date.month, date.day, 12, 00);
-      DateTime time1 = DateTime(
-          widget.filterParam.startDate.year,
-          widget.filterParam.startDate.month,
-          widget.filterParam.startDate.day,
-          00,
-          00);
-      DateTime time2 = DateTime(
-          widget.filterParam.endDate.year,
-          widget.filterParam.endDate.month,
-          widget.filterParam.endDate.day,
-          23,
-          59);
+  // 从后端请求数据
+  /* Future<void> getDataFromServer() async {
+    String requestStartDate = getStartDate(widget.date, widget.selectedDays);
+    String requestEndDate = getFormattedDate(widget.date);
+    print(
+        '请求日期：$requestStartDate ~~~ $requestEndDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
-      if (!(dateTime.isAfter(time1) && dateTime.isBefore(time2))) {
-        continue;
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+    //print(value);
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
+        queryParameters: {
+          "startDate": requestStartDate,
+          "endDate": requestEndDate,
+        },
+      );
+      if (response.data["code"] == 200) {
+        print("获取血压数据成功");
+        //print(response.data["data"]);
+        data = response.data["data"];
+        //bpdata = response.data["data"];
+      } else {
+        print(response);
+        data = [];
       }
-
-      int hour = int.parse(bpAllData[i]["time"].toString().split(":")[0]);
-      int minute = int.parse(bpAllData[i]["time"].toString().split(":")[1]);
-      time1 = DateTime(2023, 06, 11, widget.filterParam.startTime.hour,
-          widget.filterParam.startTime.minute, 00);
-      time2 = DateTime(2023, 06, 11, widget.filterParam.endTime.hour,
-          widget.filterParam.endTime.minute, 59);
-      DateTime time = DateTime(2023, 06, 11, hour, minute, 30);
-      if (!(time.isAfter(time1) && time.isBefore(time2))) {
-        continue;
-      }
-
-      if (bpAllData[i]["sbp"] <
-              int.parse(widget.filterParam.minSBPController.text) ||
-          bpAllData[i]["sbp"] >
-              int.parse(widget.filterParam.maxSBPController.text)) {
-        continue;
-      }
-
-      if (bpAllData[i]["dbp"] <
-              int.parse(widget.filterParam.minDBPController.text) ||
-          bpAllData[i]["dbp"] >
-              int.parse(widget.filterParam.maxDBPController.text)) {
-        continue;
-      }
-
-      if (bpAllData[i]["heartRate"] <
-              int.parse(widget.filterParam.minHeartRateController.text) ||
-          bpAllData[i]["heartRate"] >
-              int.parse(widget.filterParam.maxHeartRateController.text)) {
-        continue;
-      }
-
-      if (widget.filterParam.armsSelected[3] == false) {
-        int count = 0;
-        if (widget.filterParam.armsSelected[0] == true &&
-            bpAllData[i]["arm"] == 0) {
-          count++;
-        }
-        if (widget.filterParam.armsSelected[1] == true &&
-            bpAllData[i]["arm"] == 1) {
-          count++;
-        }
-        if (widget.filterParam.armsSelected[2] == true &&
-            bpAllData[i]["arm"] == 2) {
-          count++;
-        }
-
-        if (count == 0) {
-          continue;
-        }
-      }
-
-      if (widget.filterParam.feelingsSelected[3] == false) {
-        int count = 0;
-        if (widget.filterParam.feelingsSelected[0] == true &&
-            bpAllData[i]["feeling"] == 0) {
-          count++;
-        }
-        if (widget.filterParam.feelingsSelected[1] == true &&
-            bpAllData[i]["feeling"] == 1) {
-          count++;
-        }
-        if (widget.filterParam.feelingsSelected[2] == true &&
-            bpAllData[i]["feeling"] == 2) {
-          count++;
-        }
-
-        if (count == 0) {
-          continue;
-        }
-      }
-
-      if (widget.filterParam.remarksSelected[2] == false) {
-        int count = 0;
-        if (widget.filterParam.remarksSelected[0] == true &&
-            bpAllData[i]["remark"] == "") {
-          count++;
-        }
-        if (widget.filterParam.remarksSelected[1] == true &&
-            bpAllData[i]["remark"] != "") {
-          count++;
-        }
-
-        if (count == 0) {
-          continue;
-        }
-      }
-
-      filteredData.add(bpAllData[i]);
+    } catch (e) {
+      print(e);
+      data = [];
     }
 
-    /* print("***************************");
-    //print(filteredData);
-    print(filteredData.length);
-    print("***************************"); */
+    dayData = [];
+    monthData = [];
+    sbpData = [];
+    dbpData = [];
+    heartRateData = [];
+
+    for (int i = data.length - 1; i >= 0; i--) {
+      int id_ = data[i]["id"];
+      String date_ = data[i]["date"];
+      int month_ = int.parse(date_.split("-")[1]);
+      int day_ = int.parse(date_.split("-")[2]);
+      int sbp_ = data[i]["sbp"];
+      int dbp_ = data[i]["dbp"];
+      int heartRate_ = data[i]["heartRate"];
+
+      dayData.add(day_);
+      monthData.add(month_);
+      sbpData.add(sbp_);
+      dbpData.add(dbp_);
+      heartRateData.add(heartRate_);
+    }
+
+    //print("dateData: $dateData");
+    //print("valueData: $valueData");
+    //setState(() {});
+
+    /* print("dayData      : $dayData");
+    print("monthData    : $monthData");
+    print("sbpData      : $sbpData");
+    print("dbpData      : $dbpData");
+    print("heartRateData: $heartRateData"); */
+  } */
+
+  Future<void> getDataFromServer() async {
+    String startDate = getFormattedDate(widget.filterParam.startDate);
+    String endDate = getFormattedDate(widget.filterParam.endDate);
+    String startTime = getFormattedTime(widget.filterParam.startTime);
+    String endTime = getFormattedTime(widget.filterParam.endTime);
+    String minSBP = widget.filterParam.minSBPController.text;
+
+    String maxSBP = widget.filterParam.maxSBPController.text;
+    String minDBP = widget.filterParam.minDBPController.text;
+    String maxDBP = widget.filterParam.maxDBPController.text;
+    String minHeartRate = widget.filterParam.minHeartRateController.text;
+    String maxHeartRate = widget.filterParam.maxHeartRateController.text;
+    String arm = "";
+    String feeling = "";
+    String remark = "";
+    List<bool> armBool = widget.filterParam.armsSelected;
+    List<bool> feelingBool = widget.filterParam.feelingsSelected;
+    List<bool> remarkBool = widget.filterParam.remarksSelected;
+
+    var filterParam = {
+      "startDate": startDate,
+      "endDate": endDate,
+      "startTime": startTime,
+      "endTime": endTime,
+      "minSbp": minSBP,
+      "maxSbp": maxSBP,
+      "minDbp": minDBP,
+      "maxDbp": maxDBP,
+      "minHeartRate": minHeartRate,
+      "maxHeartRate": maxHeartRate,
+    };
+
+    // 代表需要过滤
+    if (armBool[3] == false) {
+      armBool[0] == true ? arm += "1" : arm += "0";
+      armBool[1] == true ? arm += "1" : arm += "0";
+      armBool[2] == true ? arm += "1" : arm += "0";
+      filterParam["arm"] = arm;
+    }
+
+    if (feelingBool[3] == false) {
+      feelingBool[0] == true ? feeling += "1" : feeling += "0";
+      feelingBool[1] == true ? feeling += "1" : feeling += "0";
+      feelingBool[2] == true ? feeling += "1" : feeling += "0";
+      filterParam["feeling"] = feeling;
+    }
+
+    if (remarkBool[2] == false) {
+      remarkBool[0] == true ? remark += "1" : remark += "0";
+      remarkBool[1] == true ? remark += "1" : remark += "0";
+      filterParam["remark"] = remark;
+    }
+
+    print(filterParam);
+
+    /* print("开始日期：$startDate");
+    print("结束日期：$endDate");
+    print("开始时间：$startTime");
+    print("结束时间：$endTime");
+    print("收缩压：$minSBP ~ $maxSBP");
+    print("舒张压：$minDBP ~ $maxDBP");
+    print("心率：$minHeartRate ~ $maxHeartRate");
+    print("手臂：$armBool ,$arm");
+    print("感觉：$feelingBool ,$feeling");
+    print("备注：$remarkBool ,$remark"); */
+
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+    //print(value);
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.post(
+        "http://43.138.75.58:8080/api/blood-pressure/get-by-filter",
+        data: filterParam,
+      );
+      if (response.data["code"] == 200) {
+        print("获取血压数据成功");
+        //print(response.data["data"]);
+        recordData = response.data["data"]["bloodPressureList"];
+        statisticData = response.data["data"]["countedDataList"];
+        //bpdata = response.data["data"];
+      } else {
+        print(response);
+        recordData = [];
+        statisticData = [];
+      }
+    } catch (e) {
+      print(e);
+      recordData = [];
+      statisticData = [];
+    }
+
+    //print(recordData);
+    //print(statisticData);
   }
 
+  // 记录表格的标题 "日期 时间 收缩压 舒张压 心率 手臂 感觉 备注"
   List<DataColumn> getDataColumns() {
     //using the filteredData to generate the table
     List<DataColumn> dataColumn = [];
@@ -367,12 +427,14 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       dataColumn.add(DataColumn(
         label: Expanded(
           child: i == (columnNames.length - 1)
-              ? Text(
-                  columnNames[i],
-                  style: const TextStyle(
-                      fontFamily: "BalooBhai",
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold),
+              ? Center(
+                  child: Text(
+                    columnNames[i],
+                    style: const TextStyle(
+                        fontFamily: "BalooBhai",
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold),
+                  ),
                 )
               : Center(
                   child: Text(
@@ -390,133 +452,80 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     return dataColumn;
   }
 
+  // 记录表格的内容
   List<DataRow> getDataRows() {
     List<String> armsText = ["左手", "右手", "不选"];
     List<String> feelingsText = ["较好", "还好", "较差"];
 
     List<DataRow> dataRow = [];
-    for (int i = 0; i < filteredData.length; i++) {
+    for (int i = 0; i < recordData.length; i++) {
       dataRow.add(DataRow(
         cells: <DataCell>[
           DataCell(Center(
-            child: Text(filteredData[i]["date"]),
+            child: Text(recordData[i]["date"]),
           )),
           DataCell(Center(
-            child: Text(filteredData[i]["time"]),
+            child: Text(recordData[i]["time"]),
           )),
           DataCell(Center(
-            child: Text(filteredData[i]["sbp"].toString()),
+            child: Text(recordData[i]["sbp"].toString()),
           )),
           DataCell(Center(
-            child: Text(filteredData[i]["dbp"].toString()),
+            child: Text(recordData[i]["dbp"].toString()),
           )),
           DataCell(Center(
-            child: Text(filteredData[i]["heartRate"].toString()),
+            child: Text(recordData[i]["heartRate"].toString()),
           )),
           DataCell(Center(
-            child: Text(armsText[filteredData[i]["arm"]]),
+            child: Text(armsText[recordData[i]["arm"]]),
           )),
+          DataCell(Center(child: Text(feelingsText[recordData[i]["feeling"]]))),
           DataCell(
-              Center(child: Text(feelingsText[filteredData[i]["feeling"]]))),
-          DataCell(
-            Text(filteredData[i]["remark"].toString()),
+            Text((recordData[i]["remark"].toString()) == "null"
+                ? "暂无备注"
+                : recordData[i]["remark"].toString()),
           ),
         ],
       ));
     }
 
+    print('recordData: $recordData');
+
+    if (recordData.isEmpty) {
+      print("=============================empty========================");
+      // -
+      dataRow.add(DataRow(cells: <DataCell>[
+        DataCell(Center(
+          child: Text("-"),
+        )),
+        DataCell(Center(
+          child: Text("-"),
+        )),
+        DataCell(Center(
+          child: Text("-"),
+        )),
+        DataCell(Center(
+          child: Text("-"),
+        )),
+        DataCell(Center(
+          child: Text("-"),
+        )),
+        DataCell(Center(
+          child: Text("-"),
+        )),
+        DataCell(Center(
+          child: Text("-"),
+        )),
+        DataCell(Center(
+          child: Text("-"),
+        )),
+      ]));
+    }
+    print('dataRowLength: ${dataRow.length}');
     return dataRow;
   }
 
-  void getFilteredStatisticsData() {
-    //总和
-    int sbp = 0;
-    int dbp = 0;
-    int pulse = 0;
-    sbpList = [1000, 0, 0, 0, 0, 0, 0, 0];
-    dbpList = [1000, 0, 0, 0, 0, 0, 0, 0];
-    heartRateList = [1000, 0, 0, 0, 0, 0, 0, 0];
-
-    for (int i = 0; i < filteredData.length; i++) {
-      // 累加
-      int temp1 = filteredData[i]["sbp"];
-      int temp2 = filteredData[i]["dbp"];
-      int temp3 = filteredData[i]["heartRate"];
-      sbp += temp1;
-      dbp += temp2;
-      pulse += temp3;
-
-      //最小值，最大值
-      if (filteredData[i]["sbp"] < sbpList[0]) {
-        sbpList[0] = filteredData[i]["sbp"];
-      }
-      if (filteredData[i]["sbp"] > sbpList[1]) {
-        sbpList[1] = filteredData[i]["sbp"];
-      }
-
-      if (filteredData[i]["dbp"] < dbpList[0]) {
-        dbpList[0] = filteredData[i]["dbp"];
-      }
-      if (filteredData[i]["dbp"] > dbpList[1]) {
-        dbpList[1] = filteredData[i]["dbp"];
-      }
-
-      if (filteredData[i]["heartRate"] < heartRateList[0]) {
-        heartRateList[0] = filteredData[i]["heartRate"];
-      }
-
-      if (filteredData[i]["heartRate"] > heartRateList[1]) {
-        heartRateList[1] = filteredData[i]["heartRate"];
-      }
-
-      //范围
-      if (filteredData[i]["sbp"] < 90) {
-        sbpList[3]++;
-      } else if (filteredData[i]["sbp"] >= 90 &&
-          filteredData[i]["sbp"] <= 120) {
-        sbpList[4]++;
-      } else if (filteredData[i]["sbp"] >= 121 &&
-          filteredData[i]["sbp"] <= 139) {
-        sbpList[5]++;
-      } else if (filteredData[i]["sbp"] >= 140) {
-        sbpList[6]++;
-      }
-
-      if (filteredData[i]["dbp"] < 60) {
-        dbpList[3]++;
-      } else if (filteredData[i]["dbp"] >= 60 && filteredData[i]["dbp"] <= 80) {
-        dbpList[4]++;
-      } else if (filteredData[i]["dbp"] >= 81 && filteredData[i]["dbp"] <= 89) {
-        dbpList[5]++;
-      } else if (filteredData[i]["dbp"] >= 90) {
-        dbpList[6]++;
-      }
-
-      if (filteredData[i]["heartRate"] < 60) {
-        heartRateList[3]++;
-      } else if (filteredData[i]["heartRate"] >= 60 &&
-          filteredData[i]["heartRate"] <= 100) {
-        heartRateList[4]++;
-      } else if (filteredData[i]["heartRate"] >= 101 &&
-          filteredData[i]["heartRate"] <= 120) {
-        heartRateList[5]++;
-      } else if (filteredData[i]["heartRate"] >= 121) {
-        heartRateList[6]++;
-      }
-
-      sbpList[7]++;
-      dbpList[7]++;
-      heartRateList[7]++;
-    }
-
-    //平均值
-    if (filteredData.length > 0) {
-      sbpList[2] = sbp ~/ filteredData.length;
-      dbpList[2] = dbp ~/ filteredData.length;
-      heartRateList[2] = pulse ~/ filteredData.length;
-    }
-  }
-
+  // 统计表格的标题 "血压/心率 最低值 最高值 平均值 偏低次数 正常次数 偏高次数 异常次数 总次数"
   List<DataColumn> getStatisticsDataColumns() {
     List<DataColumn> dataColumn = [];
     List<String> columnNames = [
@@ -555,35 +564,39 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     List<String> names = ["收缩压", "舒张压", "心率"];
     List<List<int>> data = [sbpList, dbpList, heartRateList];
 
-    for (int i = 0; i < names.length; i++) {
+    for (int i = 0; i < statisticData.length; i++) {
       dataRow.add(DataRow(
         cells: <DataCell>[
           DataCell(Center(
             child: Text(names[i]),
           )),
           DataCell(Center(
-            child: Text(data[i][0].toString()),
+            child: Text((statisticData[i]["min"].toString()) == "null"
+                ? "0"
+                : statisticData[i]["min"].toString()),
           )),
           DataCell(Center(
-            child: Text(data[i][1].toString()),
+            child: Text((statisticData[i]["max"].toString()) == "null"
+                ? "0"
+                : statisticData[i]["max"].toString()),
           )),
           DataCell(Center(
-            child: Text(data[i][2].toString()),
+            child: Text(statisticData[i]["avg"].toString()),
           )),
           DataCell(Center(
-            child: Text(data[i][3].toString()),
+            child: Text(statisticData[i]["high"].toString()),
           )),
           DataCell(Center(
-            child: Text(data[i][4].toString()),
+            child: Text(statisticData[i]["medium"].toString()),
           )),
           DataCell(Center(
-            child: Text(data[i][5].toString()),
+            child: Text(statisticData[i]["low"].toString()),
           )),
           DataCell(Center(
-            child: Text(data[i][6].toString()),
+            child: Text(statisticData[i]["abnormal"].toString()),
           )),
           DataCell(Center(
-            child: Text(data[i][7].toString()),
+            child: Text(statisticData[i]["count"].toString()),
           )),
         ],
       ));
@@ -592,44 +605,17 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     return dataRow;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // 判断参数是否合法
-
-    widget.filterParam.tackle();
-
-    if (widget.filterParam.checkInvalidParam() > 0) {
-      print("invalid param");
-    }
-
-    // 原始数据记录
-    if (widget.filterParam.refresh == true) {
-      print("数据表格刷新");
-      getFilteredData();
-      getFilteredStatisticsData();
-      widget.filterParam.printFilterParams();
-      widget.filterParam.refresh = false;
-    } else {
-      print("数据表格 (不) 刷新");
-      widget.filterParam.printFilterParams();
-      widget.filterParam.refresh = false;
-      //return Container();
-    }
-
+  Widget getWholeWidget(BuildContext context) {
     return Column(
       children: [
+        // 数据记录
         UnconstrainedBox(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.85,
-            height: filteredData.length < 9
-                ? ((filteredData.length + 1) * 50) + 50
-                : (50 * 9) + 50,
-            /* decoration: BoxDecoration(
-            border: Border.all(
-              color: Color.fromARGB(255, 129, 127, 127),
-            ),
-            borderRadius: BorderRadius.circular(15),
-          ), */
+            /* height: recordData.length < 9
+                ? ((recordData.length + 1) * 50) + 50
+                : (50 * 9) + 50, */
+            // color: Colors.yellow,
             alignment: Alignment.center,
             child: Column(
               children: [
@@ -659,8 +645,8 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                 UnconstrainedBox(
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
-                    height: filteredData.length < 9
-                        ? (filteredData.length + 1) * 50
+                    height: recordData.length < 9
+                        ? ((recordData.length + 1) * 50) 
                         : 50 * 9,
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -689,19 +675,13 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
           ),
         ),
 
-        ///const SizedBox(height: 5),
+        const SizedBox(height: 10),
 
         // 统计部分
         UnconstrainedBox(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.85,
             height: 250,
-            /* decoration: BoxDecoration(
-            border: Border.all(
-              color: Color.fromARGB(255, 129, 127, 127),
-            ),
-            borderRadius: BorderRadius.circular(15),
-          ), */
             alignment: Alignment.center,
             child: Column(
               children: [
@@ -734,14 +714,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                         color: Color.fromARGB(255, 196, 195, 195),
                       ),
                       borderRadius: BorderRadius.circular(5),
-                      /* boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 0.2,
-                          blurRadius: 0.2,
-                          offset: const Offset(0, 0.5),
-                        ),
-                      ], */
                     ),
                     alignment: Alignment.center,
                     child: SingleChildScrollView(
@@ -755,9 +727,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                               (states) =>
                                   const Color.fromRGBO(34, 14, 244, 0.16)),
                         ),
-                        /* child: Container(
-                      color: const Color.fromARGB(255, 64, 255, 198),
-                    ), */
                       ),
                     ),
                   ),
@@ -768,6 +737,42 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         ),
       ],
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    widget.filterParam.tackle();
+
+    // 判断参数是否合法
+    if (widget.filterParam.checkInvalidParam() > 0) {
+      print("invalid param");
+      widget.filterParam.refresh = false;
+      return getWholeWidget(context);
+    }
+
+    if (widget.filterParam.refresh == false) {
+      print("数据表格 (不) 刷新");
+      return getWholeWidget(context);
+    }
+
+    // 原始数据记录
+    //else {
+    print("数据表格刷新");
+    //getDataFromServer();
+    widget.filterParam.refresh = false;
+
+    return FutureBuilder(
+        future: getDataFromServer(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return getWholeWidget(context);
+          } else {
+            return Container();
+          }
+        });
+    //}
+
+    //return getWholeWidget(context);
   }
 }
 

@@ -15,6 +15,10 @@ String getFormattedDate(DateTime date) {
   return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 }
 
+String getFormattedTime(DateTime time) {
+  return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+}
+
 String getStartDate(DateTime endDate, String selectedDays) {
   DateTime startDate = DateTime.now().subtract(const Duration(days: 7));
   if (selectedDays == "最近3天") {
