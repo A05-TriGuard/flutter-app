@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../component/icons.dart';
+import 'medicinepage.dart';
 
 class Medicine extends StatefulWidget {
   const Medicine({super.key});
@@ -9,31 +11,103 @@ class Medicine extends StatefulWidget {
 }
 
 class _MedicineState extends State<Medicine> {
+  final inputController = TextEditingController();
   bool showResult = false;
   int _currentIndex = 0;
   var resultCardList = <ResultCard>[];
   var historyCardList = <ResultCard>[];
-  var historyList = <String>["history 1", "history 2"];
-  var resultList = <String>[
-    "first result",
-    "second result",
-    "third result",
-    "forth result",
-    "fifth result",
-    "sixth result",
-    "seventh result"
-  ];
+  var historyList = [];
+  var resultList = [];
+  var token =
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMDg2MTM1LCJpYXQiOjE3MDA4MjY5MzUsImp0aSI6IjkyYzBlOGNlLTBlNDMtNDBmNC05MmFjLWUwNmFmNDgwZDdjNyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.vyD6DuOBUWDIiEoHh5IuY8Ri5Pmu5Qi-DjHp3hD8yVU';
 
   void createCardList() {
-    for (int i = 0; i < resultList.length; ++i) {
-      resultCardList.add(ResultCard(result: resultList[i]));
+    if (resultList.isNotEmpty) {
+      for (int i = 0; i < resultList.length; ++i) {
+        resultCardList.add(ResultCard(
+          result: resultList[i],
+          isResult: true,
+        ));
+      }
+    } else {
+      resultCardList.add(
+          const ResultCard(result: {"name": "目前没有找到相关搜索结果"}, isResult: false));
     }
   }
 
   void createHistoryList() {
-    for (int i = historyList.length - 1; i >= 0; --i) {
-      historyCardList.add(ResultCard(result: historyList[i]));
+    if (historyList.isNotEmpty) {
+      for (int i = 0; i < historyList.length; ++i) {
+        historyCardList.add(ResultCard(
+          result: historyList[i],
+          isResult: true,
+        ));
+      }
+    } else {
+      historyCardList.add(
+          const ResultCard(result: {"name": "暂时没有任何搜索记录"}, isResult: false));
     }
+  }
+
+  // Medicine API
+  void fetchNShowSearchResult(String inputMed) async {
+    resultList.clear();
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/medicine/search?keyword=$inputMed',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          showResult = true;
+          resultList = response.data["data"];
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  // Medicine API
+  void fetchNShowHistoryResult() async {
+    historyList.clear();
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/medicine/search-history',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          historyList = response.data["data"];
+          showResult = false;
+          //print(historyList);
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    inputController.dispose();
+    super.dispose();
   }
 
   @override
@@ -88,20 +162,26 @@ class _MedicineState extends State<Medicine> {
             const Text(
               "用药指南查询",
               style: TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: 2),
+                  fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 2),
             ),
             SizedBox(
               width: screenWidth * 0.8,
               child: TextField(
+                style: const TextStyle(fontSize: 22),
                 onTap: () {
-                  setState(() {
-                    showResult = false;
-                  });
+                  //fetchNShowHistoryResult();
+                  showResult = false;
                 },
+                onTapOutside: (event) {
+                  FocusScope.of(context).requestFocus(FocusNode());
+                  //fetchNShowHistoryResult();
+                  showResult = false;
+                },
+                controller: inputController,
                 decoration: InputDecoration(
                     hintText: "输入药品名称",
                     hintStyle: const TextStyle(
-                        color: Colors.black12, fontWeight: FontWeight.w800),
+                        color: Colors.black26, fontWeight: FontWeight.w800),
                     contentPadding: const EdgeInsets.only(left: 20),
                     enabledBorder: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(35)),
@@ -114,9 +194,8 @@ class _MedicineState extends State<Medicine> {
                             width: 2)),
                     suffixIcon: IconButton(
                       onPressed: () {
-                        setState(() {
-                          showResult = true;
-                        });
+                        fetchNShowSearchResult(inputController.text);
+                        FocusScope.of(context).requestFocus(FocusNode());
                       },
                       icon: Image.asset("assets/icons/searchWhite.png",
                           width: 20),
@@ -127,7 +206,10 @@ class _MedicineState extends State<Medicine> {
             ),
             Column(
               children: [
-                Text(showResult ? "相关搜索结果为：" : "历史查询记录："),
+                Text(
+                  showResult ? "相关搜索结果为：" : "历史查询记录：",
+                  style: const TextStyle(fontSize: 18),
+                ),
                 const SizedBox(
                   height: 10,
                 ),
@@ -208,8 +290,9 @@ class _MedicineState extends State<Medicine> {
 }
 
 class ResultCard extends StatelessWidget {
-  final String result;
-  const ResultCard({super.key, required this.result});
+  final Map result;
+  final bool isResult;
+  const ResultCard({super.key, required this.result, required this.isResult});
 
   @override
   Widget build(BuildContext context) {
@@ -219,12 +302,25 @@ class ResultCard extends StatelessWidget {
         shadowColor: Colors.black87,
         elevation: 5,
         child: InkWell(
-          onTap: () {
-            Navigator.pushNamed(context, '/articles/medicine/page');
-          },
+          onTap: isResult
+              ? () {
+                  //Navigator.pushNamed(context, '/articles/medicine/page');
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => MedicinePage(
+                              title: "返回查询页面",
+                              link: '/articles/medicine',
+                              id: result["id"])));
+                }
+              : null,
           child: ListTile(
               minVerticalPadding: 15,
-              title: Text(result, maxLines: 1),
+              title: Text(
+                result["name"],
+                maxLines: 1,
+                style: const TextStyle(fontSize: 20),
+              ),
               visualDensity: const VisualDensity(vertical: -4)),
         ));
   }

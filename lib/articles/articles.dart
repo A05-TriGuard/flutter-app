@@ -39,66 +39,83 @@ class _ArticleState extends State<Article> {
 
       // 主体内容
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              "分类",
-              style: TextStyle(
-                  fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: 3),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ArticleButton(
-                  text: "用药指南",
-                  icon: MyIcons().prescription(),
-                  bheight: buttonHeight,
-                  bwidth: buttonHeight,
-                  linkPage: '/articles/medicine',
-                ),
-                const SizedBox(width: 30),
-                ArticleButton(
-                  text: "食物成分",
-                  icon: MyIcons().salad(),
-                  bheight: buttonHeight,
-                  bwidth: buttonHeight,
-                  linkPage: '/articles/foodsearch',
-                )
-              ],
-            ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ArticleButton(
-                  text: "疾病预防",
-                  icon: MyIcons().prevention(),
-                  bheight: buttonHeight,
-                  bwidth: buttonHeight,
-                  linkPage: '/articles/prevention',
-                ),
-                const SizedBox(width: 30),
-                ArticleButton(
-                  text: "科普文章",
-                  icon: MyIcons().documentation(),
-                  bheight: buttonHeight,
-                  bwidth: buttonHeight,
-                  linkPage: '/articles/science',
-                )
-              ],
-            ),
-            const SizedBox(height: 30),
-            ArticleButton(
-              text: "我的收藏",
-              icon: MyIcons().stars(),
-              bheight: buttonHeight,
-              bwidth: (buttonHeight * 2) + 30,
-              linkPage: '/articles/collection',
-            ),
-            const SizedBox(height: 30),
-          ],
+        child: Container(
+          padding: const EdgeInsets.all(50),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const Text(
+                "分类",
+                style: TextStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 3),
+              ),
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  Expanded(
+                    child: ArticleButton(
+                      text: "用药指南",
+                      icon: MyIcons().prescription(),
+                      bheight: buttonHeight,
+                      bwidth: buttonHeight,
+                      linkPage: '/articles/medicine',
+                    ),
+                  ),
+                  const SizedBox(width: 30),
+                  Expanded(
+                    child: ArticleButton(
+                      text: "食物成分",
+                      icon: MyIcons().salad(),
+                      bheight: buttonHeight,
+                      bwidth: buttonHeight,
+                      linkPage: '/articles/foodsearch',
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  Expanded(
+                    child: ArticleButton(
+                      text: "疾病预防",
+                      icon: MyIcons().prevention(),
+                      bheight: buttonHeight,
+                      bwidth: buttonHeight,
+                      linkPage: '/articles/prevention',
+                    ),
+                  ),
+                  const SizedBox(width: 30),
+                  Expanded(
+                    child: ArticleButton(
+                      text: "科普文章",
+                      icon: MyIcons().documentation(),
+                      bheight: buttonHeight,
+                      bwidth: buttonHeight,
+                      linkPage: '/articles/science',
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  Expanded(
+                    child: ArticleButton(
+                      text: "我的收藏",
+                      icon: MyIcons().stars(),
+                      bheight: buttonHeight,
+                      bwidth: (buttonHeight * 2) + 30,
+                      linkPage: '/articles/collection',
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
 
@@ -209,7 +226,7 @@ class ArticleButton extends StatelessWidget {
               Text(
                 text,
                 style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               icon
             ],

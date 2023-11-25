@@ -15,7 +15,7 @@ import '../fooddiary/fooddiary.dart';
 import '../moment/moment.dart';
 
 Map routes = {
-  '/': (context) => const Moment(),
+  '/': (context) => const Article(),
   // -------------------- 动态模块 ====================
   '/moment': (context) => const Moment(),
   // ==================== 饮食模块 ====================
@@ -30,13 +30,13 @@ Map routes = {
       const FoodsearchPage(title: "返回查询页面", link: '/articles/foodsearch'),
   '/articles/medicine': (context) => const Medicine(),
   '/articles/medicine/page': (context) =>
-      const MedicinePage(title: "返回查询页面", link: '/articles/medicine'),
+      const MedicinePage(title: "返回查询页面", link: '/articles/medicine', id: 0),
   '/articles/prevention': (context) => const Prevention(),
   '/articles/collection': (context) => const Collection(),
   '/articles/collection/articlepage': (context) =>
       const SciencePage(title: "返回收藏列表", link: '/articles/collection'),
   '/articles/collection/medicinepage': (context) =>
-      const MedicinePage(title: "返回收藏列表", link: '/articles/collection'),
+      const MedicinePage(title: "返回收藏列表", link: '/articles/collection', id: 0),
   '/articles/collection/foodsearchpage': (context) =>
       const FoodsearchPage(title: "返回收藏列表", link: '/articles/collection'),
 };

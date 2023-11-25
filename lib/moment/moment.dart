@@ -389,55 +389,51 @@ class _MomentState extends State<Moment> {
                           )
                         ]),
                   ),
-                  // 帖子 & 按钮重叠
+                  // 灰边
                   Container(
                     height: 7,
-                    decoration: BoxDecoration(color: Colors.black12),
+                    decoration: const BoxDecoration(color: Colors.black12),
                   ),
-                  Stack(
-                    children: [
-                      Container(
-                        height: screenHeight * 0.7 - 137,
-                        decoration: BoxDecoration(color: Colors.black12),
-                        child: ListView(
-                          shrinkWrap: true,
-                          children: [
-                            PostTile(
-                                width: screenWidth - 80, curPost: testPost),
-                            PostTile(
-                                width: screenWidth - 80, curPost: testPost2),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
+                  // 帖子
+                  Container(
+                    height: screenHeight * 0.7 - 137,
+                    decoration: const BoxDecoration(color: Colors.black12),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        PostTile(width: screenWidth - 80, curPost: testPost),
+                        PostTile(width: screenWidth - 80, curPost: testPost2),
+                      ],
+                    ),
+                  ),
                 ]),
               ),
               // 发帖按钮
               Positioned(
-                  top: screenHeight * 0.55,
-                  left: screenWidth * 0.81,
-                  child: FloatingActionButton(
-                    onPressed: () {
-                      showDialog(
-                          barrierColor: Colors.black87,
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              content: Post(width: screenWidth * 0.9),
-                            );
-                          });
-                    },
-                    foregroundColor: const Color.fromARGB(255, 250, 209, 252),
-                    backgroundColor: Colors.white,
-                    splashColor: const Color.fromARGB(255, 250, 209, 252),
-                    elevation: 10,
-                    tooltip: "发布帖子",
-                    child: const Icon(
-                      Icons.add,
-                      size: 50,
-                    ),
-                  ))
+                top: screenHeight * 0.55,
+                left: screenWidth * 0.81,
+                child: FloatingActionButton(
+                  onPressed: () {
+                    showDialog(
+                        barrierColor: Colors.black87,
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: Post(width: screenWidth * 0.9),
+                          );
+                        });
+                  },
+                  foregroundColor: const Color.fromARGB(255, 250, 209, 252),
+                  backgroundColor: Colors.white,
+                  splashColor: const Color.fromARGB(255, 250, 209, 252),
+                  elevation: 10,
+                  tooltip: "发布帖子",
+                  child: const Icon(
+                    Icons.add,
+                    size: 50,
+                  ),
+                ),
+              )
             ],
           ),
         ]),
