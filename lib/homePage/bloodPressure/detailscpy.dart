@@ -804,7 +804,10 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                PageTitle(title: "当日血压数据", icons: "assets/icons/graph.png"),
+                PageTitle(
+                    title: "当日血压数据",
+                    icons: "assets/icons/graph.png",
+                    fontSize: 18),
 
                 //展开按钮 -> 显示当天所有的血压数据
                 GestureDetector(
@@ -1015,7 +1018,9 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
               width: MediaQuery.of(context).size.width * 0.85,
               alignment: Alignment.centerLeft,
               child: const PageTitle(
-                  title: "血压详情", icons: "assets/icons/bloodPressure.png"),
+                  title: "血压详情",
+                  icons: "assets/icons/bloodPressure.png",
+                  fontSize: 22),
             ),
           ),
 

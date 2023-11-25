@@ -183,7 +183,12 @@ class _TitleDateState extends State<TitleDate> {
 class PageTitle extends StatefulWidget {
   final String title;
   final String icons;
-  const PageTitle({Key? key, required this.title, required this.icons})
+  final double fontSize;
+  const PageTitle(
+      {Key? key,
+      required this.title,
+      required this.icons,
+      required this.fontSize})
       : super(key: key);
 
   @override
@@ -203,8 +208,8 @@ class _PageTitleState extends State<PageTitle> {
             children: [
               Text(
                 widget.title,
-                style:
-                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: widget.fontSize, fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 5),
               Image.asset(widget.icons, width: 20, height: 20),
@@ -404,12 +409,12 @@ class _DatePicker2State extends State<DatePicker2> {
                   fontFamily: "BalooBhai",
                   color: Color.fromRGBO(48, 48, 48, 1)),
             ),
-            const SizedBox(width: 2),
+            //const SizedBox(width: 2),
 
             // 日期选择
             SizedBox(
-              width: 30,
-              height: 30,
+              width: 25,
+              height: 25,
               child: IconButton(
                 padding: EdgeInsets.all(0),
                 icon: const Icon(Icons.calendar_month),

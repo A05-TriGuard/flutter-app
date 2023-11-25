@@ -2283,8 +2283,10 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const PageTitle(
-                        title: "血压详细数据",
-                        icons: "assets/icons/bloodPressure.png"),
+                      title: "血压详细数据",
+                      icons: "assets/icons/bloodPressure.png",
+                      fontSize: 22,
+                    ),
                     Center(
                       child: GestureDetector(
                         onTap: () {
