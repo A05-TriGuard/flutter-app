@@ -1,6 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
+String getWeekDay(DateTime date) {
+  switch (date.weekday) {
+    case 1:
+      return "(一)";
+    case 2:
+      return "(二)";
+    case 3:
+      return "(三)";
+    case 4:
+      return "(四)";
+    case 5:
+      return "(五)";
+    case 6:
+      return "(六)";
+    case 7:
+      return "(日)";
+  }
+  return "(一)";
+}
+
 class TitleDate extends StatefulWidget {
   final String title;
   final String icons;
@@ -363,6 +383,7 @@ class _DatePickerState extends State<DatePicker> {
 // =======================================
 typedef UpdateDateCallback = void Function(DateTime newDate);
 
+// ignore: must_be_immutable
 class DatePicker2 extends StatefulWidget {
   DateTime date = DateTime(2023, 11, 11);
   final UpdateDateCallback updateDate;
@@ -403,13 +424,15 @@ class _DatePicker2State extends State<DatePicker2> {
           children: [
             Text(
               //"${widget.date.year}年${widget.date.month}月${widget.date.day}日",
-              '${widget.date.year}年${widget.date.month}月${widget.date.day}日',
+              '${widget.date.year}年${widget.date.month}月${widget.date.day}日 ${getWeekDay(widget.date)}',
+
               style: const TextStyle(
                   fontSize: 18,
                   fontFamily: "BalooBhai",
                   color: Color.fromRGBO(48, 48, 48, 1)),
             ),
-            //const SizedBox(width: 2),
+
+            const SizedBox(width: 2),
 
             // 日期选择
             SizedBox(
@@ -509,13 +532,18 @@ class _DatePicker2State extends State<DatePicker2> {
                   ],
                 )),
               ),
-            )
+            ),
+
+            /* Text(
+              getWeekDay(),
+            ), */
           ]),
     );
   }
 }
 
 // hour and minute picker ,must 2 digit number
+// ignore: must_be_immutable
 class TimePicker extends StatefulWidget {
   DateTime time = DateTime(2023, 11, 11, 00, 00);
   final UpdateDateCallback updateTime;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../component/header/header.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import '../other/gradientBorder/gradient_borders.dart';
+import '../component/titleDate/titleDate.dart';
 
 class MyTitle extends StatefulWidget {
   final String title;
@@ -822,8 +823,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final formattedDate = selectedDate != null
-        ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日"
-        : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日";
+        ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日 ${getWeekDay(selectedDate!)}"
+        : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日 ${getWeekDay(DateTime.now())}";
 
     return PopScope(
       canPop: false,

@@ -30,8 +30,11 @@ class _LoginPageState extends State<LoginPage> {
     final username = usernameController.text;
     final password = passwordController.text;
 
-    if (!(username.isEmpty || password.isEmpty)) {
+    Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+
+    /*  if (!(username.isEmpty || password.isEmpty)) {
       const String loginApi = 'http://43.138.75.58:8080/api/auth/login';
+      print("登录请求中 $username $password");
       try {
         Response response = await dio.post(loginApi, queryParameters: {
           'username': username,
@@ -85,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
           print("登录请求失败2");
         }
       }
-    }
+    } */
   }
 
   @override

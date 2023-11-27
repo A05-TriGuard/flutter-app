@@ -964,6 +964,26 @@ class _TitleDateState extends State<TitleDate> {
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
   //DateTime newDate = DateTime(2023, 11, 11);
 
+  String getWeekDay() {
+    switch (widget.date.weekday) {
+      case 1:
+        return "(一)";
+      case 2:
+        return "(二)";
+      case 3:
+        return "(三)";
+      case 4:
+        return "(四)";
+      case 5:
+        return "(五)";
+      case 6:
+        return "(六)";
+      case 7:
+        return "(日)";
+    }
+    return "(一)";
+  }
+
   void _showDialog(Widget child) {
     showCupertinoModalPopup<void>(
       context: context,
@@ -989,12 +1009,15 @@ class _TitleDateState extends State<TitleDate> {
     oldDate = widget.date;
     return Center(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
-          child: Row(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
+              const SizedBox(
+                height: 5,
+              ),
               Container(
                 child: Row(
                     //mainAxisAlignment: MainAxisAlignment.start,
@@ -1009,13 +1032,16 @@ class _TitleDateState extends State<TitleDate> {
                           width: 20, height: 20),
                     ]),
               ),
+              const SizedBox(
+                height: 10,
+              ),
               Container(
                 child: Row(
                     //mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
                         //"${widget.date.year}年${widget.date.month}月${widget.date.day}日",
-                        '${date.year}年${date.month}月${date.day}日',
+                        '${date.year}年${date.month}月${date.day}日 ${getWeekDay()}',
                         style: const TextStyle(
                             fontSize: 18,
                             fontFamily: "BalooBhai",
@@ -1026,7 +1052,7 @@ class _TitleDateState extends State<TitleDate> {
                         width: 20,
                         height: 20,
                         child: IconButton(
-                          padding: EdgeInsets.all(0),
+                          padding: const EdgeInsets.all(0),
                           icon: const Icon(Icons.calendar_month),
                           iconSize: 25,
                           /* onPressed: () {
@@ -1071,7 +1097,8 @@ class _TitleDateState extends State<TitleDate> {
                                         style: ButtonStyle(
                                           backgroundColor:
                                               MaterialStateProperty.all<Color>(
-                                            Color.fromARGB(255, 221, 223, 223),
+                                            const Color.fromARGB(
+                                                255, 221, 223, 223),
                                           ),
                                         ),
                                         child: const Text(

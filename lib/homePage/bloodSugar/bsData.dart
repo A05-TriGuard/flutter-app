@@ -39,3 +39,61 @@ List<Map> bpdata = [
     "remark": "啊大家啊是多久啊2409923阿人情味iowrfs??????",
   },
 ];
+
+/* {
+    "id": 12,
+    "date": "2021-01-01",
+    "time": "09:06",
+    "bs": 5.6,
+    "meal": 0,
+    "feeling": 1,
+    "remark": "啊大???",
+  }, 
+   {
+    "startDate": "2021-01-02",
+    "endDate": "2021-01-08",
+    "startTime": "09:02",
+    "endTime": "23:12",
+    "minBs": 0.6,
+    "maxBs": 6.7,
+    "meal": 010,
+    "feeling": 110,
+    "remark": 01,
+  }, 
+*/
+
+
+/*
+血脂
+
+  {
+    "startDate": "2021-01-02",
+    "endDate": "2021-01-08",
+    "startTime": "09:02",
+    "endTime": "23:12",
+    "minTc": 5.6,
+    "maxTc": 6.3,
+    "minTg": "2.4",
+    "maxTg": "2.8",
+    "minLdl": "1.2",
+    "maxLdl": "2.3",
+    "minHdl": "1.2",
+    "maxHdl": "4.2",
+    "feeling": 010,
+    "remark": 01,
+  }, 
+
+  {
+    "id": 12,
+    "date": "2021-01-01",
+    "time": "09:06",
+    "tc": 5.6,
+    "tc": 5.6,
+    "tg": "2.4",
+    "tg": "2.4",
+    "ldl": "1.2",
+    "hdl": "1.2",
+    "feeling": 1,
+    "remark": "啊大???",
+  }, 
+  */

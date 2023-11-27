@@ -215,6 +215,14 @@ Navigator.pushNamed(context, '/page2').then((_) {
 ### 加载动画
 https://pub.dev/packages/loading_animation_widget
 
+#### /data/user/0/com.example.triguard/app_flutter 在哪里？
+https://stackoverflow.com/questions/67226539/how-do-i-access-data-user-0-folder-from-android
+
+#### Android device files visible in Android Studio but not Windows Explorer! Wrong dir?
+https://stackoverflow.com/questions/75542835/android-device-files-visible-in-android-studio-but-not-windows-explorer-wrong-d
+
+#### excel
+https://pub.dev/packages/excel
 
 ### 血糖标准
 

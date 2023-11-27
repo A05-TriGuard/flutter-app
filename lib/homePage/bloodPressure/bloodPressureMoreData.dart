@@ -13,6 +13,7 @@ import 'package:syncfusion_flutter_xlsio/xlsio.dart'
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:triguard/account/token.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
@@ -237,76 +238,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   List<dynamic> statisticData = [];
 
   // 从后端请求数据
-  /* Future<void> getDataFromServer() async {
-    String requestStartDate = getStartDate(widget.date, widget.selectedDays);
-    String requestEndDate = getFormattedDate(widget.date);
-    print(
-        '请求日期：$requestStartDate ~~~ $requestEndDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-
-    // 提取登录获取的token
-    var token = await storage.read(key: 'token');
-    //print(value);
-
-    //从后端获取数据
-    final dio = Dio();
-    Response response;
-    dio.options.headers["Authorization"] = "Bearer $token";
-
-    try {
-      response = await dio.get(
-        "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
-        queryParameters: {
-          "startDate": requestStartDate,
-          "endDate": requestEndDate,
-        },
-      );
-      if (response.data["code"] == 200) {
-        print("获取血压数据成功");
-        //print(response.data["data"]);
-        data = response.data["data"];
-        //bpdata = response.data["data"];
-      } else {
-        print(response);
-        data = [];
-      }
-    } catch (e) {
-      print(e);
-      data = [];
-    }
-
-    dayData = [];
-    monthData = [];
-    sbpData = [];
-    dbpData = [];
-    heartRateData = [];
-
-    for (int i = data.length - 1; i >= 0; i--) {
-      int id_ = data[i]["id"];
-      String date_ = data[i]["date"];
-      int month_ = int.parse(date_.split("-")[1]);
-      int day_ = int.parse(date_.split("-")[2]);
-      int sbp_ = data[i]["sbp"];
-      int dbp_ = data[i]["dbp"];
-      int heartRate_ = data[i]["heartRate"];
-
-      dayData.add(day_);
-      monthData.add(month_);
-      sbpData.add(sbp_);
-      dbpData.add(dbp_);
-      heartRateData.add(heartRate_);
-    }
-
-    //print("dateData: $dateData");
-    //print("valueData: $valueData");
-    //setState(() {});
-
-    /* print("dayData      : $dayData");
-    print("monthData    : $monthData");
-    print("sbpData      : $sbpData");
-    print("dbpData      : $dbpData");
-    print("heartRateData: $heartRateData"); */
-  } */
-
   Future<void> getDataFromServer() async {
     String startDate = getFormattedDate(widget.filterParam.startDate);
     String endDate = getFormattedDate(widget.filterParam.endDate);
@@ -654,7 +585,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                     height: recordDataHeight,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Color.fromARGB(255, 196, 195, 195),
+                        color: const Color.fromARGB(255, 196, 195, 195),
                       ),
                       borderRadius: BorderRadius.circular(5),
                     ),
@@ -715,7 +646,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                     decoration: BoxDecoration(
                       border: Border.all(
                         //color: Color.fromARGB(255, 129, 127, 127),
-                        color: Color.fromARGB(255, 196, 195, 195),
+                        color: const Color.fromARGB(255, 196, 195, 195),
                       ),
                       borderRadius: BorderRadius.circular(5),
                     ),
@@ -771,7 +702,70 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
           if (snapshot.connectionState == ConnectionState.done) {
             return getWholeWidget(context);
           } else {
-            return Container();
+            //return Container();
+            /* return Center(
+              child: LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.pink, size: 25),
+            ); */
+
+            return UnconstrainedBox(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      children: [
+                        const Text("数据表",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: "BalooBhai",
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 5),
+                        Image.asset(
+                          "assets/icons/statistics.png",
+                          height: 18,
+                          width: 18,
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 50,
+                      child: Center(
+                        child: LoadingAnimationWidget.staggeredDotsWave(
+                            color: Colors.pink, size: 25),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const Text("统计表",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: "BalooBhai",
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 5),
+                        Image.asset(
+                          "assets/icons/statistics.png",
+                          height: 18,
+                          width: 18,
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 50,
+                      child: Center(
+                        child: LoadingAnimationWidget.staggeredDotsWave(
+                            color: Colors.pink, size: 25),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
         });
     //}
@@ -850,13 +844,13 @@ class _ArmButtonsWidgetState extends State<ArmButtonsWidget> {
           Container(
             height: 40,
             width: 50,
-            padding: EdgeInsets.all(0.0),
+            padding: const  EdgeInsets.all(0.0),
             decoration: BoxDecoration(
               color: widget.isSelected[index] == true
                   ? const Color.fromRGBO(253, 134, 255, 0.66)
-                  : Color.fromRGBO(218, 218, 218, 0.66),
+                  :const  Color.fromRGBO(218, 218, 218, 0.66),
               borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+              border: Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
             ),
             alignment: Alignment.center,
             child: Center(
@@ -864,8 +858,8 @@ class _ArmButtonsWidgetState extends State<ArmButtonsWidget> {
                 buttonText[index],
                 style: TextStyle(
                   color: widget.isSelected[index] == true
-                      ? Color.fromRGBO(66, 9, 119, 0.773)
-                      : Color.fromRGBO(94, 68, 68, 100),
+                      ? const Color.fromRGBO(66, 9, 119, 0.773)
+                      : const  Color.fromRGBO(94, 68, 68, 100),
                   fontSize: 16.0,
                   fontFamily: 'Blinker',
                 ),
@@ -1048,7 +1042,7 @@ class _PulseFilterWidgetState extends State<PulseFilterWidget> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               //initialValue: widget.heartRate,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   counterText: "",
                   hintText: "-",
                   contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
@@ -1057,12 +1051,12 @@ class _PulseFilterWidgetState extends State<PulseFilterWidget> {
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
             ),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           const Text(
             "至",
-            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
+            style: TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           SizedBox(
             width: 75,
             height: 40,
@@ -1074,7 +1068,7 @@ class _PulseFilterWidgetState extends State<PulseFilterWidget> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               //initialValue: widget.heartRate,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   counterText: "",
                   hintText: "-",
                   contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
@@ -1083,10 +1077,10 @@ class _PulseFilterWidgetState extends State<PulseFilterWidget> {
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
             ),
           ),
-          SizedBox(width: 2),
+          const SizedBox(width: 2),
           const Text(
             "次/分",
-            style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
+            style: TextStyle(fontSize: 16, fontFamily: "Blinker"),
           ),
         ],
       ),
@@ -1128,7 +1122,7 @@ class _SBPFilterWidgetState extends State<SBPFilterWidget> {
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ],
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   counterText: "",
                   hintText: "-",
                   contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
@@ -1137,12 +1131,12 @@ class _SBPFilterWidgetState extends State<SBPFilterWidget> {
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
             ),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           const Text(
             "至",
-            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
+            style: TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           SizedBox(
             width: 75,
             height: 40,
@@ -1154,7 +1148,7 @@ class _SBPFilterWidgetState extends State<SBPFilterWidget> {
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ],
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   counterText: "",
                   hintText: "-",
                   contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
@@ -1163,10 +1157,10 @@ class _SBPFilterWidgetState extends State<SBPFilterWidget> {
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
             ),
           ),
-          SizedBox(width: 2),
+          const SizedBox(width: 2),
           const Text(
             "mmHg",
-            style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
+            style: TextStyle(fontSize: 16, fontFamily: "Blinker"),
           ),
         ],
       ),
@@ -2132,6 +2126,173 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     //OpenFile.open('$exPath/example.xlsx');
   }
 
+  Future<String> createFolder(String cow) async {
+    final folderName = cow;
+    final path = Directory("storage/emulated/0/$folderName");
+    var status = await Permission.storage.status;
+    var status1 = await Permission.storage.request().isGranted;
+    var status2 = await Permission.manageExternalStorage.status;
+    var status3 = await Permission.manageExternalStorage.request().isGranted;
+
+    if (!status.isGranted) {
+      await Permission.storage.request();
+    }
+
+    if (!status2.isGranted) {
+      await Permission.manageExternalStorage.request();
+    }
+
+    if (!status1) {
+      print("no permission1");
+    } else {
+      print("permission1 ok");
+    }
+
+    if (!status3) {
+      print("no permission3");
+    } else {
+      print("permission3 ok");
+    }
+
+    var dir = await getApplicationDocumentsDirectory();
+    var dir2 = await getApplicationSupportDirectory();
+    print(dir.path);
+    print(dir2.path);
+    var newpath =
+        Directory("/data/user/0/com.example.triguard/app_flutter/ahbeytest");
+    var newpath2 =
+        Directory('/data/user/0/com.example.triguard/files/ahbeytest2');
+    print(newpath.path);
+    //create folder
+
+    if (await newpath2.exists()) {
+      print("ok");
+    } else {
+      print("no");
+      newpath2.create();
+    }
+
+    var filename =
+        "/data/user/0/com.example.triguard/app_flutter/ahbeytest/test.txt";
+    var filename2 =
+        "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt";
+    var excel = Excel.createExcel();
+
+    // 2. 添加工作表
+    var sheet = excel['Sheet1'];
+
+    // 3. 添加数据
+    sheet.appendRow(['Name', 'Age', 'City']);
+    sheet.appendRow(['John Doe???', 25, 'New York']);
+    sheet.appendRow(['Jane Smith?', 30, 'Los Angeles']);
+    sheet.appendRow(['Bob Johnson?', 28, 'Chicago']);
+
+    // 4. 保存 Excel 文件
+/*     List<int>? fileBytes = excel.save();
+    //print('saving executed in ${stopwatch.elapsed}');
+    if (fileBytes != null) {
+      File(join(filename))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fileBytes);
+    }
+ */
+    File fileDef = File(filename2);
+    try {
+      await fileDef.create();
+    } catch (e) {
+      print(e);
+    }
+
+    if (await File(
+            "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt")
+        .exists()) {
+      print("test2 txt ok");
+    }
+
+    // open the file
+    RandomAccessFile file2 = await fileDef.open(mode: FileMode.write);
+    // write to the file
+    await file2.writeString("??Hello World?????????");
+    // close the file
+    await file2.close();
+
+    //Open the file on the phone
+    OpenFile.open(filename2);
+
+    return "";
+  }
+
+  Future<void> createExportFile() async {
+    var status = await Permission.storage.status.isGranted;
+    var status1 = await Permission.storage.request().isGranted;
+    var status2 = await Permission.manageExternalStorage.status.isGranted;
+    var status3 = await Permission.manageExternalStorage.request().isGranted;
+
+    if (!status) {
+      await Permission.storage.request();
+    }
+
+    if (!status2) {
+      await Permission.manageExternalStorage.request();
+    }
+
+    // 获取文件夹路径
+    var dir = await getApplicationSupportDirectory();
+    var folderPath = Directory("${dir.path}/bloodPressure");
+
+    print("folderPath: ${folderPath.path}");
+
+    // 判断文件夹是否存在，不存在则创建
+    if (await folderPath.exists()) {
+      print("folderPath exist");
+    } else {
+      print("folderPath not exist");
+      folderPath.create();
+    }
+
+    // 获取文件路径
+    var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
+
+    //创建文件
+    var excel = Excel.createExcel();
+
+    // 2. 添加工作表
+    var sheet = excel['Sheet1'];
+
+    // 3. 添加数据
+    sheet.appendRow(['Name', 'Age', 'City']);
+    sheet.appendRow(['ahbey', 21, 'Malaysia']);
+    sheet.appendRow(['Ziqi', 21, 'BP']);
+    sheet.appendRow(['Johnson', 21, 'TongKangPecah']);
+
+    List<int>? fileBytes = excel.save();
+    //print('saving executed in ${stopwatch.elapsed}');
+    if (fileBytes != null) {
+      File(join(fileNamePath))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fileBytes);
+    }
+
+    //检测文件是否存在
+    if (await File(fileNamePath).exists()) {
+      print("excel exist");
+      //打开文件
+      //OpenFile.open(fileNamePath);
+      // copy the file to Downloads folder
+      var downloadPath = await getDownloadsDirectory();
+      await File(fileNamePath)
+          //.copy('/storage/emulated/0/Download/bloodPressure.xlsx');
+          .copy('${downloadPath!.path}/bloodPressure.xlsx');
+      //.copy('/sdcard/Download/bloodPressure.xlsx');
+      print("downloadPath: ${downloadPath?.path}");
+      // 检测文件是否存在
+      //if (await File('/storage/emulated/0/Download/bloodPressure.xlsx')
+      if (await File('${downloadPath?.path}/bloodPressure.xlsx').exists()) {
+        print("copy ok");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return UnconstrainedBox(
@@ -2144,7 +2305,9 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
             GestureDetector(
               onTap: () {
                 print("导出excel");
-                exportExcel();
+                //exportExcel();
+                //createFolder("ahbeytest");
+                createExportFile();
               },
               child: Container(
                   height: 40,
@@ -2282,6 +2445,7 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
         body: Container(
           color: Colors.white,
           child: ListView(shrinkWrap: true, children: [
+            const SizedBox(height: 5),
             // 标题组件
             UnconstrainedBox(
               child: Container(

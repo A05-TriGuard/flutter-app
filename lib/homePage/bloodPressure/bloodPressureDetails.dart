@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../account/token.dart';
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
-import '../../other/gradientBorder/gradient_borders.dart';
 import '../../other/other.dart';
 import './bpData2.dart';
 import './bloodPressureEdit.dart' hide armButtonTypes, feelingButtonTypes;
@@ -350,7 +349,11 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
             ),
           );
         } else {
-          return CircularProgressIndicator();
+          //return CircularProgressIndicator();
+          return Center(
+            child: LoadingAnimationWidget.staggeredDotsWave(
+                color: Colors.pink, size: 25),
+          );
         }
       },
     );
@@ -410,12 +413,14 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               //GraphDayDropdownButton(updateView: widget.updateView),
-              selectDaysButton,
+              const SizedBox(height: 5),
               DatePicker2(date: widget.date, updateDate: widget.updateDate),
+              selectDaysButton,
+              const SizedBox(height: 5),
             ],
           ),
           //graph,
@@ -733,6 +738,82 @@ class NoDataWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return UnconstrainedBox(
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(120, 151, 151, 151),
+                  offset: Offset(0, 5),
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Text(
+                "暂无数据",
+                style: TextStyle(
+                    fontSize: 20,
+                    fontFamily: "BalooBhai",
+                    color: Color.fromRGBO(48, 48, 48, 1)),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              print("添加数据");
+              /* Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BloodPressureEdit(
+                    arguments: {
+                      "bpDataId": -1,
+                      "date": DateTime.now(),
+                      "prevPage": 0,
+                    },
+                  ),
+                ),
+              ).then((_) {
+                //print("哈哈哈");
+                widget.updateData();
+              }); */
+            },
+            child: Container(
+              height: 20,
+              width: 20,
+              child: Image.asset("assets/icons/add.png", width: 20, height: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// 当日没有数据 可以跳转至添加数据页面
+class NoDataListWidget extends StatefulWidget {
+  final DateTime date;
+  final VoidCallback updateData;
+
+  const NoDataListWidget(
+      {Key? key, required this.date, required this.updateData})
+      : super(key: key);
+
+  @override
+  State<NoDataListWidget> createState() => _NoDataListWidgetState();
+}
+
+class _NoDataListWidgetState extends State<NoDataListWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return UnconstrainedBox(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
         height: 80,
@@ -748,14 +829,47 @@ class NoDataWidget extends StatelessWidget {
             ),
           ],
         ),
-        child: const Center(
-          child: Text(
-            "暂无数据",
-            style: TextStyle(
-                fontSize: 20,
-                fontFamily: "BalooBhai",
-                color: Color.fromRGBO(48, 48, 48, 1)),
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              "暂无数据",
+              style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "BalooBhai",
+                  color: Color.fromRGBO(48, 48, 48, 1)),
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+            GestureDetector(
+              onTap: () {
+                print("添加数据");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BloodPressureEdit(
+                      arguments: {
+                        "bpDataId": -1,
+                        "date": widget.date,
+                        "prevPage": 1,
+                      },
+                    ),
+                  ),
+                ).then((_) {
+                  //print("哈哈哈");
+                  widget.updateData();
+                });
+              },
+              child: Container(
+                height: 20,
+                width: 20,
+                child:
+                    Image.asset("assets/icons/add.png", width: 20, height: 20),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -912,7 +1026,11 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     }
 
     if (data.isEmpty) {
-      dataWidget.add(NoDataWidget());
+      //dataWidget.add(NoDataWidget());
+      dataWidget.add(NoDataListWidget(
+        date: widget.date,
+        updateData: widget.updateData,
+      ));
       length = 1;
       return;
     }
@@ -1009,8 +1127,12 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
             child: Container(
               width: MediaQuery.of(context).size.width * 0.85,
               height: 100,
-              child: const Center(
+              /* child: const Center(
                 child: CircularProgressIndicator(),
+              ), */
+              child: Center(
+                child: LoadingAnimationWidget.staggeredDotsWave(
+                    color: Colors.pink, size: 25),
               ),
             ),
           );
@@ -1925,7 +2047,33 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
               return getDataStaticWholeWidget();
             } else {
               //return CircularProgressIndicator();
-              return Container();
+              return UnconstrainedBox(
+                child: Column(
+                  children: [
+                    //标题
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.85,
+                      child: const PageTitle(
+                        title: "血压心率统计",
+                        icons: "assets/icons/graph.png",
+                        fontSize: 18,
+                      ),
+                    ),
+                    Center(
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        //child: CircularProgressIndicator(),
+                        child: LoadingAnimationWidget.staggeredDotsWave(
+                            color: Colors.pink, size: 25),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 100,
+                    ),
+                  ],
+                ),
+              );
             }
           });
     }
@@ -2113,6 +2261,9 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
       body: Container(
         color: Colors.white,
         child: ListView(shrinkWrap: true, children: [
+          const SizedBox(
+            height: 5,
+          ),
           // 标题组件
           UnconstrainedBox(
             child: Container(
