@@ -170,7 +170,7 @@ https://stackoverflow.com/questions/49577781/how-to-create-number-input-field-in
               ], // Only numbers can be entered
             ),
 ```
-          
+
 
 #### path_provider 安装问题
 `flutter pub add path_provider`出现
@@ -192,6 +192,7 @@ https://stackoverflow.com/questions/76028672/flutter-exact-place-to-put-permissi
 #### setState() called after dispose():
 https://medium.com/@nehatanwar.dev/setstate-called-after-dispose-b022d6a7a4a7
 https://stackoverflow.com/questions/49340116/setstate-called-after-dispose
+
 ```
 if (this.mounted) {
   setState(() {
@@ -199,3 +200,78 @@ if (this.mounted) {
   });
 }
 ```
+
+#### 返回页面时刷新
+https://stackoverflow.com/questions/49830553/how-to-go-back-and-refresh-the-previous-page-in-flutter
+```
+Navigator.pushNamed(context, '/page2').then((_) {
+  // This block runs when you have returned back to the 1st Page from 2nd.
+  setState(() {
+    // Call setState to refresh the page.
+  });
+});
+```
+
+### 加载动画
+https://pub.dev/packages/loading_animation_widget
+
+
+### 血糖标准
+
+空腹
+
+| 偏低  | 正常       | 偏高       | 异常  |
+| ----- | ---------- | ---------- | ----- |
+| < 3.9 | [3.9, 5.6] | [5.7, 7.0] | > 7.0 |
+
+
+
+餐后2小时
+
+| 偏低  | 正常       | 偏高        | 异常   |
+| ----- | ---------- | ----------- | ------ |
+| < 4.4 | [4.4, 7.8] | [7.8, 11.0] | > 11.0 |
+
+
+
+---
+
+### 血脂
+
+https://www.huangpi.gov.cn/ztzl_33/ggwszsxxgk_mh/202103/t20210310_1645919.html
+
+https://baike.baidu.com/item/%E8%A1%80%E8%84%82/1182207
+
+血脂全套检测包括4个主要类别（脂蛋白）：总胆固醇（TC），低密度脂蛋白胆固醇（LDL-C），高密度脂蛋白胆固醇（HDL-C），和甘油三酯（TG）
+
+##### 总胆固醇 （TC）
+
+https://baike.baidu.com/item/%E6%80%BB%E8%83%86%E5%9B%BA%E9%86%87/8566063?fromModule=lemma_inlink
+
+| 偏低  | 正常       | 偏高       | 异常  |
+| ----- | ---------- | ---------- | ----- |
+| < 2.8 | [2.8, 5.2] | [5.2, 6.5] | > 6.5 |
+
+##### 甘油三酯（TG）
+
+https://baike.baidu.com/item/%E7%94%98%E6%B2%B9%E4%B8%89%E9%85%AF%E5%81%8F%E9%AB%98/1808624
+
+| 偏低  | 正常       | 偏高        | 异常  |
+| ----- | ---------- | ----------- | ----- |
+| < 0.5 | [0.5, 1.7] | [1.7, 2.2 ] | > 2.2 |
+
+##### 低密度脂蛋白胆固醇（LDL-C）
+
+https://baike.baidu.com/item/%E4%BD%8E%E5%AF%86%E5%BA%A6%E8%84%82%E8%9B%8B%E7%99%BD%E8%83%86%E5%9B%BA%E9%86%87/4857940?fromModule=lemma_inlink
+
+| 偏低  | 正常       | 偏高       | 异常  |
+| ----- | ---------- | ---------- | ----- |
+| < 2.0 | [2.0, 3.3] | [3.3, 4.1] | > 4.1 |
+
+##### 高密度脂蛋白胆固醇（HDL-C）
+
+https://baike.baidu.com/item/%E4%BD%8E%E5%AF%86%E5%BA%A6%E8%84%82%E8%9B%8B%E7%99%BD%E8%83%86%E5%9B%BA%E9%86%87/4857940?fromModule=lemma_inlink
+
+| 偏低  | 正常       | 偏高       | 异常  |
+| ----- | ---------- | ---------- | ----- |
+| < 1.0 | [1.0, 1.5] | [1.5, 3.0] | > 3.0 |

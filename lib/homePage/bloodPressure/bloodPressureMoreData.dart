@@ -427,14 +427,12 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       dataColumn.add(DataColumn(
         label: Expanded(
           child: i == (columnNames.length - 1)
-              ? Center(
-                  child: Text(
-                    columnNames[i],
-                    style: const TextStyle(
-                        fontFamily: "BalooBhai",
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold),
-                  ),
+              ? Text(
+                  columnNames[i],
+                  style: const TextStyle(
+                      fontFamily: "BalooBhai",
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold),
                 )
               : Center(
                   child: Text(
@@ -488,13 +486,9 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         ],
       ));
     }
-
-    print('recordData: $recordData');
-
     if (recordData.isEmpty) {
-      print("=============================empty========================");
       // -
-      dataRow.add(DataRow(cells: <DataCell>[
+      dataRow.add(const DataRow(cells: <DataCell>[
         DataCell(Center(
           child: Text("-"),
         )),
@@ -521,7 +515,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         )),
       ]));
     }
-    print('dataRowLength: ${dataRow.length}');
     return dataRow;
   }
 
@@ -559,6 +552,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     return dataColumn;
   }
 
+  // 统计表格的内容
   List<DataRow> getStatisticsDataRows() {
     List<DataRow> dataRow = [];
     List<String> names = ["收缩压", "舒张压", "心率"];
@@ -606,6 +600,15 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   }
 
   Widget getWholeWidget(BuildContext context) {
+    double recordDataHeight = 50;
+    if (recordData.isEmpty) {
+      recordDataHeight = 108;
+    } else if (recordData.length < 9) {
+      recordDataHeight = (recordData.length + 1) * 49;
+    } else {
+      recordDataHeight = (9 * 50);
+    }
+
     return Column(
       children: [
         // 数据记录
@@ -645,9 +648,10 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                 UnconstrainedBox(
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
-                    height: recordData.length < 9
-                        ? ((recordData.length + 1) * 50) 
-                        : 50 * 9,
+                    /* height: recordData.length < 9
+                        ? ((recordData.length + 1) * 50)
+                        : 50 * 9, */
+                    height: recordDataHeight,
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: Color.fromARGB(255, 196, 195, 195),
@@ -2339,6 +2343,10 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
             ),
 
             ExportExcelWiget(),
+
+            const SizedBox(
+              height: 50,
+            ),
           ]),
         ),
       ),

@@ -18,7 +18,8 @@ Map routes = {
 
   '/homePage': (context) => const HomePage(),
   //'/homePage/BloodPressure/Edit': (context) => const bloodPressureEdit(),
-  '/homePage/BloodPressure/Edit': (context) => BloodPressureEdit(),
+  '/homePage/BloodPressure/Edit': (context) => BloodPressureEdit(
+      arguments: {"bpDataId": -1, "date": DateTime.now(), "prevPage": 0}),
   '/homePage/BloodPressure/Details': (context) =>
       BloodPressureDetails(arguments: {"userId": 1, "date": DateTime.now()}),
   'homePage/BloodPressure/MoreData': (context) => const BloodPressureMoreData(),

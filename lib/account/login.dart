@@ -86,56 +86,6 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     }
-
-    // ======================================================
-    // http
-
-    //https://blog.csdn.net/DongShanYuXiao/article/details/132031108
-
-    // 定义API端点
-    /* final String apiUrl = 'http://43.138.75.58:8080/api/auth/login';
-      debugPrint("username: ${username}, password: ${password}");
-
-      // 准备请求体数据
-      Map<String, dynamic> requestBody = {
-        'username': username,
-        'password': password,
-      };
-
-      // 将请求体数据转为JSON格式
-      //String requestBodyJson = jsonEncode(requestBody);
-
-      try {
-        // 发起POST请求
-        final response = await http.post(
-          Uri.parse(apiUrl),
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded', // 指定请求体格式为JSON
-            //'Content-Type': 'application/json',
-          },
-          body: requestBody,
-        );
-        // 检查请求是否成功
-        if (response.statusCode == 200) {
-          // 解析响应数据
-          Map<String, dynamic> responseData = jsonDecode(response.body);
-
-          // 处理响应数据，根据需要进行其他操作
-          print('$responseData');
-
-          if (responseData['code'] == 200) {
-            print("登录成功");
-            Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
-          }
-        } else {
-          // 请求失败时的处理
-          print('请求失败，状态码：${response.statusCode}');
-        }
-      } catch (error) {
-        // 发生异常时的处理
-        print('发生异常：$error');
-      }
-    } */
   }
 
   @override

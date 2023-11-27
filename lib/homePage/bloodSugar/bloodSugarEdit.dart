@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:triguard/component/titleDate/titleDate.dart';
 import 'package:dio/dio.dart';
 
 import '../../component/header/header.dart';
-import "bpData.dart";
+import "bsData.dart";
 import '../../account/token.dart';
 import "../../other/other.dart";
 
 // 删除 取消 确定
-List<String> armButtonTypes = ["左手", "右手", "不选"];
 List<String> feelingButtonTypes = ["开心", "还好", "不好"];
 List<String> functionButtonTypes = ["删除", "取消", "确定"];
 List<String> invalidValueText = ["", "收缩压必须填写", "舒张压必须填写", "心率必须填写"];
@@ -131,11 +131,6 @@ void setTimeById(int id, DateTime time) {
 
 late newValue afterEditedValue; //= newValue(0, "0", "0", "0", "0", "0", 0, 0);
 bool deleteDataMark = false;
-
-int invalidValue(newValue value) {
-  return 0;
-}
-
 // =================================================================================
 
 // 添加数据按钮
@@ -160,7 +155,7 @@ class _addDataButtonState extends State<addDataButton> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             //color: Colors.white,
-            color: const Color.fromARGB(255, 167, 167, 167),
+            color: Color.fromARGB(255, 167, 167, 167),
             borderRadius: BorderRadius.circular(20.0),
             boxShadow: const [
               BoxShadow(
@@ -171,10 +166,10 @@ class _addDataButtonState extends State<addDataButton> {
               ),
             ],
           ),
-          child: const Icon(
+          child: Icon(
             Icons.add,
             size: 50,
-            color: Color.fromARGB(255, 17, 17, 17),
+            color: const Color.fromARGB(255, 17, 17, 17),
           ),
         ),
       ),
@@ -202,10 +197,8 @@ class addDataWidget extends StatefulWidget {
 
 class _addDataWidgetState extends State<addDataWidget> {
   // 输入框的控制器
-  // ignore: non_constant_identifier_names
   final TextEditingController SBloodpressureController =
       TextEditingController();
-  // ignore: non_constant_identifier_names
   final TextEditingController DBloodpressureController =
       TextEditingController();
   final TextEditingController heartRateController = TextEditingController();
@@ -649,7 +642,7 @@ class _addDataWidgetState extends State<addDataWidget> {
             ),
           ),
           const SizedBox(
-            height: 20,
+            height: 10,
           )
         ],
       ),
@@ -756,56 +749,6 @@ class _ArmButtonState extends State<ArmButton> {
   }
 }
 
-// 感觉按钮
-class FeelingsButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final String iconPath;
-  final bool isSelected;
-
-  const FeelingsButton({
-    required this.onPressed,
-    required this.iconPath,
-    required this.isSelected,
-  });
-
-  @override
-  State<FeelingsButton> createState() => _FeelingsButtonState();
-}
-
-class _FeelingsButtonState extends State<FeelingsButton> {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        widget.onPressed();
-      },
-      child: Container(
-        height: 40,
-        width: 50,
-        padding: EdgeInsets.all(0.0),
-        decoration: BoxDecoration(
-          color: widget.isSelected
-              ? const Color.fromRGBO(253, 134, 255, 0.66)
-              : Color.fromRGBO(218, 218, 218, 0.66),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
-        ),
-        alignment: Alignment.center,
-        child: Container(
-          height: 25,
-          width: 25,
-          // color: widget.isSelected
-          //     ? Color.fromRGBO(66, 9, 119, 0.773)
-          //     : Color.fromRGBO(94, 68, 68, 100),
-          child: Image.asset(
-            widget.iconPath,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 // 手臂的按钮（左手，右手，不选）
 // ignore: must_be_immutable
 class ArmButtonsRow extends StatefulWidget {
@@ -870,6 +813,56 @@ class _ArmButtonsRowState extends State<ArmButtonsRow> {
             isSelected: widget.selectedIndex == 2,
           ),
         ],
+      ),
+    );
+  }
+}
+
+// 感觉按钮
+class FeelingsButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  final String iconPath;
+  final bool isSelected;
+
+  const FeelingsButton({
+    required this.onPressed,
+    required this.iconPath,
+    required this.isSelected,
+  });
+
+  @override
+  State<FeelingsButton> createState() => _FeelingsButtonState();
+}
+
+class _FeelingsButtonState extends State<FeelingsButton> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        widget.onPressed();
+      },
+      child: Container(
+        height: 40,
+        width: 50,
+        padding: EdgeInsets.all(0.0),
+        decoration: BoxDecoration(
+          color: widget.isSelected
+              ? const Color.fromRGBO(253, 134, 255, 0.66)
+              : Color.fromRGBO(218, 218, 218, 0.66),
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+        ),
+        alignment: Alignment.center,
+        child: Container(
+          height: 25,
+          width: 25,
+          // color: widget.isSelected
+          //     ? Color.fromRGBO(66, 9, 119, 0.773)
+          //     : Color.fromRGBO(94, 68, 68, 100),
+          child: Image.asset(
+            widget.iconPath,
+          ),
+        ),
       ),
     );
   }
@@ -964,16 +957,22 @@ class _TitleDateState extends State<TitleDate> {
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
   //DateTime newDate = DateTime(2023, 11, 11);
 
+  // This function displays a CupertinoModalPopup with a reasonable fixed height
+  // which hosts CupertinoDatePicker.
   void _showDialog(Widget child) {
     showCupertinoModalPopup<void>(
       context: context,
       builder: (BuildContext context) => Container(
         height: 250,
         padding: const EdgeInsets.only(top: 6.0),
+        // The Bottom margin is provided to align the popup above the system
+        // navigation bar.
         margin: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
+        // Provide a background color for the popup.
         color: CupertinoColors.systemBackground.resolveFrom(context),
+        // Use a SafeArea widget to avoid system overlaps.
         child: SafeArea(
           top: false,
           child: child,
@@ -984,9 +983,6 @@ class _TitleDateState extends State<TitleDate> {
 
   @override
   Widget build(BuildContext context) {
-    // 如果是从详情页面跳转过来，就要这两行 日期与详情页面的日期一样
-    date = widget.date;
-    oldDate = widget.date;
     return Center(
       child: Padding(
         padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
@@ -1264,7 +1260,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
 
   @override
   Widget build(BuildContext context) {
-    //printBP();
+    printBP();
     return GestureDetector(
         onTap: () {
           // 当收起时，点击任意地方可以展开
@@ -1371,7 +1367,6 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
 }
 
 // 只展示
-// ignore: must_be_immutable
 class BloodPressureEditWidgetLess extends StatefulWidget {
   final int id;
   DateTime time;
@@ -1617,7 +1612,6 @@ class _BloodPressureEditWidgetLessState
 }
 
 // 可编辑
-// ignore: must_be_immutable
 class BloodPressureEditWidgetMore extends StatefulWidget {
   final int id;
   DateTime time;
@@ -1719,345 +1713,320 @@ class _BloodPressureEditWidgetMoreState
     getBeforeEditValue();
 
     //DateTime time = DateTime.now();
-    return UnconstrainedBox(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            decoration: BoxDecoration(
-              //color: Colors.white,
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.2),
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
+
+    return Container(
+      decoration: BoxDecoration(
+        //color: Colors.white,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.0),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromARGB(120, 151, 151, 151),
+            offset: Offset(0, 5),
+            blurRadius: 5.0,
+            spreadRadius: 0.0,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // 左边标题
+                Container(
+                  child: Column(
+                    children: [
+                      getTitle("时间", "TIME"),
+                      getTitle("收缩压", "SBP"),
+                      getTitle("舒张压", "DBP"),
+                      getTitle("心率", "PULSE"),
+                      getTitle("手臂", "ARM"),
+                      getTitle("感觉", "FEELINGS"),
+                      getTitle("备注", "REMARKS"),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 5),
+
+                // 右边的子容器 （值）
+                Container(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 时间
+                      Container(
+                        height: 41,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                          child: TimePicker(
+                              time: widget.time, updateTime: updateTime),
+                        ),
+                      ),
+                      //
+                      const SizedBox(
+                        height: 5,
+                      ),
+
+                      // 修改收缩压
+                      Container(
+                        height: 41,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 75,
+                              height: 40,
+                              child: TextFormField(
+                                maxLength: 3,
+                                controller: SBloodpressureController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                decoration: InputDecoration(
+                                    counterText: "",
+                                    hintText: "${widget.SBloodpressure}",
+                                    contentPadding:
+                                        const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                                textAlign: TextAlign.center,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                style: const TextStyle(
+                                    fontSize: 30, fontFamily: "BalooBhai"),
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Text(
+                              "mmHg",
+                              style: TextStyle(
+                                  fontSize: 16, fontFamily: "Blinker"),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      //
+                      const SizedBox(
+                        height: 5,
+                      ),
+
+                      // 修改舒张压
+                      Container(
+                        height: 41,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 75,
+                              height: 40,
+                              child: TextFormField(
+                                maxLength: 3,
+                                controller: DBloodpressureController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                //initialValue: widget.DBloodpressure,
+                                decoration: InputDecoration(
+                                    counterText: "",
+                                    hintText: "${widget.DBloodpressure}",
+                                    contentPadding:
+                                        const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                                textAlign: TextAlign.center,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                style: const TextStyle(
+                                    fontSize: 30, fontFamily: "BalooBhai"),
+                              ),
+                            ),
+                            SizedBox(width: 2),
+                            const Text(
+                              "mmHg",
+                              style: TextStyle(
+                                  fontSize: 16, fontFamily: "Blinker"),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      //
+                      const SizedBox(
+                        height: 5,
+                      ),
+
+                      // 修改心率
+                      Container(
+                        height: 41,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 75,
+                              height: 40,
+                              child: TextFormField(
+                                maxLength: 3,
+                                controller: heartRateController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                //initialValue: widget.heartRate,
+                                decoration: InputDecoration(
+                                    counterText: "",
+                                    hintText: "${widget.heartRate}",
+                                    contentPadding:
+                                        const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                                textAlign: TextAlign.center,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                style: const TextStyle(
+                                    fontSize: 30, fontFamily: "BalooBhai"),
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Text(
+                              "次/分",
+                              style: TextStyle(
+                                  fontSize: 16, fontFamily: "Blinker"),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      //
+                      const SizedBox(
+                        height: 5,
+                      ),
+
+                      // 修改手臂
+                      armButtons,
+
+                      //
+                      const SizedBox(
+                        height: 5,
+                      ),
+
+                      //修改感觉
+                      feelingsButtons,
+
+                      //
+                      const SizedBox(height: 5),
+
+                      // 备注
+                      Container(
+                        height: 41,
+                        child: SizedBox(
+                          width: 150,
+                          height: 40,
+                          child: TextFormField(
+                            controller: remarkController,
+                            //initialValue: widget.SBloodpressure,
+                            decoration: const InputDecoration(
+                                counterText: "",
+                                hintText: "-",
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(0, 0, 0, 6)),
+                            textAlign: TextAlign.center,
+                            textAlignVertical: TextAlignVertical.bottom,
+                            style: const TextStyle(
+                                fontSize: 20, fontFamily: "BalooBhai"),
+                          ),
+                        ),
+                      ),
+
+                      //
+                      const SizedBox(height: 10),
+                    ],
+                  ),
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // 左边标题
-                      Container(
-                        child: Column(
-                          children: [
-                            getTitle("时间", "TIME"),
-                            getTitle("收缩压", "SBP"),
-                            getTitle("舒张压", "DBP"),
-                            getTitle("心率", "PULSE"),
-                            getTitle("手臂", "ARM"),
-                            getTitle("感觉", "FEELINGS"),
-                            getTitle("备注", "REMARKS"),
-                          ],
-                        ),
-                      ),
 
-                      const SizedBox(width: 5),
-
-                      // 右边的子容器 （值）
-                      Container(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 时间
-                            Container(
-                              height: 41,
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                                child: TimePicker(
-                                    time: widget.time, updateTime: updateTime),
-                              ),
-                            ),
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
-
-                            // 修改收缩压
-                            Container(
-                              height: 41,
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 75,
-                                    height: 40,
-                                    child: TextFormField(
-                                      maxLength: 3,
-                                      controller: SBloodpressureController,
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.digitsOnly
-                                      ],
-                                      decoration: InputDecoration(
-                                          counterText: "",
-                                          hintText: "${widget.SBloodpressure}",
-                                          contentPadding:
-                                              const EdgeInsets.fromLTRB(
-                                                  0, 0, 0, 5)),
-                                      textAlign: TextAlign.center,
-                                      textAlignVertical:
-                                          TextAlignVertical.bottom,
-                                      style: const TextStyle(
-                                          fontSize: 30,
-                                          fontFamily: "BalooBhai"),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  const Text(
-                                    "mmHg",
-                                    style: TextStyle(
-                                        fontSize: 16, fontFamily: "Blinker"),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
-
-                            // 修改舒张压
-                            Container(
-                              height: 41,
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 75,
-                                    height: 40,
-                                    child: TextFormField(
-                                      maxLength: 3,
-                                      controller: DBloodpressureController,
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.digitsOnly
-                                      ],
-                                      //initialValue: widget.DBloodpressure,
-                                      decoration: InputDecoration(
-                                          counterText: "",
-                                          hintText: "${widget.DBloodpressure}",
-                                          contentPadding:
-                                              const EdgeInsets.fromLTRB(
-                                                  0, 0, 0, 5)),
-                                      textAlign: TextAlign.center,
-                                      textAlignVertical:
-                                          TextAlignVertical.bottom,
-                                      style: const TextStyle(
-                                          fontSize: 30,
-                                          fontFamily: "BalooBhai"),
-                                    ),
-                                  ),
-                                  SizedBox(width: 2),
-                                  const Text(
-                                    "mmHg",
-                                    style: TextStyle(
-                                        fontSize: 16, fontFamily: "Blinker"),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
-
-                            // 修改心率
-                            Container(
-                              height: 41,
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 75,
-                                    height: 40,
-                                    child: TextFormField(
-                                      maxLength: 3,
-                                      controller: heartRateController,
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.digitsOnly
-                                      ],
-                                      //initialValue: widget.heartRate,
-                                      decoration: InputDecoration(
-                                          counterText: "",
-                                          hintText: "${widget.heartRate}",
-                                          contentPadding:
-                                              const EdgeInsets.fromLTRB(
-                                                  0, 0, 0, 5)),
-                                      textAlign: TextAlign.center,
-                                      textAlignVertical:
-                                          TextAlignVertical.bottom,
-                                      style: const TextStyle(
-                                          fontSize: 30,
-                                          fontFamily: "BalooBhai"),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  const Text(
-                                    "次/分",
-                                    style: TextStyle(
-                                        fontSize: 16, fontFamily: "Blinker"),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
-
-                            // 修改手臂
-                            armButtons,
-
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
-
-                            //修改感觉
-                            feelingsButtons,
-
-                            //
-                            const SizedBox(height: 5),
-
-                            // 备注
-                            Container(
-                              height: 41,
-                              child: SizedBox(
-                                width: 150,
-                                height: 40,
-                                child: TextFormField(
-                                  controller: remarkController,
-                                  //initialValue: widget.SBloodpressure,
-                                  decoration: const InputDecoration(
-                                      counterText: "",
-                                      hintText: "-",
-                                      contentPadding:
-                                          EdgeInsets.fromLTRB(0, 0, 0, 6)),
-                                  textAlign: TextAlign.center,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  style: const TextStyle(
-                                      fontSize: 20, fontFamily: "BalooBhai"),
-                                ),
-                              ),
-                            ),
-
-                            //
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      ),
-                    ],
+            //警告信息
+            invalidValueType > 0
+                ? Container(
+                    height: 20,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      invalidValueText[invalidValueType],
+                      style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 14,
+                          fontFamily: "Blinker"),
+                    ),
+                  )
+                : const SizedBox(
+                    height: 10,
                   ),
 
-                  //警告信息
-                  invalidValueType > 0
-                      ? Container(
-                          height: 20,
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            invalidValueText[invalidValueType],
-                            style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 14,
-                                fontFamily: "Blinker"),
-                          ),
-                        )
-                      : const SizedBox(
-                          height: 10,
-                        ),
+            //
+            const SizedBox(height: 10),
 
-                  //
-                  const SizedBox(height: 10),
+            //删除，取消，确定
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                //取消修改数据
+                OtherButton(
+                    onPressed: () {
+                      deleteDataMark = true;
+                      widget.deleteData();
+                    },
+                    type: 0),
 
-                  //删除，取消，确定
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 确定修改数据
+                Container(
+                  child: Row(
+                    // mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      //取消修改数据
+                      OtherButton(onPressed: widget.cancelEditData, type: 1),
+                      const SizedBox(width: 5),
                       OtherButton(
                           onPressed: () {
-                            deleteDataMark = true;
-                            widget.deleteData();
-                          },
-                          type: 0),
+                            if (SBloodpressureController.text == "") {
+                              invalidValueType = 1;
+                            } else if (DBloodpressureController.text == "") {
+                              invalidValueType = 2;
+                            } else if (heartRateController.text == "") {
+                              invalidValueType = 3;
+                            } else {
+                              invalidValueType = 0;
+                            }
 
-                      // 确定修改数据
-                      Container(
-                        child: Row(
-                          // mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            OtherButton(
-                                onPressed: widget.cancelEditData, type: 1),
-                            const SizedBox(width: 5),
-                            OtherButton(
-                                onPressed: () {
-                                  if (SBloodpressureController.text == "") {
-                                    invalidValueType = 1;
-                                  } else if (DBloodpressureController.text ==
-                                      "") {
-                                    invalidValueType = 2;
-                                  } else if (heartRateController.text == "") {
-                                    invalidValueType = 3;
-                                  } else {
-                                    invalidValueType = 0;
-                                  }
+                            if (invalidValueType > 0) {
+                              print(
+                                  "invalidvalue: $invalidValueType ${invalidValueText[invalidValueType]}");
+                              setState(() {});
+                              return;
+                            }
 
-                                  if (invalidValueType > 0) {
-                                    print(
-                                        "invalidvalue: $invalidValueType ${invalidValueText[invalidValueType]}");
-                                    setState(() {});
-                                    return;
-                                  }
-
-                                  /*  print(widget.id);
+                            /*  print(widget.id);
                             print(widget.time);
                             print(SBloodpressureController.text);
                             print(DBloodpressureController.text);
                             print(heartRateController.text);
                             print(armButtons.getSelectedButtonIndex());
                             print(feelingsButtons.getSelectedButtonIndex()); */
-                                  afterEditedValue = newValue(
-                                      widget.id,
-                                      widget.time,
-                                      int.parse(SBloodpressureController.text),
-                                      int.parse(DBloodpressureController.text),
-                                      int.parse(heartRateController.text),
-                                      armButtons.getSelectedButtonIndex(),
-                                      feelingsButtons.getSelectedButtonIndex(),
-                                      remarkController.text);
-                                  widget.confirmEditData();
-                                },
-                                type: 2),
-                          ],
-                        ),
-                      )
+                            afterEditedValue = newValue(
+                                widget.id,
+                                widget.time,
+                                int.parse(SBloodpressureController.text),
+                                int.parse(DBloodpressureController.text),
+                                int.parse(heartRateController.text),
+                                armButtons.getSelectedButtonIndex(),
+                                feelingsButtons.getSelectedButtonIndex(),
+                                remarkController.text);
+                            widget.confirmEditData();
+                          },
+                          type: 2),
                     ],
                   ),
-                ],
-              ),
+                )
+              ],
             ),
-          ),
-          const SizedBox(
-            height: 20,
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -2108,20 +2077,15 @@ class NoDataWidget extends StatelessWidget {
 // 页面模块
 
 // 此页面
-class BloodPressureEdit extends StatefulWidget {
+class BloodSugarEdit extends StatefulWidget {
   //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
-  final Map arguments;
-
-  BloodPressureEdit({Key? key, required this.arguments});
   @override
   _BloodPressureEditState createState() => _BloodPressureEditState();
 }
 
-class _BloodPressureEditState extends State<BloodPressureEdit> {
+class _BloodPressureEditState extends State<BloodSugarEdit> {
   DateTime addTime = DateTime.now();
   DateTime date = DateTime.now();
-  int bpDataId = -1;
-  int prevPage = 0;
 
   void getDataFromServer() async {
     print(
@@ -2134,9 +2098,11 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
 
     //从后端获取数据
     final dio = Dio();
-    //print("getDataFromServer");
+    print("getDataFromServer");
     Response response;
-    dio.options.headers["Authorization"] = "Bearer $token";
+    dio.options.headers["Authorization"] =
+        // "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMDQ5MzA1LCJpYXQiOjE3MDA3OTAxMDUsImp0aSI6Ijc4MTZlZWM2LTExN2ItNGQxNS04M2RmLWMzMTAzMTVjNGFlNyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.ceTvtIMCyxS9oFMftRKQjZ5Qu_-C6gY5b96NphZ4H3o";
+        "Bearer $token";
 
     response = await dio.get(
       "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
@@ -2146,7 +2112,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
       },
     );
     if (response.data["code"] == 200) {
-      print("获取血压数据成功EDIT");
+      print("获取血压数据成功");
       //print(response.data["data"]);
       data = response.data["data"];
       //bpdata = response.data["data"];
@@ -2155,7 +2121,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
       data = [];
     }
 
-    //print(data);
+    print(data);
 
     titleDateWidget =
         TitleDate(date: date, updateView: updateView, updateDate: updateDate);
@@ -2177,11 +2143,6 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
       int feeling_ = data[i]["feeling"];
       String remark_ = data[i]["remark"] ?? "暂无备注";
       data[i]["isExpanded"] = 0; // 默认收起
-
-      if (id_ == bpDataId) {
-        data[i]["isExpanded"] = 1;
-        bpDataId = -1;
-      }
 
       /* print("第$i条数据");
       print("id: $id_");
@@ -2223,9 +2184,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
   @override
   void initState() {
     super.initState();
-    date = widget.arguments['date'];
-    bpDataId = widget.arguments['bpDataId'];
-    prevPage = widget.arguments['prevPage'];
+
     // 先从后端获取数据
     getDataFromServer();
   }
@@ -2301,8 +2260,6 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
       ),
-
-      // 标题，日期与数据
       body: Container(
         color: Colors.white,
         child: ListView.builder(

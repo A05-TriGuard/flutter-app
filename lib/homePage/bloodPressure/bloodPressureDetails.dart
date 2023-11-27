@@ -12,6 +12,7 @@ import '../../component/titleDate/titleDate.dart';
 import '../../other/gradientBorder/gradient_borders.dart';
 import '../../other/other.dart';
 import './bpData2.dart';
+import './bloodPressureEdit.dart' hide armButtonTypes, feelingButtonTypes;
 
 const List<String> method = <String>['手机号', '邮箱'];
 typedef UpdateDateCallback = void Function(DateTime newDate);
@@ -442,20 +443,22 @@ class BloodPressureData extends StatefulWidget {
   final int arm;
   final int feeling;
   final String remark;
+  final VoidCallback updateData;
 
-  const BloodPressureData({
-    Key? key,
-    required this.id,
-    required this.date,
-    required this.hour,
-    required this.minute,
-    required this.SBloodpressure,
-    required this.DBloodpressure,
-    required this.heartRate,
-    required this.feeling,
-    required this.arm,
-    required this.remark,
-  }) : super(key: key);
+  const BloodPressureData(
+      {Key? key,
+      required this.id,
+      required this.date,
+      required this.hour,
+      required this.minute,
+      required this.SBloodpressure,
+      required this.DBloodpressure,
+      required this.heartRate,
+      required this.feeling,
+      required this.arm,
+      required this.remark,
+      required this.updateData})
+      : super(key: key);
 
   @override
   State<BloodPressureData> createState() => _BloodPressureDataState();
@@ -635,40 +638,87 @@ class _BloodPressureDataState extends State<BloodPressureData> {
         child: showRemark ? getRemarkPage() : infoPage,
       ), */
 
-      child: Column(
+      child: Stack(
+        alignment: Alignment.topRight,
         children: [
-          Stack(
-            alignment: Alignment.bottomCenter,
+          Column(
             children: [
-              Column(
+              Stack(
+                alignment: Alignment.bottomCenter,
                 children: [
-                  AnimatedCrossFade(
-                    duration: const Duration(milliseconds: 300),
-                    firstChild: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: infoPage,
-                    ),
-                    secondChild: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: getRemarkPage(),
-                    ),
-                    crossFadeState: showRemark
-                        ? CrossFadeState.showSecond
-                        : CrossFadeState.showFirst,
+                  Column(
+                    children: [
+                      AnimatedCrossFade(
+                        duration: const Duration(milliseconds: 300),
+                        firstChild: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: infoPage,
+                        ),
+                        secondChild: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: getRemarkPage(),
+                        ),
+                        crossFadeState: showRemark
+                            ? CrossFadeState.showSecond
+                            : CrossFadeState.showFirst,
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                    ],
                   ),
-                  const SizedBox(
-                    height: 5,
+                  SizedBox(
+                    //height: 5,
+                    child: getPageNum(showRemark),
                   ),
                 ],
               ),
-              SizedBox(
-                //height: 5,
-                child: getPageNum(showRemark),
+              const SizedBox(
+                height: 10,
               ),
             ],
           ),
-          const SizedBox(
-            height: 10,
+
+          // Edit
+          GestureDetector(
+            onTap: () {
+              print("编辑 ${widget.id}");
+              /* Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BloodPressureEdit(
+                    arguments: {
+                      "bpDataId": widget.id,
+                      "date": widget.date,
+                      "prevPage": 1,
+                    },
+                  ),
+                ),
+              ); */
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BloodPressureEdit(
+                    arguments: {
+                      "bpDataId": widget.id,
+                      "date": widget.date,
+                      "prevPage": 1,
+                    },
+                  ),
+                ),
+              ).then((_) {
+                //print("哈哈哈");
+                widget.updateData();
+              });
+            },
+            child: Container(
+              child: Image.asset(
+                "assets/icons/pencil.png",
+                width: 20,
+                height: 20,
+              ),
+            ),
           ),
         ],
       ),
@@ -715,9 +765,14 @@ class NoDataWidget extends StatelessWidget {
 // 展示所有
 // ignore: must_be_immutable
 class BloodPressureDataList extends StatefulWidget {
+  final VoidCallback updateData;
   DateTime date;
   int showMore;
-  BloodPressureDataList({Key? key, required this.date, required this.showMore})
+  BloodPressureDataList(
+      {Key? key,
+      required this.date,
+      required this.showMore,
+      required this.updateData})
       : super(key: key);
 
   @override
@@ -839,6 +894,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
         feeling: data2[i]["feeling"],
         arm: data2[i]["arm"],
         remark: data2[i]["remark"],
+        updateData: widget.updateData,
       ));
     }
   }
@@ -899,6 +955,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
         feeling: feeling_,
         arm: arm_,
         remark: remark_,
+        updateData: widget.updateData,
       ));
     }
 
@@ -968,8 +1025,12 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 class BloodPressureDataWidget extends StatefulWidget {
   DateTime date;
   final VoidCallback updateView;
+  final VoidCallback updateData;
   BloodPressureDataWidget(
-      {Key? key, required this.date, required this.updateView})
+      {Key? key,
+      required this.date,
+      required this.updateView,
+      required this.updateData})
       : super(key: key);
 
   @override
@@ -995,8 +1056,11 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
 
   @override
   Widget build(BuildContext context) {
-    dataWidgetList =
-        BloodPressureDataList(date: widget.date, showMore: showMore);
+    dataWidgetList = BloodPressureDataList(
+      date: widget.date,
+      showMore: showMore,
+      updateData: widget.updateData,
+    );
     print('血压展示列表数据更新: ${widget.date}');
 
     return Center(
@@ -1968,7 +2032,11 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
     // TODO: implement initState
     super.initState();
     //print('主要：${widget.arguments}');
-    date = widget.arguments["date"];
+    if (widget.arguments["date"] == null) {
+      date = DateTime.now();
+    } else {
+      date = widget.arguments["date"];
+    }
     bloodPressureGraphtWidget = BloodPressureGraphWidget(
       date: date,
       selectedDays: selectedDays,
@@ -1978,12 +2046,28 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
     );
   }
 
+  // 更新数据
+  void updateData() {
+    setState(() {
+      bloodPressureGraphtWidget = BloodPressureGraphWidget(
+        date: date,
+        selectedDays: selectedDays,
+        updateView: updateView,
+        updateDate: updateDate,
+        updateDays: updateDays,
+      );
+    });
+  }
+
   void updateView() {
     //print("血压详情页面更新");
     setState(() {});
   }
 
   void updateDate(DateTime newDate) {
+    if (newDate == date) {
+      return;
+    }
     setState(() {
       date = newDate;
       bloodPressureGraphtWidget = BloodPressureGraphWidget(
@@ -1998,6 +2082,9 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
 
   void updateDays(String newDays) {
     //print("血压详情页面更新天数 ${newDays}");
+    if (newDays == selectedDays) {
+      return;
+    }
     setState(() {
       selectedDays = newDays;
       bloodPressureGraphtWidget = BloodPressureGraphWidget(
@@ -2050,6 +2137,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
           BloodPressureDataWidget(
             date: date,
             updateView: updateView,
+            updateData: updateData,
           ),
 
           //统计组件
