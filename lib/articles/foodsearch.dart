@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../component/icons.dart';
+import '../component/navigation.dart';
 
 class Foodsearch extends StatefulWidget {
   const Foodsearch({super.key});
@@ -10,7 +10,6 @@ class Foodsearch extends StatefulWidget {
 
 class _FoodsearchState extends State<Foodsearch> {
   bool showResult = false;
-  int _currentIndex = 0;
   var resultCardList = <ResultCard>[];
   var resultList = <String>[
     "first result",
@@ -77,11 +76,12 @@ class _FoodsearchState extends State<Foodsearch> {
             const Text(
               "食物营养成分查询",
               style: TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: 2),
+                  fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 2),
             ),
             SizedBox(
               width: screenWidth * 0.8,
               child: TextField(
+                style: const TextStyle(fontSize: 22),
                 onTap: () {
                   setState(() {
                     showResult = false;
@@ -90,7 +90,7 @@ class _FoodsearchState extends State<Foodsearch> {
                 decoration: InputDecoration(
                     hintText: "输入食物名称",
                     hintStyle: const TextStyle(
-                        color: Colors.black12, fontWeight: FontWeight.w800),
+                        color: Colors.black26, fontWeight: FontWeight.w800),
                     contentPadding: const EdgeInsets.only(left: 20),
                     enabledBorder: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(35)),
@@ -121,7 +121,10 @@ class _FoodsearchState extends State<Foodsearch> {
               visible: showResult,
               child: Column(
                 children: [
-                  const Text("相关搜索结果为："),
+                  const Text(
+                    "相关搜索结果为：",
+                    style: TextStyle(fontSize: 18),
+                  ),
                   const SizedBox(
                     height: 10,
                   ),
@@ -141,63 +144,7 @@ class _FoodsearchState extends State<Foodsearch> {
       ),
 
       // 下方导航栏
-      bottomNavigationBar: BottomNavigationBar(
-        //被点击时
-        // if index == 0, when press the icon, change the icon "home.png" to "home_.png"
-
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-
-        currentIndex: _currentIndex, //被选中的
-        // https://blog.csdn.net/yechaoa/article/details/89852488
-        type: BottomNavigationBarType.fixed,
-        // iconSize: 24,
-        fixedColor: Colors.black, //被选中时的颜色
-        selectedFontSize: 12, // Set the font size for selected label
-        unselectedFontSize: 10,
-        items: [
-          BottomNavigationBarItem(
-              //https://blog.csdn.net/qq_27494241/article/details/107167585?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-1-107167585-blog-85248876.235^v38^pc_relevant_default_base3&spm=1001.2101.3001.4242.2&utm_relevant_index=4
-              // https://stackoverflow.com/questions/60151052/can-i-add-spacing-around-an-icon-in-flutter-bottom-navigation-bar
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 0
-                      ? MyIcons().home_()
-                      : MyIcons().home()),
-              label: "首页"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 1
-                      ? MyIcons().article_()
-                      : MyIcons().article()),
-              label: "文章"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 2
-                      ? MyIcons().supervisor_()
-                      : MyIcons().supervisor()),
-              label: "监护"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 3
-                      ? MyIcons().moment_()
-                      : MyIcons().moment()),
-              label: "动态"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 4
-                      ? MyIcons().user_()
-                      : MyIcons().user()),
-              label: "我的"),
-        ],
-      ),
+      bottomNavigationBar: const MyNavigationBar(currentIndex: 1),
     );
   }
 }
@@ -219,7 +166,11 @@ class ResultCard extends StatelessWidget {
           },
           child: ListTile(
               minVerticalPadding: 15,
-              title: Text(result, maxLines: 1),
+              title: Text(
+                result,
+                maxLines: 1,
+                style: const TextStyle(fontSize: 20),
+              ),
               visualDensity: const VisualDensity(vertical: -4)),
         ));
   }

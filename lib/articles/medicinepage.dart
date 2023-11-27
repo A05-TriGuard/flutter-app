@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../component/icons.dart';
+import '../component/navigation.dart';
 
 // TOIMPROVE: 增加类似目录索引这样方便快速查找
 class MedicinePage extends StatefulWidget {
@@ -15,7 +16,6 @@ class MedicinePage extends StatefulWidget {
 }
 
 class _MedicinePageState extends State<MedicinePage> {
-  int _currentIndex = 0;
   bool addedCollection = false;
   Map medicineInfo = {};
   Map medicineInfo1 = {
@@ -38,8 +38,9 @@ class _MedicinePageState extends State<MedicinePage> {
         "http://www.santao.com.cn/uploadfile/2019/0123/20190123010435930.jpg",
   };
   var token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMDg2MTM1LCJpYXQiOjE3MDA4MjY5MzUsImp0aSI6IjkyYzBlOGNlLTBlNDMtNDBmNC05MmFjLWUwNmFmNDgwZDdjNyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.vyD6DuOBUWDIiEoHh5IuY8Ri5Pmu5Qi-DjHp3hD8yVU';
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
 
+  // Medicine API
   void fetchNShowMedicineInfo() async {
     try {
       final dio = Dio(); // Create Dio instance
@@ -54,6 +55,54 @@ class _MedicinePageState extends State<MedicinePage> {
         //print(response.data);
         setState(() {
           medicineInfo = response.data["data"];
+          addedCollection = medicineInfo["isFavorite"];
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  // Medicine API
+  void addMedicineToCollection() async {
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/medicine/favorites/add?medicineId=${widget.id}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          addedCollection = true;
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  void removeMedicineFromCollection() async {
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/medicine/favorites/delete?medicineId=${widget.id}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          addedCollection = false;
         });
       } else {
         //print('Request failed with status: ${response.statusCode}');
@@ -126,9 +175,11 @@ class _MedicinePageState extends State<MedicinePage> {
           ),
           IconButton(
               onPressed: () {
-                setState(() {
-                  addedCollection = !addedCollection;
-                });
+                if (!addedCollection) {
+                  addMedicineToCollection();
+                } else {
+                  removeMedicineFromCollection();
+                }
               },
               icon: addedCollection ? MyIcons().starr() : MyIcons().star()),
           Container(
@@ -191,63 +242,7 @@ class _MedicinePageState extends State<MedicinePage> {
       )),
 
       // 下方导航栏
-      bottomNavigationBar: BottomNavigationBar(
-        //被点击时
-        // if index == 0, when press the icon, change the icon "home.png" to "home_.png"
-
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-
-        currentIndex: _currentIndex, //被选中的
-        // https://blog.csdn.net/yechaoa/article/details/89852488
-        type: BottomNavigationBarType.fixed,
-        // iconSize: 24,
-        fixedColor: Colors.black, //被选中时的颜色
-        selectedFontSize: 12, // Set the font size for selected label
-        unselectedFontSize: 10,
-        items: [
-          BottomNavigationBarItem(
-              //https://blog.csdn.net/qq_27494241/article/details/107167585?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-1-107167585-blog-85248876.235^v38^pc_relevant_default_base3&spm=1001.2101.3001.4242.2&utm_relevant_index=4
-              // https://stackoverflow.com/questions/60151052/can-i-add-spacing-around-an-icon-in-flutter-bottom-navigation-bar
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 0
-                      ? MyIcons().home_()
-                      : MyIcons().home()),
-              label: "首页"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 1
-                      ? MyIcons().article_()
-                      : MyIcons().article()),
-              label: "文章"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 2
-                      ? MyIcons().supervisor_()
-                      : MyIcons().supervisor()),
-              label: "监护"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 3
-                      ? MyIcons().moment_()
-                      : MyIcons().moment()),
-              label: "动态"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 4
-                      ? MyIcons().user_()
-                      : MyIcons().user()),
-              label: "我的"),
-        ],
-      ),
+      bottomNavigationBar: const MyNavigationBar(currentIndex: 1),
     );
   }
 }

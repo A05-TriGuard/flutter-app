@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '../component/icons.dart';
+import '../component/navigation.dart';
 import 'medicinepage.dart';
 
 class Medicine extends StatefulWidget {
@@ -13,15 +13,15 @@ class Medicine extends StatefulWidget {
 class _MedicineState extends State<Medicine> {
   final inputController = TextEditingController();
   bool showResult = false;
-  int _currentIndex = 0;
   var resultCardList = <ResultCard>[];
   var historyCardList = <ResultCard>[];
   var historyList = [];
   var resultList = [];
   var token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMDg2MTM1LCJpYXQiOjE3MDA4MjY5MzUsImp0aSI6IjkyYzBlOGNlLTBlNDMtNDBmNC05MmFjLWUwNmFmNDgwZDdjNyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.vyD6DuOBUWDIiEoHh5IuY8Ri5Pmu5Qi-DjHp3hD8yVU';
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
 
   void createCardList() {
+    resultCardList.clear();
     if (resultList.isNotEmpty) {
       for (int i = 0; i < resultList.length; ++i) {
         resultCardList.add(ResultCard(
@@ -30,12 +30,13 @@ class _MedicineState extends State<Medicine> {
         ));
       }
     } else {
-      resultCardList.add(
-          const ResultCard(result: {"name": "目前没有找到相关搜索结果"}, isResult: false));
+      resultCardList.add(const ResultCard(
+          result: {"name": "目前没有找到相关搜索结果", "id": -1}, isResult: false));
     }
   }
 
   void createHistoryList() {
+    historyCardList.clear();
     if (historyList.isNotEmpty) {
       for (int i = 0; i < historyList.length; ++i) {
         historyCardList.add(ResultCard(
@@ -44,8 +45,8 @@ class _MedicineState extends State<Medicine> {
         ));
       }
     } else {
-      historyCardList.add(
-          const ResultCard(result: {"name": "暂时没有任何搜索记录"}, isResult: false));
+      historyCardList.add(const ResultCard(
+          result: {"name": "暂时没有任何搜索记录", "id": -1}, isResult: false));
     }
   }
 
@@ -86,7 +87,7 @@ class _MedicineState extends State<Medicine> {
         'Authorization': 'Bearer $token',
       };
       final response = await dio.get(
-          'http://43.138.75.58:8080/api/medicine/search-history',
+          'http://43.138.75.58:8080/api/medicine/info-history',
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
@@ -94,7 +95,6 @@ class _MedicineState extends State<Medicine> {
         setState(() {
           historyList = response.data["data"];
           showResult = false;
-          //print(historyList);
         });
       } else {
         //print('Request failed with status: ${response.statusCode}');
@@ -102,6 +102,12 @@ class _MedicineState extends State<Medicine> {
     } catch (e) {
       //print('Request failed: $e');
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNShowHistoryResult();
   }
 
   @override
@@ -113,9 +119,8 @@ class _MedicineState extends State<Medicine> {
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
-    resultCardList.clear();
+
     createCardList();
-    historyCardList.clear();
     createHistoryList();
 
     return Scaffold(
@@ -169,13 +174,11 @@ class _MedicineState extends State<Medicine> {
               child: TextField(
                 style: const TextStyle(fontSize: 22),
                 onTap: () {
-                  //fetchNShowHistoryResult();
-                  showResult = false;
+                  fetchNShowHistoryResult();
                 },
                 onTapOutside: (event) {
                   FocusScope.of(context).requestFocus(FocusNode());
                   //fetchNShowHistoryResult();
-                  showResult = false;
                 },
                 controller: inputController,
                 decoration: InputDecoration(
@@ -214,13 +217,23 @@ class _MedicineState extends State<Medicine> {
                   height: 10,
                 ),
                 SizedBox(
-                  width: screenWidth * 0.8,
-                  height: screenWidth * 0.6,
-                  child: ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      children: showResult ? resultCardList : historyCardList),
-                ),
+                    width: screenWidth * 0.8,
+                    height: screenWidth * 0.6,
+                    // child: ListView(
+                    //     scrollDirection: Axis.vertical,
+                    //     shrinkWrap: true,
+                    //     children: showResult ? resultCardList : historyCardList),
+                    child: ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        itemCount: showResult
+                            ? resultCardList.length
+                            : historyCardList.length,
+                        itemBuilder: (BuildContext context, index) {
+                          return showResult
+                              ? resultCardList[index]
+                              : historyCardList[index];
+                        })),
               ],
             ),
           ],
@@ -228,63 +241,7 @@ class _MedicineState extends State<Medicine> {
       ),
 
       // 下方导航栏
-      bottomNavigationBar: BottomNavigationBar(
-        //被点击时
-        // if index == 0, when press the icon, change the icon "home.png" to "home_.png"
-
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-
-        currentIndex: _currentIndex, //被选中的
-        // https://blog.csdn.net/yechaoa/article/details/89852488
-        type: BottomNavigationBarType.fixed,
-        // iconSize: 24,
-        fixedColor: Colors.black, //被选中时的颜色
-        selectedFontSize: 12, // Set the font size for selected label
-        unselectedFontSize: 10,
-        items: [
-          BottomNavigationBarItem(
-              //https://blog.csdn.net/qq_27494241/article/details/107167585?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-1-107167585-blog-85248876.235^v38^pc_relevant_default_base3&spm=1001.2101.3001.4242.2&utm_relevant_index=4
-              // https://stackoverflow.com/questions/60151052/can-i-add-spacing-around-an-icon-in-flutter-bottom-navigation-bar
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 0
-                      ? MyIcons().home_()
-                      : MyIcons().home()),
-              label: "首页"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 1
-                      ? MyIcons().article_()
-                      : MyIcons().article()),
-              label: "文章"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 2
-                      ? MyIcons().supervisor_()
-                      : MyIcons().supervisor()),
-              label: "监护"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 3
-                      ? MyIcons().moment_()
-                      : MyIcons().moment()),
-              label: "动态"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 4
-                      ? MyIcons().user_()
-                      : MyIcons().user()),
-              label: "我的"),
-        ],
-      ),
+      bottomNavigationBar: const MyNavigationBar(currentIndex: 1),
     );
   }
 }
@@ -325,3 +282,46 @@ class ResultCard extends StatelessWidget {
         ));
   }
 }
+
+// class ResultCard extends StatefulWidget {
+//   late Map result;
+//   late bool isResult;
+//   ResultCard({super.key, required this.result, required this.isResult});
+
+//   @override
+//   State<ResultCard> createState() => _ResultCardState();
+// }
+
+// class _ResultCardState extends State<ResultCard> {
+//   @override
+//   Widget build(BuildContext context) {
+//     print("in card:" + widget.result["name"]);
+//     return Card(
+//         shape: const RoundedRectangleBorder(
+//             borderRadius: BorderRadius.all(Radius.circular(0))),
+//         shadowColor: Colors.black87,
+//         elevation: 5,
+//         child: InkWell(
+//           onTap: widget.isResult
+//               ? () {
+//                   //Navigator.pushNamed(context, '/articles/medicine/page');
+//                   Navigator.push(
+//                       context,
+//                       MaterialPageRoute(
+//                           builder: (context) => MedicinePage(
+//                               title: "返回查询页面",
+//                               link: '/articles/medicine',
+//                               id: widget.result["id"])));
+//                 }
+//               : null,
+//           child: ListTile(
+//               minVerticalPadding: 15,
+//               title: Text(
+//                 widget.result["name"],
+//                 maxLines: 1,
+//                 style: const TextStyle(fontSize: 20),
+//               ),
+//               visualDensity: const VisualDensity(vertical: -4)),
+//         ));
+//   }
+// }

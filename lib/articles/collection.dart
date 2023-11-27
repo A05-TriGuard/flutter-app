@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import '../articles/medicinepage.dart';
 import '../component/icons.dart';
 
 // TOINTERACT: 增加var列表，用来保存内容页面需要展示的内容（图片、文字等）
@@ -20,21 +22,15 @@ class Collection extends StatefulWidget {
 }
 
 class _CollectionState extends State<Collection> {
+  var token =
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
   int _currentIndex = 0;
   var classSelected = <bool>[true, false, false, false];
   int curSelected = 0;
-  var medicineArticleList = <ArticleInfo>[
-    ArticleInfo(title: "Medicine 1", content: "", imagePath: ""),
-    ArticleInfo(title: "Medicine 2", content: "", imagePath: ""),
-    ArticleInfo(title: "Medicine 3", content: "", imagePath: ""),
-    ArticleInfo(title: "Medicine 4", content: "", imagePath: ""),
-  ];
-  var foodArticleList = <ArticleInfo>[
-    ArticleInfo(title: "Food 1", content: "", imagePath: ""),
-    ArticleInfo(title: "Food 2", content: "", imagePath: ""),
-    ArticleInfo(title: "Food 3", content: "", imagePath: ""),
-    ArticleInfo(title: "Food 4", content: "", imagePath: ""),
-    ArticleInfo(title: "Food 5", content: "", imagePath: ""),
+  int curItemCount = 0;
+  var medicineArticleList = [];
+  var foodArticleList = <Map>[
+    {"name": "Food 1", "id": 1}
   ];
   var preventionArticleList = <ArticleInfo>[
     ArticleInfo(
@@ -70,47 +66,86 @@ class _CollectionState extends State<Collection> {
   var preventionTileList = <ArticleTile>[];
   var scienceTileList = <ArticleTile>[];
 
-  void clearTileList() {
-    medicineTileList.clear();
-    foodTileList.clear();
-    scienceTileList.clear();
-    preventionTileList.clear();
-  }
-
   void createMedicineTileList() {
+    medicineTileList.clear();
+
     for (int i = 0; i < medicineArticleList.length; ++i) {
       medicineTileList.add(NonArticleTile(
-          articleList: medicineArticleList[i],
-          linkpath: '/articles/collection/medicinepage'));
+        articleInfo: medicineArticleList[i],
+        linkpath: '/articles/collection/medicinepage',
+        isMed: true,
+      ));
     }
   }
 
   void createFoodTileList() {
+    foodTileList.clear();
+
     for (int i = 0; i < foodArticleList.length; ++i) {
       foodTileList.add(NonArticleTile(
-          articleList: foodArticleList[i],
-          linkpath: '/articles/collection/foodsearchpage'));
+        articleInfo: foodArticleList[i],
+        linkpath: '/articles/collection/foodsearchpage',
+        isMed: false,
+      ));
     }
   }
 
   void createScienceTileList() {
+    scienceTileList.clear();
+
     for (int i = 0; i < scienceArticleList.length; ++i) {
       scienceTileList.add(ArticleTile(articleList: scienceArticleList[i]));
     }
   }
 
   void createPreventionTileList() {
+    preventionTileList.clear();
+
     for (int i = 0; i < preventionArticleList.length; ++i) {
       preventionTileList
           .add(ArticleTile(articleList: preventionArticleList[i]));
     }
   }
 
+  // Medicine API
+  void fetchNShowMedicineCollection() async {
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/medicine/favorites/list',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          medicineArticleList = response.data["data"];
+          curItemCount = medicineArticleList.length;
+          classSelected[curSelected] = false;
+          classSelected[0] = true;
+          curSelected = 0;
+          //print(medicineArticleList);
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      ///print('Request failed: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNShowMedicineCollection();
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
-    clearTileList();
     createMedicineTileList();
     createFoodTileList();
     createScienceTileList();
@@ -173,49 +208,37 @@ class _CollectionState extends State<Collection> {
                 Text("科普文章"),
               ],
               onPressed: (index) {
-                setState(() {
-                  classSelected[curSelected] = false;
-                  classSelected[index] = true;
-                  curSelected = index;
-                });
+                if (index == 0) {
+                  fetchNShowMedicineCollection();
+                } else {
+                  setState(() {
+                    classSelected[curSelected] = false;
+                    classSelected[index] = true;
+                    curSelected = index;
+                    curItemCount = 0;
+                  });
+                }
               },
             ),
             SizedBox(
-              height: screenHeight * 0.65,
-              width: screenWidth * 0.88,
-              child: ListView(
-                children: [
-                  Visibility(
-                      visible: classSelected[0],
-                      child: ListView(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
-                        children: medicineTileList,
-                      )),
-                  Visibility(
-                      visible: classSelected[1],
-                      child: ListView(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
-                        children: foodTileList,
-                      )),
-                  Visibility(
-                      visible: classSelected[2],
-                      child: ListView(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
-                        children: preventionTileList,
-                      )),
-                  Visibility(
-                      visible: classSelected[3],
-                      child: ListView(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
-                        children: scienceTileList,
-                      ))
-                ],
-              ),
-            )
+                height: screenHeight * 0.65,
+                width: screenWidth * 0.88,
+                child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: curItemCount,
+                  itemBuilder: (BuildContext context, index) {
+                    if (classSelected[0]) {
+                      return medicineTileList[index];
+                    } else if (classSelected[1]) {
+                      return foodTileList[index];
+                    } else if (classSelected[2]) {
+                      return preventionTileList[index];
+                    } else {
+                      return scienceTileList[index];
+                    }
+                  },
+                ))
           ],
         ),
       ),
@@ -322,11 +345,15 @@ class ArticleTile extends StatelessWidget {
 
 // TOINTERACT: 在跳转去内容页面时，先设置好要展示的内容
 class NonArticleTile extends StatelessWidget {
-  final ArticleInfo articleList;
+  final Map articleInfo;
   final String linkpath;
+  final bool isMed;
 
   const NonArticleTile(
-      {super.key, required this.articleList, required this.linkpath});
+      {super.key,
+      required this.articleInfo,
+      required this.linkpath,
+      required this.isMed});
 
   @override
   Widget build(BuildContext context) {
@@ -337,11 +364,21 @@ class NonArticleTile extends StatelessWidget {
       elevation: 6,
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, linkpath);
+          if (isMed) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => MedicinePage(
+                        title: "返回查询页面",
+                        link: '/articles/medicine',
+                        id: articleInfo["id"])));
+          } else {
+            Navigator.pushNamed(context, linkpath);
+          }
         },
         child: ListTile(
           minVerticalPadding: 15,
-          title: Text(articleList.title, maxLines: 1),
+          title: Text(articleInfo["name"], maxLines: 1),
           titleTextStyle: const TextStyle(
               fontWeight: FontWeight.w900, color: Colors.black, fontSize: 20),
         ),
