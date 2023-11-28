@@ -135,6 +135,11 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
   List<int> dbpData = [];
   List<int> heartRateData = [];
 
+  List<int> tcData = [];
+  List<int> tgData = [];
+  List<int> ldlData = [];
+  List<int> hdlData = [];
+
   // 从后端请求数据
   Future<void> getDataFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
@@ -195,6 +200,11 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
       heartRateData.add(heartRate_);
     }
 
+    tcData = sbpData;
+    tgData = dbpData;
+    ldlData = heartRateData;
+    hdlData = heartRateData;
+
     //print("dateData: $dateData");
     //print("valueData: $valueData");
     //setState(() {});
@@ -208,10 +218,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    //print('血压图表更新：${widget.date}');
-    //widget.updateDate(widget.date);
   }
 
   @override
@@ -258,7 +265,9 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   children: [
                     Container(
                       // width: MediaQuery.of(context).size.width * 1.5,
-                      width: dayData.length <= 5 ? 325 : dayData.length * 65,
+                      width: dayData.length * 65 <= 550
+                          ? 550
+                          : dayData.length * 65,
                       height: MediaQuery.of(context).size.height * 0.35,
                       child: Echarts(
                         extraScript: '''
@@ -318,27 +327,27 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 },
                 series: [{
                   name: '总胆固醇',
-                  data: $sbpData,
+                  data: $tcData,
                   type: 'line',
                   smooth: true
                 },
                 {
                   name: '甘油三酯',
-                  data: $dbpData,
+                  data: $tgData,
                   type: 'line',
                   smooth: true
                 },
 
                  {
                   name: '低密度脂蛋白胆固醇',
-                  data: $heartRateData,
+                  data: $ldlData,
                   type: 'line',
                   smooth: true
                 },
 
                 {
                   name: '高密度脂蛋白胆固醇',
-                  data: $heartRateData,
+                  data: $hdlData,
                   type: 'line',
                   smooth: true
                 }
@@ -1308,16 +1317,13 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   int pageNum = 0;
 
   List<dynamic> data = [];
-  List<String> seriesName = ["收缩压", "舒张压", "心率"];
-  List<int> SBPTimes = [0, 0, 0, 0];
-  List<int> DBPTimes = [0, 0, 0, 0];
-  List<int> heartRateTimes = [0, 0, 0, 0];
-  List<int> total = [0, 0, 0];
+  List<String> seriesName = ["总胆固醇", "甘油三酯", "低密度脂蛋白胆固醇", "高密度脂蛋白胆固醇"];
+  List<int> tcTimes = [0, 0, 0, 0];
+  List<int> tgTimes = [0, 0, 0, 0];
+  List<int> ldlTimes = [0, 0, 0, 0];
+  List<int> hdlTimes = [0, 0, 0, 0];
+  List<int> total = [0, 0, 0, 0];
   List<int> avg = [];
-  int averageSbp = 0;
-  int averageDbp = 0;
-  int totalTimes = 0;
-  int averageHr = 0;
 
   Future<void> getDataFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
@@ -1358,9 +1364,10 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
     //print(data);
 
-    SBPTimes = [];
-    DBPTimes = [];
-    heartRateTimes = [];
+    tcTimes = [];
+    tgTimes = [];
+    ldlTimes = [];
+    hdlTimes = [];
     avg = [];
     total = [];
 
@@ -1371,28 +1378,41 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
     for (int i = 0; i < data.length; i++) {
       if (i == 0) {
-        SBPTimes.add(data[i]["high"]);
-        SBPTimes.add(data[i]["medium"]);
-        SBPTimes.add(data[i]["low"]);
-        SBPTimes.add(data[i]["abnormal"]);
+        tcTimes.add(data[i]["high"]);
+        tcTimes.add(data[i]["medium"]);
+        tcTimes.add(data[i]["low"]);
+        tcTimes.add(data[i]["abnormal"]);
       } else if (i == 1) {
-        DBPTimes.add(data[i]["high"]);
-        DBPTimes.add(data[i]["medium"]);
-        DBPTimes.add(data[i]["low"]);
-        DBPTimes.add(data[i]["abnormal"]);
+        tgTimes.add(data[i]["high"]);
+        tgTimes.add(data[i]["medium"]);
+        tgTimes.add(data[i]["low"]);
+        tgTimes.add(data[i]["abnormal"]);
       } else if (i == 2) {
-        heartRateTimes.add(data[i]["high"]);
-        heartRateTimes.add(data[i]["medium"]);
-        heartRateTimes.add(data[i]["low"]);
-        heartRateTimes.add(data[i]["abnormal"]);
+        ldlTimes.add(data[i]["high"]);
+        ldlTimes.add(data[i]["medium"]);
+        ldlTimes.add(data[i]["low"]);
+        ldlTimes.add(data[i]["abnormal"]);
+      }
+      // HDL
+      else if (i == 3) {
+        hdlTimes.add(data[i]["high"]);
+        hdlTimes.add(data[i]["medium"]);
+        hdlTimes.add(data[i]["low"]);
+        hdlTimes.add(data[i]["abnormal"]);
       }
       total.add(data[i]["count"]);
       avg.add(data[i]["avg"]);
     }
 
-    print("SBPTimes: $SBPTimes");
-    print("DBPTimes: $DBPTimes");
-    print("heartRateTimes: $heartRateTimes");
+    // TODO 删除
+    hdlTimes = ldlTimes;
+    total.add(total[2]);
+    avg.add(avg[2]);
+
+    print("tcTimes: $tcTimes");
+    print("tgTimes: $tgTimes");
+    print("hdlTimes: $hdlTimes");
+    print("ldlTimes: $ldlTimes");
     print("total: $total");
     print("avg: $avg");
   }
@@ -1401,28 +1421,25 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   void initState() {
     // TODO: 从后端请求数据
     super.initState();
-    SBPTimes = DBPTimes = [3, 13, 5, 1];
-    heartRateTimes = [4, 12, 6, 0];
-    avg = [120, 99, 95];
-    totalTimes = 22;
-    averageSbp = 120;
-    averageDbp = 99;
-    averageHr = 95;
     print("饼图 initstate");
   }
 
   List<int> getTypeData(int pageNum) {
-    // SBP
+    // TC
     if (pageNum == 0) {
-      return SBPTimes;
+      return tcTimes;
     }
-    // DBP
+    // TG
     else if (pageNum == 1) {
-      return DBPTimes;
+      return tgTimes;
     }
-    // HR
+    // LDL
     else if (pageNum == 2) {
-      return heartRateTimes;
+      return ldlTimes;
+    }
+    // HDL
+    else if (pageNum == 3) {
+      return hdlTimes;
     }
     return [];
   }
@@ -1432,48 +1449,19 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
     // SBP
     if (pageNum == 0) {
-      return SBPTimes[type];
+      return tcTimes[type];
     }
     // DBP
     else if (pageNum == 1) {
-      return DBPTimes[type];
+      return tgTimes[type];
     }
     // HR
     else if (pageNum == 2) {
-      return heartRateTimes[type];
+      return ldlTimes[type];
+    } else if (pageNum == 3) {
+      return hdlTimes[type];
     }
     return 0;
-  }
-
-  void updateData() {
-    if (widget.date == DateTime(2023, 11, 18)) {
-      SBPTimes = [4, 15, 7, 1];
-      DBPTimes = [3, 13, 5, 1];
-      heartRateTimes = [4, 12, 6, 0];
-      totalTimes = 22;
-      averageSbp = 120;
-      averageDbp = 99;
-      averageHr = 95;
-      avg = [120, 99, 95];
-    } else if (widget.date == DateTime(2023, 11, 11)) {
-      SBPTimes = [1, 22, 5, 5];
-      DBPTimes = [2, 20, 5, 3];
-      heartRateTimes = [4, 17, 8, 1];
-      totalTimes = 30;
-      averageSbp = 111;
-      averageDbp = 100;
-      averageHr = 88;
-      avg = [111, 100, 88];
-    } else {
-      SBPTimes = [1, 22, 5, 5];
-      DBPTimes = [1, 7, 2, 1];
-      heartRateTimes = [0, 10, 1, 0];
-      totalTimes = 11;
-      averageSbp = 97;
-      averageDbp = 88;
-      averageHr = 96;
-      avg = [97, 88, 96];
-    }
   }
 
   void setTitle() {
@@ -1508,9 +1496,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                   width: 2,
                 ),
                 Image.asset(
-                  pageNum <= 1
-                      ? "assets/icons/bloodPressure1.png"
-                      : "assets/icons/heartRate.png",
+                  "assets/icons/bloodLipid.png",
                   height: 15,
                   width: 15,
                 ),
@@ -1604,9 +1590,9 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                   fontFamily: "BalooBhai",
                   fontWeight: FontWeight.bold),
             ),
-            Text(
-              pageNum == 0 ? 'mmHg' : '次/分',
-              style: const TextStyle(
+            const Text(
+              'mmol/L',
+              style: TextStyle(
                   fontSize: 12,
                   fontFamily: "Blinker",
                   fontWeight: FontWeight.bold),
@@ -1756,24 +1742,11 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
           ],
         ),
 
-        // 血压/心率图表
-        /* pageNum == 0
-            ? BloodPressureStaticGraph(
-                date: widget.date,
-                selectedDays: widget.selectedDays,
-                seriesName: "血压",
-                dataTimes: SBPTimes,
-                updateDate: widget.updateDate)
-            : BloodPressureStaticGraph(
-                date: widget.date,
-                selectedDays: widget.selectedDays,
-                seriesName: "心率",
-                dataTimes: heartRateTimes,
-                updateDate: widget.updateDate), */
+        // 总胆固醇，甘油三酯，低密度脂蛋白，高密度脂蛋白 饼图pie
         BloodPressureStaticGraph(
             date: widget.date,
             selectedDays: widget.selectedDays,
-            seriesName: "心率",
+            seriesName: seriesName[pageNum],
             dataTimes: getTypeData(pageNum),
             updateDate: widget.updateDate),
       ],
@@ -1815,6 +1788,17 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
               color: pageNum == 2 ? Colors.blue : Colors.grey,
               borderRadius: BorderRadius.circular(5),
             ),
+          ),
+          const SizedBox(
+            width: 5,
+          ),
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: pageNum == 3 ? Colors.blue : Colors.grey,
+              borderRadius: BorderRadius.circular(5),
+            ),
           )
         ],
       ),
@@ -1849,7 +1833,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                     if (details.primaryDelta! > 15) {
                       pageNum -= 1;
                       if (pageNum < 0) {
-                        pageNum = 2;
+                        pageNum = 3;
                       }
 
                       print("右滑 页面左移动");
@@ -1858,7 +1842,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                     } else if (details.primaryDelta! < -15) {
                       pageNum += 1;
                       print("左滑 页面右移动");
-                      if (pageNum > 2) {
+                      if (pageNum > 3) {
                         pageNum = 0;
                       }
                       setState(() {});
@@ -1901,7 +1885,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                                     widget.refreshData = false;
                                     pageNum -= 1;
                                     if (pageNum < 0) {
-                                      pageNum = 2;
+                                      pageNum = 3;
                                     }
                                     setState(() {});
                                   },
@@ -1919,7 +1903,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                                   onTap: () {
                                     widget.refreshData = false;
                                     pageNum += 1;
-                                    if (pageNum > 2) {
+                                    if (pageNum > 3) {
                                       pageNum = 0;
                                     }
                                     setState(() {});
@@ -2223,12 +2207,12 @@ class _BloodFatDetailsState extends State<BloodFatDetails> {
           ),
 
           //统计组件
-          /*  BloodPressureStaticWidget(
+          BloodPressureStaticWidget(
               refreshData: true,
               date: date,
               selectedDays: selectedDays,
               updateView: updateView,
-              updateDate: updateDate), */
+              updateDate: updateDate),
 
           BloodPressureMoreInfoButton(),
         ]),

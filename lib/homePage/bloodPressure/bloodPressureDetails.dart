@@ -1826,23 +1826,10 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
         ),
 
         // 血压/心率图表
-        /* pageNum == 0
-            ? BloodPressureStaticGraph(
-                date: widget.date,
-                selectedDays: widget.selectedDays,
-                seriesName: "血压",
-                dataTimes: SBPTimes,
-                updateDate: widget.updateDate)
-            : BloodPressureStaticGraph(
-                date: widget.date,
-                selectedDays: widget.selectedDays,
-                seriesName: "心率",
-                dataTimes: heartRateTimes,
-                updateDate: widget.updateDate), */
         BloodPressureStaticGraph(
             date: widget.date,
             selectedDays: widget.selectedDays,
-            seriesName: "心率",
+            seriesName: seriesName[pageNum],
             dataTimes: getTypeData(pageNum),
             updateDate: widget.updateDate),
       ],
