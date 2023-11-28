@@ -6,10 +6,8 @@ import '../component/navigation.dart';
 // TOIMPROVE: 增加类似目录索引这样方便快速查找
 class MedicinePage extends StatefulWidget {
   final String title;
-  final String link;
   final int id;
-  const MedicinePage(
-      {super.key, required this.title, required this.link, required this.id});
+  const MedicinePage({super.key, required this.title, required this.id});
 
   @override
   State<MedicinePage> createState() => _MedicinePageState();
@@ -137,7 +135,7 @@ class _MedicinePageState extends State<MedicinePage> {
         ),
         leading: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, widget.link);
+              Navigator.pop(context);
             },
             icon: const Icon(
               Icons.arrow_back,
@@ -165,10 +163,10 @@ class _MedicinePageState extends State<MedicinePage> {
           const SizedBox(height: 10),
           SizedBox(
             width: screenWidth * 0.8,
-            child: const Center(
+            child: Center(
                 child: Text(
-              "Medicine name",
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+              medicineInfo["name"] ?? "",
+              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             )),

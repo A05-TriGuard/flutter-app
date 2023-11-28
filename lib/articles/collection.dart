@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../articles/medicinepage.dart';
-import '../component/icons.dart';
+import '../articles/foodsearchpage.dart';
+import '../component/navigation.dart';
 
 // TOINTERACT: 增加var列表，用来保存内容页面需要展示的内容（图片、文字等）
 // TOINTERACT: 增加bool变量记录文章是否被收藏
@@ -24,14 +25,11 @@ class Collection extends StatefulWidget {
 class _CollectionState extends State<Collection> {
   var token =
       'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
-  int _currentIndex = 0;
   var classSelected = <bool>[true, false, false, false];
   int curSelected = 0;
   int curItemCount = 0;
   var medicineArticleList = [];
-  var foodArticleList = <Map>[
-    {"name": "Food 1", "id": 1}
-  ];
+  var foodArticleList = [];
   var preventionArticleList = <ArticleInfo>[
     ArticleInfo(
         title: "Title 5",
@@ -136,6 +134,35 @@ class _CollectionState extends State<Collection> {
     }
   }
 
+  // Food API
+  void fetchNShowFoodCollection() async {
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/food/favorites/list',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          foodArticleList = response.data["data"];
+          curItemCount = foodArticleList.length;
+          classSelected[curSelected] = false;
+          classSelected[1] = true;
+          curSelected = 1;
+          //print(medicineArticleList);
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      ///print('Request failed: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -210,6 +237,8 @@ class _CollectionState extends State<Collection> {
               onPressed: (index) {
                 if (index == 0) {
                   fetchNShowMedicineCollection();
+                } else if (index == 1) {
+                  fetchNShowFoodCollection();
                 } else {
                   setState(() {
                     classSelected[curSelected] = false;
@@ -244,63 +273,7 @@ class _CollectionState extends State<Collection> {
       ),
 
       // 下方导航栏
-      bottomNavigationBar: BottomNavigationBar(
-        //被点击时
-        // if index == 0, when press the icon, change the icon "home.png" to "home_.png"
-
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-
-        currentIndex: _currentIndex, //被选中的
-        // https://blog.csdn.net/yechaoa/article/details/89852488
-        type: BottomNavigationBarType.fixed,
-        // iconSize: 24,
-        fixedColor: Colors.black, //被选中时的颜色
-        selectedFontSize: 12, // Set the font size for selected label
-        unselectedFontSize: 10,
-        items: [
-          BottomNavigationBarItem(
-              //https://blog.csdn.net/qq_27494241/article/details/107167585?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-1-107167585-blog-85248876.235^v38^pc_relevant_default_base3&spm=1001.2101.3001.4242.2&utm_relevant_index=4
-              // https://stackoverflow.com/questions/60151052/can-i-add-spacing-around-an-icon-in-flutter-bottom-navigation-bar
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 0
-                      ? MyIcons().home_()
-                      : MyIcons().home()),
-              label: "首页"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 1
-                      ? MyIcons().article_()
-                      : MyIcons().article()),
-              label: "文章"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 2
-                      ? MyIcons().supervisor_()
-                      : MyIcons().supervisor()),
-              label: "监护"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 3
-                      ? MyIcons().moment_()
-                      : MyIcons().moment()),
-              label: "动态"),
-          BottomNavigationBarItem(
-              icon: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                  child: _currentIndex == 4
-                      ? MyIcons().user_()
-                      : MyIcons().user()),
-              label: "我的"),
-        ],
-      ),
+      bottomNavigationBar: const MyNavigationBar(currentIndex: 1),
     );
   }
 }
@@ -368,12 +341,14 @@ class NonArticleTile extends StatelessWidget {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => MedicinePage(
-                        title: "返回查询页面",
-                        link: '/articles/medicine',
-                        id: articleInfo["id"])));
+                    builder: (context) =>
+                        MedicinePage(title: "返回收藏列表", id: articleInfo["id"])));
           } else {
-            Navigator.pushNamed(context, linkpath);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => FoodsearchPage(
+                        title: "返回收藏列表", id: articleInfo["id"])));
           }
         },
         child: ListTile(

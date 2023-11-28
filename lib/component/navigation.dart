@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../articles/articles.dart';
 import '../component/icons.dart';
 
 class MyNavigationBar extends StatefulWidget {
@@ -14,31 +13,16 @@ class _MyNavigationBarState extends State<MyNavigationBar> {
   int _currentIndex = 0;
 
   @override
-  void initState() {
-    super.initState();
-    setState(() {
-      _currentIndex = widget.currentIndex;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    _currentIndex = widget.currentIndex;
+
     return BottomNavigationBar(
       //被点击时
       // if index == 0, when press the icon, change the icon "home.png" to "home_.png"
 
       onTap: (index) {
-        setState(() {
-          _currentIndex = index;
-        });
         if (index == 1) {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (BuildContext context) => Article(
-                  key: UniqueKey(),
-                ),
-              ));
+          Navigator.pushNamed(context, '/articles');
         }
         if (index == 3) {
           Navigator.pushNamed(context, '/moment');

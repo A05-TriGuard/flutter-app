@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../component/navigation.dart';
+import 'foodsearchpage.dart';
 
 class Foodsearch extends StatefulWidget {
   const Foodsearch({super.key});
@@ -9,29 +11,111 @@ class Foodsearch extends StatefulWidget {
 }
 
 class _FoodsearchState extends State<Foodsearch> {
+  final inputController = TextEditingController();
   bool showResult = false;
   var resultCardList = <ResultCard>[];
-  var resultList = <String>[
-    "first result",
-    "second result",
-    "third result",
-    "forth result",
-    "fifth result",
-    "sixth result",
-    "seventh result"
-  ];
+  var historyCardList = <ResultCard>[];
+  var resultList = [];
+  var historyList = [];
+  var token =
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
+
+  // Food API
+  void fetchNShowSearchResult(String inputMed) async {
+    resultList.clear();
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/food/search?keyword=$inputMed',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          showResult = true;
+          resultList = response.data["data"];
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  // Food API
+  void fetchNShowHistoryResult() async {
+    historyList.clear();
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/food/info-history',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        print(response.data);
+        setState(() {
+          historyList = response.data["data"];
+          showResult = false;
+        });
+      } else {
+        print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Request failed: $e');
+    }
+  }
 
   void createCardList() {
-    for (int i = 0; i < resultList.length; ++i) {
-      resultCardList.add(ResultCard(result: resultList[i]));
+    resultCardList.clear();
+    if (resultList.isNotEmpty) {
+      for (int i = 0; i < resultList.length; ++i) {
+        resultCardList.add(ResultCard(
+          result: resultList[i],
+          isResult: true,
+        ));
+      }
+    } else {
+      resultCardList.add(const ResultCard(
+          result: {"name": "目前没有找到相关搜索结果", "id": -1}, isResult: false));
     }
+  }
+
+  void createHistoryList() {
+    historyCardList.clear();
+    if (historyList.isNotEmpty) {
+      for (int i = 0; i < historyList.length; ++i) {
+        historyCardList.add(ResultCard(
+          result: historyList[i],
+          isResult: true,
+        ));
+      }
+    } else {
+      historyCardList.add(const ResultCard(
+          result: {"name": "暂时没有任何搜索记录", "id": -1}, isResult: false));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNShowHistoryResult();
   }
 
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
-    resultCardList.clear();
+
     createCardList();
+    createHistoryList();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -84,9 +168,13 @@ class _FoodsearchState extends State<Foodsearch> {
                 style: const TextStyle(fontSize: 22),
                 onTap: () {
                   setState(() {
-                    showResult = false;
+                    fetchNShowHistoryResult();
                   });
                 },
+                onTapOutside: (event) {
+                  FocusScope.of(context).requestFocus(FocusNode());
+                },
+                controller: inputController,
                 decoration: InputDecoration(
                     hintText: "输入食物名称",
                     hintStyle: const TextStyle(
@@ -104,7 +192,8 @@ class _FoodsearchState extends State<Foodsearch> {
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
-                          showResult = true;
+                          fetchNShowSearchResult(inputController.text);
+                          FocusScope.of(context).requestFocus(FocusNode());
                         });
                       },
                       icon: Image.asset("assets/icons/searchWhite.png",
@@ -114,30 +203,30 @@ class _FoodsearchState extends State<Foodsearch> {
                 textAlign: TextAlign.left,
               ),
             ),
-            Visibility(
-              maintainState: true,
-              maintainAnimation: true,
-              maintainSize: true,
-              visible: showResult,
-              child: Column(
-                children: [
-                  const Text(
-                    "相关搜索结果为：",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  SizedBox(
+            Column(
+              children: [
+                Text(
+                  showResult ? "相关搜索结果为：" : "历史查询记录：",
+                  style: const TextStyle(fontSize: 18),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                SizedBox(
                     width: screenWidth * 0.8,
                     height: screenWidth * 0.6,
-                    child: ListView(
+                    child: ListView.builder(
                         scrollDirection: Axis.vertical,
                         shrinkWrap: true,
-                        children: resultCardList),
-                  ),
-                ],
-              ),
+                        itemCount: showResult
+                            ? resultCardList.length
+                            : historyCardList.length,
+                        itemBuilder: (BuildContext context, index) {
+                          return showResult
+                              ? resultCardList[index]
+                              : historyCardList[index];
+                        })),
+              ],
             )
           ],
         ),
@@ -150,8 +239,9 @@ class _FoodsearchState extends State<Foodsearch> {
 }
 
 class ResultCard extends StatelessWidget {
-  final String result;
-  const ResultCard({super.key, required this.result});
+  final Map result;
+  final bool isResult;
+  const ResultCard({super.key, required this.result, required this.isResult});
 
   @override
   Widget build(BuildContext context) {
@@ -161,13 +251,20 @@ class ResultCard extends StatelessWidget {
         shadowColor: Colors.black87,
         elevation: 5,
         child: InkWell(
-          onTap: () {
-            Navigator.pushNamed(context, '/articles/foodsearch/page');
-          },
+          onTap: isResult
+              ? () {
+                  //Navigator.pushNamed(context, '/articles/medicine/page');
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => FoodsearchPage(
+                              title: "返回查询页面", id: result["id"])));
+                }
+              : null,
           child: ListTile(
               minVerticalPadding: 15,
               title: Text(
-                result,
+                result["name"],
                 maxLines: 1,
                 style: const TextStyle(fontSize: 20),
               ),

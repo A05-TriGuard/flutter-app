@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 // 科普模块
 import '../articles/foodsearch.dart';
-import '../articles/foodsearchpage.dart';
 import '../articles/articles.dart';
 import '../articles/science.dart';
 import '../articles/sciencepage.dart';
 import '../articles/medicine.dart';
-import '../articles/medicinepage.dart';
 import '../articles/prevention.dart';
 import '../articles/collection.dart';
 // 饮食模块
@@ -26,19 +24,12 @@ Map routes = {
   '/articles/science/page': (context) =>
       const SciencePage(title: "返回文章列表", link: '/articles/science'),
   '/articles/foodsearch': (context) => const Foodsearch(),
-  '/articles/foodsearch/page': (context) =>
-      const FoodsearchPage(title: "返回查询页面", link: '/articles/foodsearch'),
+
   '/articles/medicine': (context) => const Medicine(),
-  '/articles/medicine/page': (context) =>
-      const MedicinePage(title: "返回查询页面", link: '/articles/medicine', id: 0),
   '/articles/prevention': (context) => const Prevention(),
   '/articles/collection': (context) => const Collection(),
   '/articles/collection/articlepage': (context) =>
       const SciencePage(title: "返回收藏列表", link: '/articles/collection'),
-  '/articles/collection/medicinepage': (context) =>
-      const MedicinePage(title: "返回收藏列表", link: '/articles/collection', id: 0),
-  '/articles/collection/foodsearchpage': (context) =>
-      const FoodsearchPage(title: "返回收藏列表", link: '/articles/collection'),
 };
 
 var onGenerateRoute = (RouteSettings settings) {

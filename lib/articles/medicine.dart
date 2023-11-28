@@ -265,10 +265,8 @@ class ResultCard extends StatelessWidget {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => MedicinePage(
-                              title: "返回查询页面",
-                              link: '/articles/medicine',
-                              id: result["id"])));
+                          builder: (context) =>
+                              MedicinePage(title: "返回查询页面", id: result["id"])));
                 }
               : null,
           child: ListTile(

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../component/navigation.dart';
 import '../component/icons.dart';
 
 class FoodsearchPage extends StatefulWidget {
   final String title;
-  final String link;
-  const FoodsearchPage({super.key, required this.title, required this.link});
+  final int id;
+  const FoodsearchPage({super.key, required this.title, required this.id});
 
   @override
   State<FoodsearchPage> createState() => _FoodsearchPageState();
@@ -13,6 +14,9 @@ class FoodsearchPage extends StatefulWidget {
 
 class _FoodsearchPageState extends State<FoodsearchPage> {
   bool addedCollection = false;
+  Map foodInfo = {};
+  var token =
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
 
   TableRow createTableRow(String left, String right) {
     return TableRow(children: [
@@ -31,6 +35,84 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
           )),
     ]);
+  }
+
+  // Medicine API
+  void fetchNShowMedicineInfo() async {
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/food/info?id=${widget.id}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          foodInfo = response.data["data"];
+          addedCollection = foodInfo["isFavorite"];
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  // Medicine API
+  void addMedicineToCollection() async {
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/food/favorites/add?foodId=${widget.id}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          addedCollection = true;
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  void removeMedicineFromCollection() async {
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/food/favorites/delete?foodId=${widget.id}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          addedCollection = false;
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNShowMedicineInfo();
   }
 
   @override
@@ -52,7 +134,7 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
         ),
         leading: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, widget.link);
+              Navigator.pop(context);
             },
             icon: const Icon(
               Icons.arrow_back,
@@ -80,19 +162,21 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
           const SizedBox(height: 10),
           SizedBox(
             width: screenWidth * 0.8,
-            child: const Center(
+            child: Center(
                 child: Text(
-              "Food name",
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+              foodInfo["name"] ?? "",
+              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             )),
           ),
           IconButton(
               onPressed: () {
-                setState(() {
-                  addedCollection = !addedCollection;
-                });
+                if (!addedCollection) {
+                  addMedicineToCollection();
+                } else {
+                  removeMedicineFromCollection();
+                }
               },
               icon: addedCollection ? MyIcons().starr() : MyIcons().star()),
           Container(
@@ -126,13 +210,13 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
                                   letterSpacing: 2),
                             )),
                       ]),
-                  createTableRow("卡路里", "..."),
-                  createTableRow("碳水化合物", "..."),
-                  createTableRow("脂肪", "..."),
-                  createTableRow("胆固醇", "..."),
-                  createTableRow("蛋白质", "..."),
-                  createTableRow("纤维素", "..."),
-                  createTableRow("钠", "...")
+                  createTableRow("卡路里", foodInfo["calories"] ?? "..."),
+                  createTableRow("碳水化合物", foodInfo["carbohydrates"] ?? "..."),
+                  createTableRow("脂肪", foodInfo["lipids"] ?? "..."),
+                  createTableRow("胆固醇", foodInfo["cholesterol"] ?? "..."),
+                  createTableRow("蛋白质", foodInfo["proteins"] ?? "..."),
+                  createTableRow("纤维素", foodInfo["fiber"] ?? "..."),
+                  createTableRow("钠", foodInfo["sodium"] ?? "...")
                 ],
               )),
           const SizedBox(height: 10),
