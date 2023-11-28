@@ -53,7 +53,7 @@ class _MyTitleState extends State<MyTitle> {
                   children: [
                     Text(
                       widget.value,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Color.fromRGBO(165, 51, 51, 1)),
@@ -117,17 +117,20 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
                 height: MediaQuery.of(context).size.height * 0.25,
-                decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 255, 255, 255),
-                  borderRadius: BorderRadius.all(Radius.circular(15)),
-                  border: GradientBoxBorder(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 255, 255, 255),
+                  borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  /* border: GradientBoxBorder(
                     gradient: LinearGradient(colors: [
                       Color.fromARGB(146, 253, 69, 69),
                       Color.fromARGB(157, 255, 199, 223)
                     ]),
                     width: 1,
+                  ), */
+                  border: Border.all(
+                    color: const Color.fromRGBO(0, 0, 0, 0.2),
                   ),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Color.fromARGB(120, 151, 151, 151),
                       offset: Offset(0, 5),
@@ -231,7 +234,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
                   size: 20,
                 ),
               ),
-            )
+            ),
           ],
         )
 
@@ -271,32 +274,36 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
             icon: "assets/icons/bloodSugar.png",
             value: widget.value,
             unit: "mmol/L",
-            route: "/homePage/BloodPressure/Edit"), //TODO
+            route: "/homePage/BloodSugar/Edit"), //TODO
 
         const SizedBox(
           height: 5,
         ),
 
         // 血糖图表
-        UnconstrainedBox(
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            height: MediaQuery.of(context).size.height * 0.25,
-            decoration: const BoxDecoration(
-              color: Color.fromARGB(255, 255, 255, 255),
-              borderRadius: BorderRadius.all(Radius.circular(15)),
-              boxShadow: [
-                BoxShadow(
-                  color: Color.fromARGB(255, 95, 95, 95),
-                  offset: Offset(0, 0),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
+        Stack(alignment: Alignment.centerRight, children: [
+          UnconstrainedBox(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.85,
+              height: MediaQuery.of(context).size.height * 0.25,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 255, 255, 255),
+                borderRadius: const BorderRadius.all(Radius.circular(15)),
+                border: Border.all(
+                  color: const Color.fromRGBO(0, 0, 0, 0.2),
                 ),
-              ],
-            ),
-            alignment: Alignment.centerRight,
-            child: Echarts(
-              option: '''
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color.fromARGB(120, 151, 151, 151),
+                    offset: Offset(0, 5),
+                    blurRadius: 5.0,
+                    spreadRadius: 0.0,
+                  ),
+                ],
+              ),
+              alignment: Alignment.centerRight,
+              child: Echarts(
+                option: '''
               {
                 animation:false,
                 title: {
@@ -345,9 +352,36 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
                 ]
               }
             ''',
+              ),
             ),
           ),
-        ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, "/homePage/BloodSugar/Details");
+            },
+            child: Container(
+              height: 30,
+              width: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 255, 225, 225),
+                borderRadius: BorderRadius.circular(5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color.fromARGB(120, 151, 151, 151),
+                    offset: Offset(0, 5),
+                    blurRadius: 5.0,
+                    spreadRadius: 0.0,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 20,
+              ),
+            ),
+          ),
+        ]),
       ],
     );
   }
@@ -370,31 +404,35 @@ class _MyBloodFatState extends State<MyBloodFat> {
           icon: "assets/icons/bloodFat.png",
           value: widget.value,
           unit: "mmol/L",
-          route: "/homePage/BloodPressure/Edit"), //TODO
+          route: "/homePage/BloodFat/Edit"), //TODO
 
       const SizedBox(
         height: 5,
       ),
 
-      UnconstrainedBox(
-        child: Container(
-          alignment: Alignment.centerRight,
-          width: MediaQuery.of(context).size.width * 0.85,
-          height: MediaQuery.of(context).size.height * 0.25,
-          decoration: const BoxDecoration(
-            color: Color.fromARGB(255, 255, 255, 255),
-            borderRadius: BorderRadius.all(Radius.circular(15)),
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromARGB(255, 95, 95, 95),
-                offset: Offset(0, 0),
-                blurRadius: 5.0,
-                spreadRadius: 0.0,
+      Stack(alignment: Alignment.centerRight, children: [
+        UnconstrainedBox(
+          child: Container(
+            alignment: Alignment.centerRight,
+            width: MediaQuery.of(context).size.width * 0.85,
+            height: MediaQuery.of(context).size.height * 0.25,
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 255, 255, 255),
+              borderRadius: const BorderRadius.all(Radius.circular(15)),
+              border: Border.all(
+                color: const Color.fromRGBO(0, 0, 0, 0.2),
               ),
-            ],
-          ),
-          child: Echarts(
-            option: '''
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(120, 151, 151, 151),
+                  offset: Offset(0, 5),
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                ),
+              ],
+            ),
+            child: Echarts(
+              option: '''
               {
                 title: {
                 text: '血脂',
@@ -453,9 +491,36 @@ class _MyBloodFatState extends State<MyBloodFat> {
                 ]
               }
             ''',
+            ),
           ),
         ),
-      ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, "/homePage/BloodFat/Details");
+          },
+          child: Container(
+            height: 30,
+            width: 30,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 255, 225, 225),
+              borderRadius: BorderRadius.circular(5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(120, 151, 151, 151),
+                  offset: Offset(0, 5),
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 20,
+            ),
+          ),
+        ),
+      ]),
     ]);
   }
 }
@@ -484,25 +549,29 @@ class _MyActivitiesState extends State<MyActivities> {
       ),
 
       // 活动图表
-      UnconstrainedBox(
-        child: Container(
-          alignment: Alignment.centerRight,
-          width: MediaQuery.of(context).size.width * 0.85,
-          height: MediaQuery.of(context).size.height * 0.25,
-          decoration: const BoxDecoration(
-            color: Color.fromARGB(255, 255, 255, 255),
-            borderRadius: BorderRadius.all(Radius.circular(15)),
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromARGB(255, 95, 95, 95),
-                offset: Offset(0, 0),
-                blurRadius: 5.0,
-                spreadRadius: 0.0,
+      Stack(alignment: Alignment.centerRight, children: [
+        UnconstrainedBox(
+          child: Container(
+            alignment: Alignment.centerRight,
+            width: MediaQuery.of(context).size.width * 0.85,
+            height: MediaQuery.of(context).size.height * 0.25,
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 255, 255, 255),
+              borderRadius: const BorderRadius.all(Radius.circular(15)),
+              border: Border.all(
+                color: const Color.fromRGBO(0, 0, 0, 0.2),
               ),
-            ],
-          ),
-          child: Echarts(
-            option: '''
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(120, 151, 151, 151),
+                  offset: Offset(0, 5),
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                ),
+              ],
+            ),
+            child: Echarts(
+              option: '''
              {
 
    title: {
@@ -590,9 +659,36 @@ class _MyActivitiesState extends State<MyActivities> {
   ]
 }
             ''',
+            ),
           ),
         ),
-      ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, "/homePage/BloodPressure/Details");
+          },
+          child: Container(
+            height: 30,
+            width: 30,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 255, 225, 225),
+              borderRadius: BorderRadius.circular(5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(120, 151, 151, 151),
+                  offset: Offset(0, 5),
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 20,
+            ),
+          ),
+        ),
+      ]),
     ]);
   }
 }
@@ -619,27 +715,30 @@ class _MyDietState extends State<MyDiet> {
       const SizedBox(
         height: 5,
       ),
-
-      UnconstrainedBox(
-        child: Container(
-          alignment: Alignment.centerRight,
-          width: MediaQuery.of(context).size.width * 0.85,
-          // height: MediaQuery.of(context).size.height * 0.25,
-          height: MediaQuery.of(context).size.height * 0.50,
-          decoration: const BoxDecoration(
-            color: Color.fromARGB(255, 255, 255, 255),
-            borderRadius: BorderRadius.all(Radius.circular(15)),
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromARGB(255, 95, 95, 95),
-                offset: Offset(0, 0),
-                blurRadius: 5.0,
-                spreadRadius: 0.0,
+      Stack(alignment: Alignment.centerRight, children: [
+        UnconstrainedBox(
+          child: Container(
+            alignment: Alignment.centerRight,
+            width: MediaQuery.of(context).size.width * 0.85,
+            // height: MediaQuery.of(context).size.height * 0.25,
+            height: MediaQuery.of(context).size.height * 0.50,
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 255, 255, 255),
+              borderRadius: const BorderRadius.all(Radius.circular(15)),
+              border: Border.all(
+                color: const Color.fromRGBO(0, 0, 0, 0.2),
               ),
-            ],
-          ),
-          child: Echarts(
-            extraScript: '''
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(120, 151, 151, 151),
+                  offset: Offset(0, 5),
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                ),
+              ],
+            ),
+            child: Echarts(
+              extraScript: '''
 chart.on('updateAxisPointer', function (event) {
     const xAxisInfo = event.axesInfo[0];
     if (xAxisInfo) {
@@ -659,7 +758,7 @@ chart.on('updateAxisPointer', function (event) {
     }
   });
 ''',
-            option: '''
+              option: '''
 
  {
   animation:false,
@@ -767,9 +866,36 @@ chart.on('updateAxisPointer', function (event) {
     ]
   }
             ''',
+            ),
           ),
         ),
-      ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, "/homePage/BloodPressure/Details");
+          },
+          child: Container(
+            height: 30,
+            width: 30,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 255, 225, 225),
+              borderRadius: BorderRadius.circular(5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(120, 151, 151, 151),
+                  offset: Offset(0, 5),
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 20,
+            ),
+          ),
+        ),
+      ]),
     ]);
   }
 }

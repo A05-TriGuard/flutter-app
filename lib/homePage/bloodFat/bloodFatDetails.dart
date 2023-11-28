@@ -10,8 +10,7 @@ import '../../account/token.dart';
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/other.dart';
-import './bpData2.dart';
-import './bloodPressureEdit.dart' hide armButtonTypes, feelingButtonTypes;
+import '../bloodPressure/bloodPressureEdit.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
 typedef UpdateDateCallback = void Function(DateTime newDate);
@@ -272,13 +271,13 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 animation:false,
 
                 title: {
-                  text: '血压',
+                  text: '血脂',
                   top:'5%',
                   left:'10',
                 },
 
                 legend: {
-                  data: ['收缩压', '舒张压', '心率'],
+                  data: ['总胆固醇', '甘油三酯', '低密度脂蛋白胆固醇', '高密度脂蛋白胆固醇'],
                   top:'6%',
                   left:'70',
                 },
@@ -311,8 +310,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
                 yAxis: {
                   type: 'value',
-                  //min: 80,
-                  //max: 130,
                   axisLabel:{
                     textStyle: {
                         color: '#000000'
@@ -320,20 +317,27 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   },
                 },
                 series: [{
-                  name: '收缩压',
+                  name: '总胆固醇',
                   data: $sbpData,
                   type: 'line',
                   smooth: true
                 },
                 {
-                  name: '舒张压',
+                  name: '甘油三酯',
                   data: $dbpData,
                   type: 'line',
                   smooth: true
                 },
 
                  {
-                  name: '心率',
+                  name: '低密度脂蛋白胆固醇',
+                  data: $heartRateData,
+                  type: 'line',
+                  smooth: true
+                },
+
+                {
+                  name: '高密度脂蛋白胆固醇',
                   data: $heartRateData,
                   type: 'line',
                   smooth: true
@@ -436,41 +440,41 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
   }
 }
 
-// 只展示 （有备注）
-class BloodPressureData extends StatefulWidget {
+// 只展示 （血脂）
+class BloodFatData extends StatefulWidget {
   final int id;
   final DateTime date;
   final int hour;
   final int minute;
-  final int SBloodpressure;
-  final int DBloodpressure;
-  final int heartRate;
-  final int arm;
+  final double tc;
+  final double tg;
+  final double ldl;
+  final double hdl;
   final int feeling;
   final String remark;
   final VoidCallback updateData;
 
-  const BloodPressureData(
-      {Key? key,
-      required this.id,
-      required this.date,
-      required this.hour,
-      required this.minute,
-      required this.SBloodpressure,
-      required this.DBloodpressure,
-      required this.heartRate,
-      required this.feeling,
-      required this.arm,
-      required this.remark,
-      required this.updateData})
-      : super(key: key);
+  BloodFatData({
+    Key? key,
+    required this.id,
+    required this.date,
+    required this.hour,
+    required this.minute,
+    required this.tc,
+    required this.tg,
+    required this.ldl,
+    required this.hdl,
+    required this.feeling,
+    required this.remark,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
-  State<BloodPressureData> createState() => _BloodPressureDataState();
+  State<BloodFatData> createState() => _BloodFatDataState();
 }
 
-class _BloodPressureDataState extends State<BloodPressureData> {
-  List<String> armButtonTypes = ["左手", "右手", "不选"];
+class _BloodFatDataState extends State<BloodFatData> {
+  List<String> mealButtonTypes = ["空腹", "餐后", "不选"];
   List<String> feelingButtonTypes = ["开心", "还好", "不好"];
   bool showRemark = false;
   PageController pageController = PageController();
@@ -479,8 +483,9 @@ class _BloodPressureDataState extends State<BloodPressureData> {
     return Container(
       //duration: Duration(milliseconds: 1000),
       //curve: Curves.easeInOut,
-      height: 80,
+      height: 180,
       width: MediaQuery.of(context).size.width * 0.85,
+
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
@@ -500,21 +505,46 @@ class _BloodPressureDataState extends State<BloodPressureData> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('血压: ${widget.SBloodpressure} / ${widget.DBloodpressure}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                Text('心率: ${widget.heartRate} ',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-              ],
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('手臂: ${armButtonTypes[widget.arm]}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                Row(
+                  children: [
+                    const Text('总胆固醇: ',
+                        style:
+                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                    Text('${widget.tc}',
+                        style: const TextStyle(
+                            fontSize: 20, fontFamily: "BalooBhai")),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text('甘油三酯: ',
+                        style:
+                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                    Text('${widget.tg}',
+                        style: const TextStyle(
+                            fontSize: 20, fontFamily: "BalooBhai")),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text('低密度脂蛋白胆固醇: ',
+                        style:
+                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                    Text('${widget.ldl}',
+                        style: const TextStyle(
+                            fontSize: 20, fontFamily: "BalooBhai")),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text('高密度脂蛋白胆固醇: ',
+                        style:
+                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                    Text('${widget.hdl}',
+                        style: const TextStyle(
+                            fontSize: 20, fontFamily: "BalooBhai")),
+                  ],
+                ),
                 Text('感觉: ${feelingButtonTypes[widget.feeling]}',
                     style:
                         const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
@@ -528,7 +558,7 @@ class _BloodPressureDataState extends State<BloodPressureData> {
 
   Widget getRemarkPage() {
     return Container(
-      height: 80,
+      height: 180,
       width: MediaQuery.of(context).size.width * 0.85,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -598,18 +628,6 @@ class _BloodPressureDataState extends State<BloodPressureData> {
     );
   }
 
-  /* @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(
-          height: 5,
-        ),
-        getInfoPage(),
-      ],
-    );
-  } */
-
   @override
   Widget build(BuildContext context) {
     Widget infoPage = getInfoPage();
@@ -626,107 +644,75 @@ class _BloodPressureDataState extends State<BloodPressureData> {
           });
         }
       },
-      /* child: Container(
-        //duration: Duration(milliseconds: 1000),
-        //curve: Curves.easeIn,
-        child: showRemark ? getRemarkPage() : infoPage,
-      ), */
-
-      /* child: AnimatedContainer(
-        duration: Duration(milliseconds: 1000),
-        //curve: Curves.easeInOut,
-        width: showRemark == true
-            ? MediaQuery.of(context).size.width * 0.85
-            : MediaQuery.of(context).size.width * 0.85,
-        height: showRemark == true ? 160 : 80,
-        curve: Curves.fastOutSlowIn,
-        child: showRemark ? getRemarkPage() : infoPage,
-      ), */
-
-      child: Stack(
-        alignment: Alignment.topRight,
-        children: [
-          Column(
-            children: [
-              Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  Column(
-                    children: [
-                      AnimatedCrossFade(
-                        duration: const Duration(milliseconds: 300),
-                        firstChild: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: infoPage,
-                        ),
-                        secondChild: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: getRemarkPage(),
-                        ),
-                        crossFadeState: showRemark
-                            ? CrossFadeState.showSecond
-                            : CrossFadeState.showFirst,
+      child: Stack(alignment: Alignment.topRight, children: [
+        Column(
+          children: [
+            Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                Column(
+                  children: [
+                    AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 300),
+                      firstChild: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: infoPage,
                       ),
-                      const SizedBox(
-                        height: 5,
+                      secondChild: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: getRemarkPage(),
                       ),
-                    ],
-                  ),
-                  SizedBox(
-                    //height: 5,
-                    child: getPageNum(showRemark),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-            ],
-          ),
-
-          // Edit
-          GestureDetector(
-            onTap: () {
-              print("编辑 ${widget.id}");
-              /* Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BloodPressureEdit(
-                    arguments: {
-                      "bpDataId": widget.id,
-                      "date": widget.date,
-                      "prevPage": 1,
-                    },
-                  ),
+                      crossFadeState: showRemark
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                  ],
                 ),
-              ); */
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BloodPressureEdit(
-                    arguments: {
-                      "bpDataId": widget.id,
-                      "date": widget.date,
-                      "prevPage": 1,
-                    },
-                  ),
+                SizedBox(
+                  //height: 5,
+                  child: getPageNum(showRemark),
                 ),
-              ).then((_) {
-                //print("哈哈哈");
-                widget.updateData();
-              });
-            },
-            child: Container(
-              child: Image.asset(
-                "assets/icons/pencil.png",
-                width: 20,
-                height: 20,
+              ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+          ],
+        ),
+
+        // Edit
+        GestureDetector(
+          onTap: () {
+            print("编辑 ${widget.id}");
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BloodPressureEdit(
+                  arguments: {
+                    "bpDataId": widget.id,
+                    "date": widget.date,
+                    "prevPage": 1,
+                  },
+                ),
               ),
+            ).then((_) {
+              //print("哈哈哈");
+              widget.updateData();
+            });
+          },
+          child: Container(
+            child: Image.asset(
+              "assets/icons/pencil.png",
+              width: 20,
+              height: 20,
             ),
           ),
-        ],
-      ),
+        ),
+      ]),
     );
   }
 }
@@ -894,7 +880,6 @@ class BloodPressureDataList extends StatefulWidget {
 }
 
 class _BloodPressureDataListState extends State<BloodPressureDataList> {
-  List<Map> data2 = bpdata;
   List<dynamic> data = [];
   List<Widget> dataWidget = [];
   int length = 1;
@@ -935,39 +920,30 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       data = [];
     }
 
-    //print(data);
-
-    //dataWidget = [];
-
-    /* for (int i = 0; i < data.length; i++) {
-      int id_ = data[i]["id"];
-      DateTime date_ = DateTime.parse(data[i]["date"]);
-      String timeStr = data[i]["time"];
-      int hour = int.parse(timeStr.split(":")[0]);
-      int minute = int.parse(timeStr.split(":")[1]);
-      DateTime time_ = DateTime(2023, 01, 01, hour, minute);
-      int sbp_ = data[i]["sbp"];
-      int dbp_ = data[i]["dbp"];
-      int heartRate_ = data[i]["heartRate"];
-      int arm_ = data[i]["arm"];
-      int feeling_ = data[i]["feeling"];
-      String remark_ = data[i]["remark"] ?? "暂无备注";
-      data[i]["isExpanded"] = 0; // 默认收起
-
-      /* print("=====第$i条数据=====");
-      print("id: $id_");
-      print("date: $date_");
-      print("time: $time_");
-      print("sbp: $sbp_");
-      print("dbp: $dbp_");
-      print("heartRate: $heartRate_");
-      print("arm: $arm_");
-      print("feeling: $feeling_");
-      print("remark: $remark_");
-      print("==================="); */
-    } */
-
-    //setState(() {});
+    data = [
+      {
+        "id": 12,
+        "date": "2023-11-28",
+        "time": "09:06",
+        "tc": 5.6,
+        "tg": 3.0,
+        "ldl": 0.2,
+        "hdl": 2.7,
+        "feeling": 1,
+        "remark": "egrgr464",
+      },
+      {
+        "id": 15,
+        "date": "2023-11-27",
+        "time": "12:06",
+        "tc": 4.7,
+        "tg": 9.8,
+        "ldl": 2.1,
+        "hdl": 0.5,
+        "feeling": 2,
+        "remark": "gregrgyhey464r",
+      },
+    ];
   }
 
   @override
@@ -978,39 +954,6 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     getDataFromServer().then((_) {
       getdataWidgetList();
     });
-  }
-
-  void getWidgetList() {
-    dataWidget = [];
-
-    //TODO 要考虑到当天没有数据的情况
-
-    // 收起时就显示一个
-
-    if (widget.showMore == 1) {
-      length = data2.length;
-    } else {
-      length = 1;
-    }
-
-    print("length: $length````````````````````````````````````");
-    //print(data2);
-
-    for (int i = 0; i < length; i++) {
-      dataWidget.add(BloodPressureData(
-        id: data2[i]["id"],
-        date: widget.date,
-        hour: data2[i]["hour"],
-        minute: data2[i]["minute"],
-        SBloodpressure: data2[i]["sbp"],
-        DBloodpressure: data2[i]["dbp"],
-        heartRate: data2[i]["heartRate"],
-        feeling: data2[i]["feeling"],
-        arm: data2[i]["arm"],
-        remark: data2[i]["remark"],
-        updateData: widget.updateData,
-      ));
-    }
   }
 
   void getdataWidgetList() {
@@ -1042,36 +985,24 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       int hour_ = int.parse(timeStr.split(":")[0]);
       int minute_ = int.parse(timeStr.split(":")[1]);
       DateTime time_ = DateTime(2023, 01, 01, hour_, minute_);
-      int sbp_ = data[i]["sbp"];
-      int dbp_ = data[i]["dbp"];
-      int heartRate_ = data[i]["heartRate"];
-      int arm_ = data[i]["arm"];
+      double tc_ = data[i]["tc"];
+      double tg_ = data[i]["tg"];
+      double ldl_ = data[i]["ldl"];
+      double hdl_ = data[i]["hdl"];
       int feeling_ = data[i]["feeling"];
       String remark_ = data[i]["remark"] ?? "暂无备注";
       data[i]["isExpanded"] = 0; // 默认收起
 
-      /* print("=====第$i条数据=====");
-      print("id: $id_");
-      print("date: $date_");
-      print("time: $time_");
-      print("sbp: $sbp_");
-      print("dbp: $dbp_");
-      print("heartRate: $heartRate_");
-      print("arm: $arm_");
-      print("feeling: $feeling_");
-      print("remark: $remark_");
-      print("==================="); */
-
-      dataWidget.add(BloodPressureData(
+      dataWidget.add(BloodFatData(
         id: id_,
         date: date_,
         hour: hour_,
         minute: minute_,
-        SBloodpressure: sbp_,
-        DBloodpressure: dbp_,
-        heartRate: heartRate_,
+        tc: tc_,
+        tg: tg_,
+        ldl: ldl_,
+        hdl: hdl_,
         feeling: feeling_,
-        arm: arm_,
         remark: remark_,
         updateData: widget.updateData,
       ));
@@ -1111,7 +1042,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
           // Return the AnimatedContainer here
           return AnimatedContainer(
             duration: const Duration(milliseconds: 1500),
-            height: length == 1 ? 95 : 95.0 * length,
+            height: length == 1 ? 190 : 190.0 * length,
             curve: Curves.easeInOut,
             child: SingleChildScrollView(
               child: Column(
@@ -1190,13 +1121,13 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(
           children: [
-            // 当日血压数据 与 展开收起按钮
+            // 当日血脂数据 与 展开收起按钮
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                PageTitle(
-                  title: "当日血压数据",
+                const PageTitle(
+                  title: "当日血脂数据",
                   icons: "assets/icons/list.png",
                   fontSize: 18,
                 ),
@@ -2162,15 +2093,15 @@ class _BloodPressureMoreInfoButtonState
 // ============================================================================
 
 // 血压详情此页面
-class BloodPressureDetails extends StatefulWidget {
+class BloodFatDetails extends StatefulWidget {
   final Map arguments;
-  const BloodPressureDetails({Key? key, required this.arguments});
+  const BloodFatDetails({Key? key, required this.arguments});
 
   @override
-  State<BloodPressureDetails> createState() => _BloodPressureDetailsState();
+  State<BloodFatDetails> createState() => _BloodFatDetailsState();
 }
 
-class _BloodPressureDetailsState extends State<BloodPressureDetails> {
+class _BloodFatDetailsState extends State<BloodFatDetails> {
   DateTime date = DateTime.now();
   String selectedDays = "最近7天";
   late Widget bloodPressureGraphtWidget;
@@ -2270,8 +2201,8 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
               width: MediaQuery.of(context).size.width * 0.85,
               alignment: Alignment.centerLeft,
               child: const PageTitle(
-                title: "血脂肪详情",
-                icons: "assets/icons/bloodPressure.png",
+                title: "血脂详情",
+                icons: "assets/icons/bloodFat.png",
                 fontSize: 22,
               ),
             ),
@@ -2292,12 +2223,12 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
           ),
 
           //统计组件
-          BloodPressureStaticWidget(
+          /*  BloodPressureStaticWidget(
               refreshData: true,
               date: date,
               selectedDays: selectedDays,
               updateView: updateView,
-              updateDate: updateDate),
+              updateDate: updateDate), */
 
           BloodPressureMoreInfoButton(),
         ]),

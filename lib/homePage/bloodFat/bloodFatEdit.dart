@@ -5,15 +5,20 @@ import 'package:triguard/component/titleDate/titleDate.dart';
 import 'package:dio/dio.dart';
 
 import '../../component/header/header.dart';
-import "bsData.dart";
+import "../bloodPressure/bpData.dart";
 import '../../account/token.dart';
 import "../../other/other.dart";
 
 // 删除 取消 确定
-List<String> armButtonTypes = ["左手", "右手", "不选"];
 List<String> feelingButtonTypes = ["开心", "还好", "不好"];
 List<String> functionButtonTypes = ["删除", "取消", "确定"];
-List<String> invalidValueText = ["", "血糖必须填写"];
+List<String> invalidValueText = [
+  "",
+  "总胆固醇必须填写",
+  "甘油三酯必须填写",
+  "低密度脂蛋白胆固醇必须填写",
+  "高密度脂蛋白胆固醇必须填写"
+];
 List<Color> functionButtonColors = const [
   Color.fromRGBO(253, 108, 108, 1),
   Color.fromRGBO(144, 235, 235, 1),
@@ -34,19 +39,32 @@ class newValue {
   //int hour = 0;
   //int minute = 0;
   DateTime time = DateTime.now();
-  double bloodSugar = 0;
-  int mealIndex = 0;
+  double tc = 0;
+  double tg = 0;
+  double ldl = 0;
+  double hdl = 0;
+
   int feelingIndex = 0;
   String remarks = "";
 
-  newValue(this.id, this.time, this.bloodSugar, this.mealIndex,
-      this.feelingIndex, this.remarks);
+  newValue(
+    this.id,
+    this.time,
+    this.tc,
+    this.tg,
+    this.ldl,
+    this.hdl,
+    this.feelingIndex,
+    this.remarks,
+  );
 
   void clear() {
     id = 0;
     time = DateTime.now();
-    bloodSugar = 0;
-    mealIndex = 0;
+    tc = 0;
+    tg = 0;
+    ldl = 0;
+    hdl = 0;
     feelingIndex = 0;
     remarks = "";
   }
@@ -54,8 +72,10 @@ class newValue {
   void printValue() {
     print("id: $id");
     print("time: $time");
-    print("bloodSugar: $bloodSugar");
-    print("mealIndex: $mealIndex");
+    print("tc: $tc");
+    print("tg: $tg");
+    print("ldl: $ldl");
+    print("hdl: $hdl");
     print("feelingIndex: $feelingIndex");
     print("remarks: $remarks");
   }
@@ -197,11 +217,16 @@ class addDataWidget extends StatefulWidget {
 class _addDataWidgetState extends State<addDataWidget> {
   // 输入框的控制器
   // ignore: non_constant_identifier_names
-  final TextEditingController bloodSugarController = TextEditingController();
+  final TextEditingController tcController = TextEditingController();
+  final TextEditingController tc_Controller = TextEditingController();
+  final TextEditingController tgController = TextEditingController();
+  final TextEditingController tg_Controller = TextEditingController();
+  final TextEditingController ldlController = TextEditingController();
+  final TextEditingController ldl_Controller = TextEditingController();
+  final TextEditingController hdlController = TextEditingController();
+  final TextEditingController hdl_Controller = TextEditingController();
   final TextEditingController remarkController = TextEditingController();
-  MealButtonsRow mealButtons = MealButtonsRow(
-    selectedIndex: 2,
-  );
+
   FeelingsButtonsRow feelingsButtons = FeelingsButtonsRow(
     selectedIndex: 1,
   );
@@ -219,8 +244,7 @@ class _addDataWidgetState extends State<addDataWidget> {
           "${widget.date.year}-${widget.date.month.toString().padLeft(2, '0')}-${widget.date.day.toString().padLeft(2, '0')}",
       "time":
           "${widget.time.hour.toString().padLeft(2, '0')}:${widget.time.minute.toString().padLeft(2, '0')}",
-      "bloodSugar": int.parse(bloodSugarController.text),
-      "meal": mealButtons.getSelectedButtonIndex(),
+      "bloodSugar": int.parse(tcController.text),
       "feeling": feelingsButtons.getSelectedButtonIndex(),
     };
 
@@ -271,11 +295,105 @@ class _addDataWidgetState extends State<addDataWidget> {
     });
   }
 
+  //填写的框
+  Widget getEditWidget(TextEditingController controller,
+      TextEditingController controller_, String hintText, String hintText_) {
+    double height = 41;
+    return Container(
+      height: height,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            height: height - 1,
+            child: TextField(
+              maxLength: 2,
+              controller: controller,
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: hintText,
+                  contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.right,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
+          ),
+          Container(
+            height: 40,
+            width: 10,
+            /* child: const Text(
+              " . ",
+              style: TextStyle(fontSize: 35, fontFamily: "Blinker"),
+            ), */
+            //alignment: Alignment.bottomCenter,
+            child: Column(
+              children: [
+                Container(
+                  height: 20,
+                  width: 10,
+                  color: Colors.white,
+                ),
+                Image.asset("assets/icons/dot.png", width: 10, height: 10),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 25,
+            height: height - 1,
+            child: TextFormField(
+              maxLength: 1,
+              controller: controller_,
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: hintText_,
+                  contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            "mmol/L",
+            style: TextStyle(fontSize: 16, fontFamily: "Blinker"),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 获取标题 中文+英文
   Widget getTitle(String TitleChn, String TitleEng) {
+    if (TitleChn.length > 4) {
+      return Column(
+        children: [
+          Text(
+            "${TitleChn.substring(0, 4)}", //前四个字
+            style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
+          ),
+          Text(
+            "${TitleChn.substring(4)}",
+            style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
+          ),
+          Text(
+            "${TitleEng}",
+            style: const TextStyle(
+                fontSize: 14,
+                fontFamily: "Blinker",
+                color: Color.fromARGB(255, 109, 109, 109)),
+          )
+        ],
+      );
+    }
     return Column(
-      //crossAxisAlignment: CrossAxisAlignment.center,
-      //mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           "${TitleChn}",
@@ -302,7 +420,7 @@ class _addDataWidgetState extends State<addDataWidget> {
           Container(
             width: MediaQuery.of(context).size.width * 0.85,
             // height: MediaQuery.of(context).size.height * 0.62,
-            height: 340,
+            height: 460,
             decoration: BoxDecoration(
               //color: Colors.white,
               color: Colors.white,
@@ -329,8 +447,10 @@ class _addDataWidgetState extends State<addDataWidget> {
                         child: Column(
                           children: [
                             getTitle("时间", "TIME"),
-                            getTitle("血糖", "BS"),
-                            getTitle("用餐", "MEAL"),
+                            getTitle("总胆固醇", "TC"),
+                            getTitle("甘油三酯", "TG"),
+                            getTitle("低密度脂蛋白胆固醇", "LDL"),
+                            getTitle("高密度脂蛋白胆固醇", "HDL"), //高密度脂蛋白胆固醇
                             getTitle("感觉", "FEELINGS"),
                             getTitle("备注", "REMARKS"),
                           ],
@@ -360,55 +480,40 @@ class _addDataWidgetState extends State<addDataWidget> {
                             ),
 
                             // 修改收缩压
-                            Container(
-                              height: 41,
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 75,
-                                    height: 40,
-                                    child: TextField(
-                                      maxLength: 3,
-                                      controller: bloodSugarController,
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.digitsOnly
-                                      ],
-                                      //initialValue: widget.SBloodpressure,
-                                      decoration: const InputDecoration(
-                                          counterText: "",
-                                          hintText: "100",
-                                          contentPadding:
-                                              EdgeInsets.fromLTRB(0, 0, 0, 5)),
-                                      textAlign: TextAlign.center,
-                                      textAlignVertical:
-                                          TextAlignVertical.bottom,
-                                      style: const TextStyle(
-                                          fontSize: 30,
-                                          fontFamily: "BalooBhai"),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  const Text(
-                                    "mmHg",
-                                    style: TextStyle(
-                                        fontSize: 16, fontFamily: "Blinker"),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            // 修改tc
+                            getEditWidget(
+                                tcController, tc_Controller, "4", "1"),
 
                             //
                             const SizedBox(
                               height: 5,
                             ),
 
-                            // 修改手臂
-                            mealButtons,
+                            // 修改tg
+                            getEditWidget(
+                                tgController, tg_Controller, "1", "0"),
 
                             //
                             const SizedBox(
-                              height: 5,
+                              height: 15,
+                            ),
+
+                            // 修改ldl
+                            getEditWidget(
+                                ldlController, ldl_Controller, "2", "5"),
+
+                            //
+                            const SizedBox(
+                              height: 15,
+                            ),
+
+                            // 修改hdl
+                            getEditWidget(
+                                hdlController, hdl_Controller, "1", "3"),
+
+                            //
+                            const SizedBox(
+                              height: 20,
                             ),
 
                             //修改感觉
@@ -493,8 +598,18 @@ class _addDataWidgetState extends State<addDataWidget> {
 
                               randomId += 1;
 
-                              if (bloodSugarController.text == "") {
+                              if (tcController.text == "" ||
+                                  tc_Controller.text == "") {
                                 invalidValueType = 1;
+                              } else if (tgController.text == "" ||
+                                  tg_Controller.text == "") {
+                                invalidValueType = 2;
+                              } else if (ldlController.text == "" ||
+                                  ldl_Controller.text == "") {
+                                invalidValueType = 3;
+                              } else if (hdlController.text == "" ||
+                                  hdl_Controller.text == "") {
+                                invalidValueType = 4;
                               } else {
                                 invalidValueType = 0;
                               }
@@ -543,291 +658,6 @@ class _addDataWidgetState extends State<addDataWidget> {
           const SizedBox(
             height: 20,
           )
-        ],
-      ),
-    );
-  }
-}
-
-// 其他按钮 （删除，取消，确定）
-class OtherButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final int type;
-
-  const OtherButton({Key? key, required this.onPressed, required this.type})
-      : super(key: key);
-
-  @override
-  State<OtherButton> createState() => _OtherButtonState();
-}
-
-class _OtherButtonState extends State<OtherButton> {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        widget.onPressed();
-      },
-      child: Container(
-        height: 25,
-        width: 40,
-        padding: EdgeInsets.all(0.0),
-        decoration: BoxDecoration(
-          color: functionButtonColors[widget.type],
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
-        ),
-        alignment: Alignment.center,
-        child: Center(
-          child: Text(
-            functionButtonTypes[widget.type],
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 12.0,
-              fontFamily: 'Blinker',
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// 进食的按钮
-class MealButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final String text;
-  final bool isSelected;
-
-  const MealButton(
-      {Key? key,
-      required this.onPressed,
-      required this.text,
-      required this.isSelected})
-      : super(key: key);
-
-  @override
-  State<MealButton> createState() => _MealButtonState();
-}
-
-class _MealButtonState extends State<MealButton> {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        widget.onPressed();
-      },
-      child: Container(
-        height: 40,
-        width: 50,
-        padding: EdgeInsets.all(0.0),
-        decoration: BoxDecoration(
-          color: widget.isSelected
-              ? const Color.fromRGBO(253, 134, 255, 0.66)
-              : Color.fromRGBO(218, 218, 218, 0.66),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
-        ),
-        alignment: Alignment.center,
-        child: Center(
-          child: Text(
-            widget.text,
-            style: TextStyle(
-              color: widget.isSelected
-                  ? Color.fromRGBO(66, 9, 119, 0.773)
-                  : Color.fromRGBO(94, 68, 68, 100),
-              fontSize: 16.0,
-              fontFamily: 'Blinker',
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// 进食的按钮（空腹，餐后，不选）
-// ignore: must_be_immutable
-class MealButtonsRow extends StatefulWidget {
-  int selectedIndex;
-
-  MealButtonsRow({required this.selectedIndex});
-
-  @override
-  _MealButtonsRowState createState() => _MealButtonsRowState();
-
-  int getSelectedButtonIndex() {
-    return selectedIndex;
-  }
-}
-
-class _MealButtonsRowState extends State<MealButtonsRow> {
-  //late int selectedButtonIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    //selectedButtonIndex = widget.initialSelectedIndex;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 41,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          MealButton(
-            onPressed: () {
-              setState(() {
-                widget.selectedIndex = 0;
-              });
-              print("左手按钮被点击了！");
-            },
-            text: "空腹",
-            isSelected: widget.selectedIndex == 0,
-          ),
-          const SizedBox(width: 5),
-          MealButton(
-            onPressed: () {
-              setState(() {
-                widget.selectedIndex = 1;
-              });
-              print("右手按钮被点击了！");
-            },
-            text: "餐后",
-            isSelected: widget.selectedIndex == 1,
-          ),
-          const SizedBox(width: 5),
-          MealButton(
-            onPressed: () {
-              setState(() {
-                widget.selectedIndex = 2;
-              });
-              print("不选按钮被点击了！");
-            },
-            text: "不选",
-            isSelected: widget.selectedIndex == 2,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// 感觉按钮
-class FeelingsButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final String iconPath;
-  final bool isSelected;
-
-  const FeelingsButton({
-    required this.onPressed,
-    required this.iconPath,
-    required this.isSelected,
-  });
-
-  @override
-  State<FeelingsButton> createState() => _FeelingsButtonState();
-}
-
-class _FeelingsButtonState extends State<FeelingsButton> {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        widget.onPressed();
-      },
-      child: Container(
-        height: 40,
-        width: 50,
-        padding: EdgeInsets.all(0.0),
-        decoration: BoxDecoration(
-          color: widget.isSelected
-              ? const Color.fromRGBO(253, 134, 255, 0.66)
-              : Color.fromRGBO(218, 218, 218, 0.66),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
-        ),
-        alignment: Alignment.center,
-        child: Container(
-          height: 25,
-          width: 25,
-          // color: widget.isSelected
-          //     ? Color.fromRGBO(66, 9, 119, 0.773)
-          //     : Color.fromRGBO(94, 68, 68, 100),
-          child: Image.asset(
-            widget.iconPath,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// 感觉的按钮（较好，还好，较差）
-// ignore: must_be_immutable
-class FeelingsButtonsRow extends StatefulWidget {
-  int selectedIndex;
-
-  FeelingsButtonsRow({required this.selectedIndex});
-
-  @override
-  _FeelingsButtonsRowState createState() => _FeelingsButtonsRowState();
-
-  int getSelectedButtonIndex() {
-    return selectedIndex;
-  }
-}
-
-class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
-  @override
-  void initState() {
-    super.initState();
-    //selectedButtonIndex = widget.selectedIndex;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 41,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          FeelingsButton(
-            onPressed: () {
-              setState(() {
-                widget.selectedIndex = 0;
-              });
-              print("开心按钮被点击了！");
-            },
-            iconPath: "assets/icons/emoji-nice.png",
-            isSelected: widget.selectedIndex == 0,
-          ),
-          const SizedBox(width: 5),
-          FeelingsButton(
-            onPressed: () {
-              setState(() {
-                widget.selectedIndex = 1;
-              });
-              print("还好按钮被点击了！");
-            },
-            iconPath: "assets/icons/emoji-ok.png",
-            isSelected: widget.selectedIndex == 1,
-          ),
-          const SizedBox(width: 5),
-          FeelingsButton(
-            onPressed: () {
-              setState(() {
-                widget.selectedIndex = 2;
-              });
-              print("不好按钮被点击了！");
-            },
-            iconPath: "assets/icons/emoji-bad.png",
-            isSelected: widget.selectedIndex == 2,
-          ),
         ],
       ),
     );
@@ -915,12 +745,12 @@ class _TitleDateState extends State<TitleDate> {
                     //mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       const Text(
-                        "修改血糖",
+                        "修改血脂",
                         style: TextStyle(
                             fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 5),
-                      Image.asset("assets/icons/bloodSugar.png",
+                      Image.asset("assets/icons/bloodFat.png",
                           width: 20, height: 20),
                     ]),
               ),
@@ -1053,30 +883,202 @@ class _TitleDateState extends State<TitleDate> {
   }
 }
 
+// 其他按钮 （删除，取消，确定）
+class OtherButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  final int type;
+
+  const OtherButton({Key? key, required this.onPressed, required this.type})
+      : super(key: key);
+
+  @override
+  State<OtherButton> createState() => _OtherButtonState();
+}
+
+class _OtherButtonState extends State<OtherButton> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        widget.onPressed();
+      },
+      child: Container(
+        height: 25,
+        width: 40,
+        padding: EdgeInsets.all(0.0),
+        decoration: BoxDecoration(
+          color: functionButtonColors[widget.type],
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+        ),
+        alignment: Alignment.center,
+        child: Center(
+          child: Text(
+            functionButtonTypes[widget.type],
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 12.0,
+              fontFamily: 'Blinker',
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// 感觉按钮
+class FeelingsButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  final String iconPath;
+  final bool isSelected;
+
+  const FeelingsButton({
+    required this.onPressed,
+    required this.iconPath,
+    required this.isSelected,
+  });
+
+  @override
+  State<FeelingsButton> createState() => _FeelingsButtonState();
+}
+
+class _FeelingsButtonState extends State<FeelingsButton> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        widget.onPressed();
+      },
+      child: Container(
+        height: 40,
+        width: 50,
+        padding: EdgeInsets.all(0.0),
+        decoration: BoxDecoration(
+          color: widget.isSelected
+              ? const Color.fromRGBO(253, 134, 255, 0.66)
+              : Color.fromRGBO(218, 218, 218, 0.66),
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+        ),
+        alignment: Alignment.center,
+        child: Container(
+          height: 25,
+          width: 25,
+          // color: widget.isSelected
+          //     ? Color.fromRGBO(66, 9, 119, 0.773)
+          //     : Color.fromRGBO(94, 68, 68, 100),
+          child: Image.asset(
+            widget.iconPath,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// 感觉的按钮（较好，还好，较差）
+// ignore: must_be_immutable
+class FeelingsButtonsRow extends StatefulWidget {
+  int selectedIndex;
+
+  FeelingsButtonsRow({required this.selectedIndex});
+
+  @override
+  _FeelingsButtonsRowState createState() => _FeelingsButtonsRowState();
+
+  int getSelectedButtonIndex() {
+    return selectedIndex;
+  }
+}
+
+class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
+  @override
+  void initState() {
+    super.initState();
+    //selectedButtonIndex = widget.selectedIndex;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 41,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          FeelingsButton(
+            onPressed: () {
+              setState(() {
+                widget.selectedIndex = 0;
+              });
+              print("开心按钮被点击了！");
+            },
+            iconPath: "assets/icons/emoji-nice.png",
+            isSelected: widget.selectedIndex == 0,
+          ),
+          const SizedBox(width: 5),
+          FeelingsButton(
+            onPressed: () {
+              setState(() {
+                widget.selectedIndex = 1;
+              });
+              print("还好按钮被点击了！");
+            },
+            iconPath: "assets/icons/emoji-ok.png",
+            isSelected: widget.selectedIndex == 1,
+          ),
+          const SizedBox(width: 5),
+          FeelingsButton(
+            onPressed: () {
+              setState(() {
+                widget.selectedIndex = 2;
+              });
+              print("不好按钮被点击了！");
+            },
+            iconPath: "assets/icons/emoji-bad.png",
+            isSelected: widget.selectedIndex == 2,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // 生成血压数据的显示模块
 // ignore: must_be_immutable
-class BloodPressureEditWidget extends StatefulWidget {
+class BloodFatEditWidget extends StatefulWidget {
   final int id;
   DateTime date = DateTime.now();
   DateTime time = DateTime.now();
-  final int bloodSugar;
-  final int bloodSugar_;
-  final int meal;
+  final int tc;
+  final int tc_;
+  final int tg;
+  final int tg_;
+  final int ldl;
+  final int ldl_;
+  final int hdl;
+  final int hdl_;
   final int feeling;
   final String remark;
   final VoidCallback updateParent;
   final VoidCallback updateData;
   int isExpanded;
 
-  BloodPressureEditWidget({
+  BloodFatEditWidget({
     Key? key,
     required this.id,
     required this.date,
     required this.time,
-    required this.bloodSugar,
-    required this.bloodSugar_,
+    required this.tc,
+    required this.tc_,
+    required this.tg,
+    required this.tg_,
+    required this.ldl,
+    required this.ldl_,
+    required this.hdl,
+    required this.hdl_,
     required this.feeling,
-    required this.meal,
     required this.remark,
     required this.isExpanded,
     required this.updateParent,
@@ -1084,11 +1086,10 @@ class BloodPressureEditWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodPressureEditWidget> createState() =>
-      _BloodPressureEditWidgetState();
+  State<BloodFatEditWidget> createState() => _BloodFatEditWidgetState();
 }
 
-class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
+class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
   //bool isExpanded = false;
   Widget? BPEditWidget;
 
@@ -1125,8 +1126,10 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
       "id": afterEditedValue.id,
       "time":
           "${afterEditedValue.time.hour.toString().padLeft(2, '0')}:${afterEditedValue.time.minute.toString().padLeft(2, '0')}",
-      "bs": afterEditedValue.bloodSugar,
-      "meal": afterEditedValue.mealIndex,
+      "tc": afterEditedValue.tc,
+      "tg": afterEditedValue.tg,
+      "ldl": afterEditedValue.ldl,
+      "hdl": afterEditedValue.hdl,
       "feeling": afterEditedValue.feelingIndex,
       "remark": afterEditedValue.remarks,
     };
@@ -1160,13 +1163,15 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
     }
   }
 
-  void printBP() {
+  void printBF() {
     print("***************************************");
     print("id: ${widget.id}");
     print("date: ${widget.date}");
     print("time: ${widget.time}");
-    print("bloodSugar: ${widget.bloodSugar}");
-    print("meal: ${widget.meal}");
+    print("tc: ${widget.tc}");
+    print("tg: ${widget.tg}");
+    print("ldl: ${widget.ldl}");
+    print("hdl: ${widget.hdl}");
     print("feeling: ${widget.feeling}");
     print("remark: ${widget.remark}");
     print("isExpanded: ${widget.isExpanded}");
@@ -1204,8 +1209,9 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeIn,
               height: getDataById(widget.id, "isExpanded") == 1
-                  ? 350 //MediaQuery.of(context).size.height * 0.65
-                  : MediaQuery.of(context).size.height * 0.15,
+                  ? 470 //MediaQuery.of(context).size.height * 0.65
+                  //: MediaQuery.of(context).size.height * 0.15,
+                  : 200,
               // height: MediaQuery.of(context).size.height * 0.15,
               width: MediaQuery.of(context).size.width * 0.85,
 
@@ -1214,12 +1220,17 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
               //切换的一瞬间会overflow，用SingleChildScrollView包裹一下解决
               child: getDataById(widget.id, "isExpanded") == 1
                   ? SingleChildScrollView(
-                      child: BloodSugarEditWidgetMore(
+                      child: BloodFatEditWidgetMore(
                         id: widget.id,
                         time: widget.time,
-                        bloodSugar: widget.bloodSugar,
-                        bloodSugar_: widget.bloodSugar_,
-                        meal: widget.meal,
+                        tc: widget.tc,
+                        tc_: widget.tc_,
+                        tg: widget.tg,
+                        tg_: widget.tg_,
+                        ldl: widget.ldl,
+                        ldl_: widget.ldl_,
+                        hdl: widget.hdl,
+                        hdl_: widget.hdl_,
                         feeling: widget.feeling,
                         remark: widget.remark,
                         deleteData: () {
@@ -1263,12 +1274,17 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                       ),
                     )
                   : SingleChildScrollView(
-                      child: BloodSugarEditWidgetLess(
+                      child: BloodFatEditWidgetLess(
                         id: widget.id,
                         time: widget.time,
-                        bloodSugar:
-                            widget.bloodSugar + (widget.bloodSugar_ / 10),
-                        meal: widget.meal,
+                        tc: widget.tc,
+                        tc_: widget.tc_,
+                        tg: widget.tg,
+                        tg_: widget.tg_,
+                        ldl: widget.ldl,
+                        ldl_: widget.ldl_,
+                        hdl: widget.hdl,
+                        hdl_: widget.hdl_,
                         feeling: widget.feeling,
                         remark: widget.remark,
                       ),
@@ -1281,30 +1297,41 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
 
 // 只展示
 // ignore: must_be_immutable
-class BloodSugarEditWidgetLess extends StatefulWidget {
+class BloodFatEditWidgetLess extends StatefulWidget {
   final int id;
   DateTime time;
-  final double bloodSugar;
-  final int meal;
+  final int tc;
+  final int tc_;
+  final int tg;
+  final int tg_;
+  final int ldl;
+  final int ldl_;
+  final int hdl;
+  final int hdl_;
   final int feeling;
   final String remark;
 
-  BloodSugarEditWidgetLess(
+  BloodFatEditWidgetLess(
       {Key? key,
       required this.id,
       required this.time,
-      required this.bloodSugar,
-      required this.meal,
+      required this.tc,
+      required this.tc_,
+      required this.tg,
+      required this.tg_,
+      required this.ldl,
+      required this.ldl_,
+      required this.hdl,
+      required this.hdl_,
       required this.feeling,
       required this.remark})
       : super(key: key);
 
   @override
-  State<BloodSugarEditWidgetLess> createState() =>
-      _BloodSugarEditWidgetLessState();
+  State<BloodFatEditWidgetLess> createState() => _BloodFatEditWidgetLessState();
 }
 
-class _BloodSugarEditWidgetLessState extends State<BloodSugarEditWidgetLess> {
+class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
   List<String> mealButtonTypes = ["空腹", "餐后", "不选"];
   List<String> feelingButtonTypes = ["开心", "还好", "不好"];
   bool showRemark = false;
@@ -1314,7 +1341,7 @@ class _BloodSugarEditWidgetLessState extends State<BloodSugarEditWidgetLess> {
     return Container(
       //duration: Duration(milliseconds: 1000),
       //curve: Curves.easeInOut,
-      height: 80,
+      height: 180,
       width: MediaQuery.of(context).size.width * 0.85,
 
       decoration: BoxDecoration(
@@ -1332,33 +1359,50 @@ class _BloodSugarEditWidgetLessState extends State<BloodSugarEditWidgetLess> {
             Text(
                 '${widget.time.hour < 10 ? "0${widget.time.hour}" : widget.time.hour}:${widget.time.minute < 10 ? "0${widget.time.minute}" : widget.time.minute}',
                 style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai")),
-            /* Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('血糖: ${widget.bloodSugar}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-              ],
-            ), */
-
-            Row(
-              children: [
-                Text('血糖: ',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                Text('${widget.bloodSugar}',
-                    style:
-                        const TextStyle(fontSize: 20, fontFamily: "BalooBhai")),
-              ],
-            ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('进食: ${mealButtonTypes[widget.meal]}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                Row(
+                  children: [
+                    const Text('总胆固醇: ',
+                        style:
+                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                    Text('${widget.tc}.${widget.tc_}',
+                        style: const TextStyle(
+                            fontSize: 20, fontFamily: "BalooBhai")),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text('甘油三酯: ',
+                        style:
+                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                    Text('${widget.tg}.${widget.tg_}',
+                        style: const TextStyle(
+                            fontSize: 20, fontFamily: "BalooBhai")),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text('低密度脂蛋白胆固醇: ',
+                        style:
+                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                    Text('${widget.ldl}.${widget.ldl_}',
+                        style: const TextStyle(
+                            fontSize: 20, fontFamily: "BalooBhai")),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text('高密度脂蛋白胆固醇: ',
+                        style:
+                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                    Text('${widget.hdl}.${widget.hdl_}',
+                        style: const TextStyle(
+                            fontSize: 20, fontFamily: "BalooBhai")),
+                  ],
+                ),
                 Text('感觉: ${feelingButtonTypes[widget.feeling]}',
                     style:
                         const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
@@ -1372,7 +1416,7 @@ class _BloodSugarEditWidgetLessState extends State<BloodSugarEditWidgetLess> {
 
   Widget getRemarkPage() {
     return Container(
-      height: 80,
+      height: 180,
       width: MediaQuery.of(context).size.width * 0.85,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1501,26 +1545,36 @@ class _BloodSugarEditWidgetLessState extends State<BloodSugarEditWidgetLess> {
 
 // 可编辑
 // ignore: must_be_immutable
-class BloodSugarEditWidgetMore extends StatefulWidget {
+class BloodFatEditWidgetMore extends StatefulWidget {
   final int id;
   DateTime time;
-  int bloodSugar;
-  int bloodSugar_;
-  int meal;
+  int tc;
+  int tc_;
+  int tg;
+  int tg_;
+  int ldl;
+  int ldl_;
+  int hdl;
+  int hdl_;
   int feeling;
   String remark;
   final VoidCallback deleteData;
   final VoidCallback cancelEditData;
   final VoidCallback confirmEditData;
 
-  BloodSugarEditWidgetMore({
+  BloodFatEditWidgetMore({
     Key? key,
     required this.id,
     required this.time,
-    required this.bloodSugar,
-    required this.bloodSugar_,
+    required this.tc,
+    required this.tc_,
+    required this.tg,
+    required this.tg_,
+    required this.ldl,
+    required this.ldl_,
+    required this.hdl,
+    required this.hdl_,
     required this.feeling,
-    required this.meal,
     required this.remark,
     required this.deleteData,
     required this.cancelEditData,
@@ -1528,18 +1582,20 @@ class BloodSugarEditWidgetMore extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodSugarEditWidgetMore> createState() =>
-      _BloodSugarEditWidgetMoreState();
+  State<BloodFatEditWidgetMore> createState() => _BloodFatEditWidgetMoreState();
 }
 
-class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
+class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
   int invalidValueType = 0;
-  TextEditingController bloodSugarController = TextEditingController();
-  TextEditingController bloodSugar_Controller = TextEditingController(); //小数
+  TextEditingController tcController = TextEditingController();
+  TextEditingController tc_Controller = TextEditingController(); // 小数
+  TextEditingController tgController = TextEditingController();
+  TextEditingController tg_Controller = TextEditingController(); // 小数
+  TextEditingController ldlController = TextEditingController();
+  TextEditingController ldl_Controller = TextEditingController(); // 小数
+  TextEditingController hdlController = TextEditingController();
+  TextEditingController hdl_Controller = TextEditingController(); // 小数
   TextEditingController remarkController = TextEditingController();
-  MealButtonsRow mealButtons = MealButtonsRow(
-    selectedIndex: 0,
-  );
   FeelingsButtonsRow feelingsButtons = FeelingsButtonsRow(
     selectedIndex: 0,
   );
@@ -1547,49 +1603,35 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
   void updateTime(DateTime newTime) {
     setState(() {
       widget.time = newTime;
-      widget.bloodSugar = int.parse(bloodSugarController.text);
-      widget.bloodSugar_ = int.parse(bloodSugar_Controller.text);
+      widget.tc = int.parse(tcController.text);
+      widget.tc_ = int.parse(tc_Controller.text);
+      widget.tg = int.parse(tgController.text);
+      widget.tg_ = int.parse(tg_Controller.text);
+      widget.ldl = int.parse(ldlController.text);
+      widget.ldl_ = int.parse(ldl_Controller.text);
+      widget.hdl = int.parse(hdlController.text);
+      widget.hdl_ = int.parse(hdl_Controller.text);
       widget.feeling = feelingsButtons.getSelectedButtonIndex();
-      widget.meal = mealButtons.getSelectedButtonIndex();
       widget.remark = remarkController.text;
     });
   }
 
   // 显示未修改前的值
   void getBeforeEditValue() {
-    bloodSugarController =
-        TextEditingController(text: widget.bloodSugar.toString());
-    bloodSugar_Controller =
-        TextEditingController(text: widget.bloodSugar_.toString());
+    tcController = TextEditingController(text: widget.tc.toString());
+    tc_Controller = TextEditingController(text: widget.tc_.toString());
+    tgController = TextEditingController(text: widget.tg.toString());
+    tg_Controller = TextEditingController(text: widget.tg_.toString());
+    ldlController = TextEditingController(text: widget.ldl.toString());
+    ldl_Controller = TextEditingController(text: widget.ldl_.toString());
+    hdlController = TextEditingController(text: widget.hdl.toString());
+    hdl_Controller = TextEditingController(text: widget.hdl_.toString());
     remarkController = TextEditingController(text: widget.remark);
-    mealButtons = MealButtonsRow(
-      selectedIndex: widget.meal,
-    );
     feelingsButtons = FeelingsButtonsRow(
       selectedIndex: widget.feeling,
     );
   }
 
-  // 获取标题 中文+英文
-  Widget getTitle(String TitleChn, String TitleEng) {
-    return Column(
-      children: [
-        Text(
-          "${TitleChn}",
-          style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
-        ),
-        Text(
-          "${TitleEng}",
-          style: const TextStyle(
-              fontSize: 14,
-              fontFamily: "Blinker",
-              color: Color.fromARGB(255, 109, 109, 109)),
-        )
-      ],
-    );
-  }
-
-  // 值的输入框
   Widget getEditWidget(TextEditingController controller,
       TextEditingController controller_, String hintText, String hintText_) {
     double height = 41;
@@ -1664,6 +1706,46 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
     );
   }
 
+  // 获取标题 中文+英文
+  Widget getTitle(String TitleChn, String TitleEng) {
+    if (TitleChn.length > 4) {
+      return Column(
+        children: [
+          Text(
+            "${TitleChn.substring(0, 4)}", //前四个字
+            style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
+          ),
+          Text(
+            "${TitleChn.substring(4)}",
+            style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
+          ),
+          Text(
+            "${TitleEng}",
+            style: const TextStyle(
+                fontSize: 14,
+                fontFamily: "Blinker",
+                color: Color.fromARGB(255, 109, 109, 109)),
+          )
+        ],
+      );
+    }
+    return Column(
+      children: [
+        Text(
+          "${TitleChn}",
+          style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
+        ),
+        Text(
+          "${TitleEng}",
+          style: const TextStyle(
+              fontSize: 14,
+              fontFamily: "Blinker",
+              color: Color.fromARGB(255, 109, 109, 109)),
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // 输入的controller
@@ -1707,8 +1789,10 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
                         child: Column(
                           children: [
                             getTitle("时间", "TIME"),
-                            getTitle("血糖", "BS"),
-                            getTitle("用餐", "MEAL"),
+                            getTitle("总胆固醇", "TC"),
+                            getTitle("甘油三酯", "TG"),
+                            getTitle("低密度脂蛋白胆固醇", "LDL"),
+                            getTitle("高密度脂蛋白胆固醇", "HDL"), //高密度脂蛋白胆固醇
                             getTitle("感觉", "FEELINGS"),
                             getTitle("备注", "REMARKS"),
                           ],
@@ -1720,7 +1804,7 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
                       // 右边的子容器 （值）
                       Container(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // 时间
@@ -1737,31 +1821,47 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
                               height: 5,
                             ),
 
-                            // 修改血糖
-                            getEditWidget(
-                                bloodSugarController,
-                                bloodSugar_Controller,
-                                bloodSugarController.text,
-                                bloodSugar_Controller.text),
+                            // 修改tc
+                            getEditWidget(tcController, tc_Controller,
+                                widget.tc.toString(), widget.tc_.toString()),
 
                             //
                             const SizedBox(
                               height: 5,
                             ),
 
-                            // 修改手臂
-                            mealButtons,
+                            // 修改tg
+                            getEditWidget(tgController, tg_Controller,
+                                widget.tg.toString(), widget.tg_.toString()),
 
                             //
                             const SizedBox(
-                              height: 5,
+                              height: 15,
+                            ),
+
+                            // 修改ldl
+                            getEditWidget(ldlController, ldl_Controller,
+                                widget.ldl.toString(), widget.ldl_.toString()),
+
+                            //
+                            const SizedBox(
+                              height: 15,
+                            ),
+
+                            // 修改hdl
+                            getEditWidget(hdlController, hdl_Controller,
+                                widget.hdl.toString(), widget.hdl_.toString()),
+
+                            //
+                            const SizedBox(
+                              height: 20,
                             ),
 
                             //修改感觉
                             feelingsButtons,
 
                             //
-                            const SizedBox(height: 5),
+                            //const SizedBox(height: 5),
 
                             // 备注
                             Container(
@@ -1835,9 +1935,18 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
                             const SizedBox(width: 5),
                             OtherButton(
                                 onPressed: () {
-                                  if (bloodSugarController.text == "" ||
-                                      bloodSugar_Controller.text == "") {
+                                  if (tcController.text == "" ||
+                                      tc_Controller.text == "") {
                                     invalidValueType = 1;
+                                  } else if (tgController.text == "" ||
+                                      tg_Controller.text == "") {
+                                    invalidValueType = 2;
+                                  } else if (ldlController.text == "" ||
+                                      ldl_Controller.text == "") {
+                                    invalidValueType = 3;
+                                  } else if (hdlController.text == "" ||
+                                      hdl_Controller.text == "") {
+                                    invalidValueType = 4;
                                   } else {
                                     invalidValueType = 0;
                                   }
@@ -1848,19 +1957,17 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
                                     setState(() {});
                                     return;
                                   }
-
-                                  /*  print(widget.id);
-                            print(widget.time);
-                            print(SBloodpressureController.text);
-                            print(DBloodpressureController.text);
-                            print(heartRateController.text);
-                            print(armButtons.getSelectedButtonIndex());
-                            print(feelingsButtons.getSelectedButtonIndex()); */
                                   afterEditedValue = newValue(
                                       widget.id,
                                       widget.time,
-                                      double.parse(bloodSugarController.text),
-                                      mealButtons.getSelectedButtonIndex(),
+                                      int.parse(tcController.text) +
+                                          int.parse(tc_Controller.text) / 10,
+                                      int.parse(tgController.text) +
+                                          int.parse(tg_Controller.text) / 10,
+                                      int.parse(ldlController.text) +
+                                          int.parse(ldl_Controller.text) / 10,
+                                      int.parse(hdlController.text) +
+                                          int.parse(hdl_Controller.text) / 10,
                                       feelingsButtons.getSelectedButtonIndex(),
                                       remarkController.text);
                                   widget.confirmEditData();
@@ -1929,24 +2036,24 @@ class NoDataWidget extends StatelessWidget {
 // 页面模块
 
 // 此页面
-class BloodSugarEdit extends StatefulWidget {
+class BloodFatEdit extends StatefulWidget {
   //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
   final Map arguments;
 
-  BloodSugarEdit({Key? key, required this.arguments});
+  BloodFatEdit({Key? key, required this.arguments});
   @override
-  _BloodSugarEditState createState() => _BloodSugarEditState();
+  _BloodFatEditState createState() => _BloodFatEditState();
 }
 
-class _BloodSugarEditState extends State<BloodSugarEdit> {
+class _BloodFatEditState extends State<BloodFatEdit> {
   DateTime addTime = DateTime.now();
   DateTime date = DateTime.now();
-  int bsDataId = -1;
+  int bfDataId = -1;
   int prevPage = 0;
 
   void getDataFromServer() async {
     print(
-        '血糖修改请求日期：${date.year}-${date.month}-${date.day}....................................');
+        '血脂修改请求日期：${date.year}-${date.month}-${date.day}....................................');
     String requestDate = getFormattedDate(date);
 
     // 提取登录获取的token
@@ -1978,19 +2085,23 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
         "id": 12,
         "date": "2023-11-28",
         "time": "09:06",
-        "bs": 5.6,
-        "meal": 0,
+        "tc": 5.6,
+        "tg": 3.0,
+        "ldl": 0.2,
+        "hdl": 2.7,
         "feeling": 1,
-        "remark": "egrgre",
+        "remark": "egrgr464",
       },
       {
         "id": 15,
         "date": "2023-11-27",
         "time": "12:06",
-        "bs": 4.3,
-        "meal": 1,
+        "tc": 4.7,
+        "tg": 9.8,
+        "ldl": 2.1,
+        "hdl": 0.5,
         "feeling": 2,
-        "remark": "gregrgr",
+        "remark": "gregrgyhey464r",
       },
     ];
 
@@ -2007,15 +2118,17 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
       int hour = int.parse(timeStr.split(":")[0]);
       int minute = int.parse(timeStr.split(":")[1]);
       DateTime time_ = DateTime(2023, 01, 01, hour, minute);
-      String BS = (data[i]["bs"]).toString();
-      int meal_ = data[i]["meal"];
+      String TC = (data[i]["tc"]).toString();
+      String TG = (data[i]["tg"]).toString();
+      String LDL = (data[i]["ldl"]).toString();
+      String HDL = (data[i]["hdl"]).toString();
       int feeling_ = data[i]["feeling"];
       String remark_ = data[i]["remark"] ?? "暂无备注";
       data[i]["isExpanded"] = 0; // 默认收起
 
-      if (id_ == bsDataId) {
+      if (id_ == bfDataId) {
         data[i]["isExpanded"] = 1;
-        bsDataId = -1;
+        bfDataId = -1;
       }
 
       /* print("第$i条数据");
@@ -2031,13 +2144,19 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
       print("============"); */
 
       dataWidget.add(UnconstrainedBox(
-        child: BloodPressureEditWidget(
+        child: BloodFatEditWidget(
           id: id_,
           date: date,
           time: time_,
-          bloodSugar: int.parse(BS.split(".")[0]),
-          bloodSugar_: int.parse(BS.split(".")[1]),
-          meal: meal_,
+          // TC = 9.3 tc = 9 tc_ = 3
+          tc: int.parse(TC.split(".")[0]),
+          tc_: int.parse(TC.split(".")[1]),
+          tg: int.parse(TG.split(".")[0]),
+          tg_: int.parse(TG.split(".")[1]),
+          ldl: int.parse(LDL.split(".")[0]),
+          ldl_: int.parse(LDL.split(".")[1]),
+          hdl: int.parse(HDL.split(".")[0]),
+          hdl_: int.parse(HDL.split(".")[1]),
           feeling: feeling_,
           isExpanded: 0,
           remark: remark_,
@@ -2058,7 +2177,7 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
   void initState() {
     super.initState();
     date = widget.arguments['date'];
-    bsDataId = widget.arguments['bsDataId'];
+    bfDataId = widget.arguments['bfDataId'];
     prevPage = widget.arguments['prevPage'];
     // 先从后端获取数据
     getDataFromServer();
@@ -2091,16 +2210,24 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
       String timeStr = data[i]["time"];
       int hour = int.parse(timeStr.split(":")[0]);
       int minute = int.parse(timeStr.split(":")[1]);
+      String TC = (data[i]["tc"]).toString();
+      String TG = (data[i]["tg"]).toString();
+      String LDL = (data[i]["ldl"]).toString();
+      String HDL = (data[i]["hdl"]).toString();
       DateTime time_ = DateTime(2023, 01, 01, hour, minute);
-      String BS = (data[i]["bs"].toString());
       dataWidgetTemp.add(UnconstrainedBox(
-        child: BloodPressureEditWidget(
+        child: BloodFatEditWidget(
           id: data[i]["id"],
           date: date,
           time: time_,
-          bloodSugar: int.parse(BS.split(".")[0]),
-          bloodSugar_: int.parse(BS.split(".")[1]),
-          meal: data[i]["meal"],
+          tc: int.parse(TC.split(".")[0]),
+          tc_: int.parse(TC.split(".")[1]),
+          tg: int.parse(TG.split(".")[0]),
+          tg_: int.parse(TG.split(".")[1]),
+          ldl: int.parse(LDL.split(".")[0]),
+          ldl_: int.parse(LDL.split(".")[1]),
+          hdl: int.parse(HDL.split(".")[0]),
+          hdl_: int.parse(HDL.split(".")[1]),
           feeling: data[i]["feeling"],
           isExpanded: isExpandedArray[i],
           remark: data[i]["remark"] ?? "暂无备注",
@@ -2150,7 +2277,7 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
       // 添加数据的按钮
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print("我要添加血糖数据");
+          print("我要添加血脂数据");
           setState(() {
             dataWidget.insert(
                 1,
