@@ -30,9 +30,9 @@ class _LoginPageState extends State<LoginPage> {
     final username = usernameController.text;
     final password = passwordController.text;
 
-    Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+    //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
 
-    /*  if (!(username.isEmpty || password.isEmpty)) {
+    if (!(username.isEmpty || password.isEmpty)) {
       const String loginApi = 'http://43.138.75.58:8080/api/auth/login';
       print("登录请求中 $username $password");
       try {
@@ -88,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
           print("登录请求失败2");
         }
       }
-    } */
+    }
   }
 
   @override

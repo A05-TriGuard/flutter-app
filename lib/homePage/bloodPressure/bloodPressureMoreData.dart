@@ -4,12 +4,12 @@ import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
-import 'package:excel/excel.dart' hide Border;
+import 'package:excel/excel.dart' as ExcelPackage;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart'
-    hide Column, Row, Border, Stack;
+//import 'package:syncfusion_flutter_xlsio/xlsio.dart'
+//    hide Column, Row, Border, Stack;
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:triguard/account/token.dart';
@@ -237,6 +237,208 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   List<dynamic> recordData = [];
   List<dynamic> statisticData = [];
 
+  Future<void> createExportFile() async {
+    var status = await Permission.storage.status.isGranted;
+    var status1 = await Permission.storage.request().isGranted;
+    var status2 = await Permission.manageExternalStorage.status.isGranted;
+    var status3 = await Permission.manageExternalStorage.request().isGranted;
+
+    if (!status) {
+      await Permission.storage.request();
+    }
+
+    if (!status2) {
+      await Permission.manageExternalStorage.request();
+    }
+
+    // 获取文件夹路径
+    var dir = await getApplicationSupportDirectory();
+    var folderPath = Directory("${dir.path}/bloodPressure");
+
+    print("folderPath: ${folderPath.path}");
+
+    // 判断文件夹是否存在，不存在则创建
+    if (await folderPath.exists()) {
+      print("folderPath exist");
+    } else {
+      print("folderPath not exist");
+      folderPath.create();
+    }
+
+    // 获取文件路径
+    var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
+
+    //创建文件
+    var excel = ExcelPackage.Excel.createExcel();
+
+    // 2. 添加工作表
+    var sheet1 = excel['数据记录'];
+
+    // 3. 添加数据
+    List<String> columnNames = [
+      "日期",
+      "时间",
+      "收缩压",
+      "舒张压",
+      "心率",
+      "手臂",
+      "感觉",
+      "备注"
+    ];
+
+    // bold
+    ExcelPackage.CellStyle headerCellStyle = ExcelPackage.CellStyle(
+      bold: true,
+      textWrapping: ExcelPackage.TextWrapping.WrapText,
+      fontFamily:
+          ExcelPackage.getFontFamily(ExcelPackage.FontFamily.Comic_Sans_MS),
+      rotation: 0,
+      bottomBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      topBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      leftBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      rightBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+    );
+
+    sheet1.appendRow(columnNames);
+
+    for (int i = 0; i < 8; i++) {
+      var cell = sheet1.cell(
+          ExcelPackage.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+      cell.cellStyle = headerCellStyle;
+    }
+
+    List<String> armsText = ["左手", "右手", "不选"];
+    List<String> feelingsText = ["较好", "还好", "较差"];
+
+    for (int i = 0; i < recordData.length; i++) {
+      List<String> dataCell = [];
+      dataCell.add(recordData[i]["date"]);
+      dataCell.add(recordData[i]["time"]);
+      dataCell.add(recordData[i]["sbp"].toString());
+      dataCell.add(recordData[i]["dbp"].toString());
+      dataCell.add(recordData[i]["heartRate"].toString());
+      dataCell.add(armsText[recordData[i]["arm"]]);
+      dataCell.add(feelingsText[recordData[i]["feeling"]]);
+      dataCell.add((recordData[i]["remark"].toString()) == "null"
+          ? "暂无备注"
+          : recordData[i]["remark"].toString());
+
+      sheet1.appendRow(dataCell);
+    }
+
+    sheet1.setColumnWidth(0, 15);
+
+    ExcelPackage.CellStyle dataCellStyle = ExcelPackage.CellStyle(
+      textWrapping: ExcelPackage.TextWrapping.WrapText,
+      rotation: 0,
+      bottomBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      topBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      leftBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      rightBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+    );
+
+    for (int i = 1; i <= recordData.length; i++) {
+      for (int j = 0; j < 7; j++) {
+        var cell = sheet1.cell(ExcelPackage.CellIndex.indexByColumnRow(
+            columnIndex: j, rowIndex: i));
+        cell.cellStyle = dataCellStyle;
+      }
+    }
+
+    // Sheet2 =============================================================
+    var sheet2 = excel['统计记录'];
+    List<String> columnNames2 = [
+      "-",
+      "最低值",
+      "最高值",
+      "平均值",
+      "偏低(次)",
+      "正常(次)",
+      "偏高(次)",
+      "异常(次)",
+      "总次数",
+    ];
+
+    sheet2.appendRow(columnNames2);
+    for (int i = 0; i < 9; i++) {
+      var cell = sheet2.cell(
+          ExcelPackage.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+      cell.cellStyle = headerCellStyle;
+    }
+
+    List<String> names = ["收缩压", "舒张压", "心率"];
+    for (int i = 0; i < statisticData.length; i++) {
+      List<String> dataCell = [];
+      dataCell.add(names[i]);
+      dataCell.add((statisticData[i]["min"].toString()) == "null"
+          ? "0"
+          : statisticData[i]["min"].toString());
+      dataCell.add((statisticData[i]["max"].toString()) == "null"
+          ? "0"
+          : statisticData[i]["max"].toString());
+      dataCell.add(statisticData[i]["avg"].toString());
+      dataCell.add(statisticData[i]["high"].toString());
+      dataCell.add(statisticData[i]["medium"].toString());
+      dataCell.add(statisticData[i]["low"].toString());
+      dataCell.add(statisticData[i]["abnormal"].toString());
+      dataCell.add(statisticData[i]["count"].toString());
+      sheet2.appendRow(dataCell);
+    }
+
+    for (int i = 1; i <= statisticData.length; i++) {
+      for (int j = 0; j < columnNames2.length; j++) {
+        var cell = sheet2.cell(ExcelPackage.CellIndex.indexByColumnRow(
+            columnIndex: j, rowIndex: i));
+        cell.cellStyle = dataCellStyle;
+      }
+    }
+
+    excel.delete('Sheet1');
+
+    // 保存
+    List<int>? fileBytes = excel.save();
+    if (fileBytes != null) {
+      File(join(fileNamePath))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fileBytes);
+    }
+
+    //检测文件是否存在
+    if (await File(fileNamePath).exists()) {
+      print("excel export ok");
+      //打开文件
+      //OpenFile.open(fileNamePath);
+      // copy the file to Downloads folder
+      /* var downloadPath = await getDownloadsDirectory();
+      await File(fileNamePath)
+          //.copy('/storage/emulated/0/Download/bloodPressure.xlsx');
+          .copy('${downloadPath!.path}/bloodPressure.xlsx');
+      //.copy('/sdcard/Download/bloodPressure.xlsx');
+      print("downloadPath: ${downloadPath?.path}");
+      // 检测文件是否存在
+      //if (await File('/storage/emulated/0/Download/bloodPressure.xlsx')
+      if (await File('${downloadPath?.path}/bloodPressure.xlsx').exists()) {
+        print("copy ok");
+      } */
+    }
+  }
+
   // 从后端请求数据
   Future<void> getDataFromServer() async {
     String startDate = getFormattedDate(widget.filterParam.startDate);
@@ -319,11 +521,9 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         data: filterParam,
       );
       if (response.data["code"] == 200) {
-        print("获取血压数据成功");
-        //print(response.data["data"]);
+        print("获取血压数据成功 按条件筛选");
         recordData = response.data["data"]["bloodPressureList"];
         statisticData = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
       } else {
         print(response);
         recordData = [];
@@ -335,8 +535,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       statisticData = [];
     }
 
-    //print(recordData);
-    //print(statisticData);
+    await createExportFile();
   }
 
   // 记录表格的标题 "日期 时间 收缩压 舒张压 心率 手臂 感觉 备注"
@@ -700,6 +899,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         future: getDataFromServer(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
+            //createExportFile();
             return getWholeWidget(context);
           } else {
             //return Container();
@@ -844,13 +1044,14 @@ class _ArmButtonsWidgetState extends State<ArmButtonsWidget> {
           Container(
             height: 40,
             width: 50,
-            padding: const  EdgeInsets.all(0.0),
+            padding: const EdgeInsets.all(0.0),
             decoration: BoxDecoration(
               color: widget.isSelected[index] == true
                   ? const Color.fromRGBO(253, 134, 255, 0.66)
-                  :const  Color.fromRGBO(218, 218, 218, 0.66),
+                  : const Color.fromRGBO(218, 218, 218, 0.66),
               borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
+              border:
+                  Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
             ),
             alignment: Alignment.center,
             child: Center(
@@ -859,7 +1060,7 @@ class _ArmButtonsWidgetState extends State<ArmButtonsWidget> {
                 style: TextStyle(
                   color: widget.isSelected[index] == true
                       ? const Color.fromRGBO(66, 9, 119, 0.773)
-                      : const  Color.fromRGBO(94, 68, 68, 100),
+                      : const Color.fromRGBO(94, 68, 68, 100),
                   fontSize: 16.0,
                   fontFamily: 'Blinker',
                 ),
@@ -2082,7 +2283,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     print('supportPath: $filename');
 
     // 1. 创建 Excel 文档
-    var excel = Excel.createExcel();
+    var excel = ExcelPackage.Excel.createExcel();
 
     // 2. 添加工作表
     var sheet = excel['Sheet1'];
@@ -2176,7 +2377,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
         "/data/user/0/com.example.triguard/app_flutter/ahbeytest/test.txt";
     var filename2 =
         "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt";
-    var excel = Excel.createExcel();
+    var excel = ExcelPackage.Excel.createExcel();
 
     // 2. 添加工作表
     var sheet = excel['Sheet1'];
@@ -2254,7 +2455,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
 
     //创建文件
-    var excel = Excel.createExcel();
+    var excel = ExcelPackage.Excel.createExcel();
 
     // 2. 添加工作表
     var sheet = excel['Sheet1'];
