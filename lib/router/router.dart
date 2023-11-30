@@ -15,6 +15,8 @@ import '../homePage/bloodSugar/bloodSugarEdit.dart';
 import '../homePage/bloodFat/bloodFatEdit.dart';
 import '../homePage/bloodSugar/bloodSugarDetails.dart';
 import '../homePage/bloodFat/bloodFatDetails.dart';
+import '../homePage/bloodSugar/bloodSugarMoreData.dart';
+import '../homePage/bloodFat/bloodFatMoreData.dart';
 
 Map routes = {
   '/': (context) => const LoginPage(),
@@ -34,12 +36,14 @@ Map routes = {
       arguments: {"bsDataId": -1, "date": DateTime.now(), "prevPage": 0}),
   '/homePage/BloodSugar/Details': (context) =>
       BloodSugarDetails(arguments: {"userId": 1, "date": DateTime.now()}),
+  'homePage/BloodSugar/MoreData': (context) => const BloodSugarMoreData(),
 
   //血脂
   '/homePage/BloodFat/Edit': (context) => BloodFatEdit(
       arguments: {"bfDataId": -1, "date": DateTime.now(), "prevPage": 0}),
   '/homePage/BloodFat/Details': (context) =>
       BloodFatDetails(arguments: {"userId": 1, "date": DateTime.now()}),
+  'homePage/BloodFat/MoreData': (context) => const BloodFatMoreData(),
 
   '/articles': (context) => const Article(),
   '/supervisor': (context) => const Supervisor(),
@@ -52,6 +56,7 @@ Map routes = {
 var onGenerateRoute = (RouteSettings settings) {
   final String? name = settings.name;
   final Function pageContentBuilder = routes[name] as Function;
+  // ignore: unnecessary_null_comparison
   if (pageContentBuilder != null) {
     if (settings.arguments != null) {
       final Route route = MaterialPageRoute(

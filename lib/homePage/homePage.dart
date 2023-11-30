@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 //import '../component/mainPagesBar/mainPagesBar.dart';
 import '../component/header/header.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
-import '../other/gradientBorder/gradient_borders.dart';
+//import '../other/gradientBorder/gradient_borders.dart';
 import '../component/titleDate/titleDate.dart';
 
 class MyTitle extends StatefulWidget {

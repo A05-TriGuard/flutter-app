@@ -197,7 +197,8 @@ class addDataWidget extends StatefulWidget {
 class _addDataWidgetState extends State<addDataWidget> {
   // 输入框的控制器
   // ignore: non_constant_identifier_names
-  final TextEditingController bloodSugarController = TextEditingController();
+  TextEditingController bloodSugarController = TextEditingController();
+  TextEditingController bloodSugar_Controller = TextEditingController(); //小数
   final TextEditingController remarkController = TextEditingController();
   MealButtonsRow mealButtons = MealButtonsRow(
     selectedIndex: 2,
@@ -219,7 +220,7 @@ class _addDataWidgetState extends State<addDataWidget> {
           "${widget.date.year}-${widget.date.month.toString().padLeft(2, '0')}-${widget.date.day.toString().padLeft(2, '0')}",
       "time":
           "${widget.time.hour.toString().padLeft(2, '0')}:${widget.time.minute.toString().padLeft(2, '0')}",
-      "bloodSugar": int.parse(bloodSugarController.text),
+      "bs": int.parse(bloodSugarController.text),
       "meal": mealButtons.getSelectedButtonIndex(),
       "feeling": feelingsButtons.getSelectedButtonIndex(),
     };
@@ -229,11 +230,11 @@ class _addDataWidgetState extends State<addDataWidget> {
     }
 
     print(newVal);
+    //return;
 
     final Dio dio = Dio();
 
-    const String addDataApi =
-        'http://43.138.75.58:8080/api/blood-pressure/create';
+    const String addDataApi = 'http://43.138.75.58:8080/api/blood-sugar/create';
 
     try {
       var token = await storage.read(key: 'token');
@@ -289,6 +290,81 @@ class _addDataWidgetState extends State<addDataWidget> {
               color: Color.fromARGB(255, 109, 109, 109)),
         )
       ],
+    );
+  }
+
+  // 血糖值输入框
+  Widget getEditWidget(TextEditingController controller,
+      TextEditingController controller_, String hintText, String hintText_) {
+    double height = 41;
+    return Container(
+      height: height,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            height: height - 1,
+            child: TextField(
+              maxLength: 2,
+              controller: controller,
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: hintText,
+                  contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.right,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
+          ),
+          Container(
+            height: 40,
+            width: 10,
+            /* child: const Text(
+              " . ",
+              style: TextStyle(fontSize: 35, fontFamily: "Blinker"),
+            ), */
+            //alignment: Alignment.bottomCenter,
+            child: Column(
+              children: [
+                Container(
+                  height: 20,
+                  width: 10,
+                  color: Colors.white,
+                ),
+                Image.asset("assets/icons/dot.png", width: 10, height: 10),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 25,
+            height: height - 1,
+            child: TextField(
+              maxLength: 1,
+              controller: controller_,
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+              decoration: InputDecoration(
+                  counterText: "",
+                  hintText: hintText_,
+                  contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.bottom,
+              style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            "mmol/L",
+            style: TextStyle(fontSize: 16, fontFamily: "Blinker"),
+          ),
+        ],
+      ),
     );
   }
 
@@ -360,7 +436,7 @@ class _addDataWidgetState extends State<addDataWidget> {
                             ),
 
                             // 修改收缩压
-                            Container(
+                            /*  Container(
                               height: 41,
                               child: Row(
                                 children: [
@@ -397,6 +473,11 @@ class _addDataWidgetState extends State<addDataWidget> {
                                 ],
                               ),
                             ),
+ */
+
+                            // 修改血糖值
+                            getEditWidget(bloodSugarController,
+                                bloodSugar_Controller, "3", "2"),
 
                             //
                             const SizedBox(
@@ -1100,16 +1181,16 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
-    response = await dio
-        .get("http://43.138.75.58:8080/api/blood-pressure/delete?id=$id");
+    response =
+        await dio.get("http://43.138.75.58:8080/api/blood-sugar/delete?id=$id");
     if (response.data["code"] == 200) {
-      print("删除血压数据成功");
+      print("删除血糖数据成功");
       //print(response.data["data"]);
       // data = response.data["data"];
       //bpdata = response.data["data"];
     } else {
       print(response);
-      print("删除血压数据失败");
+      print("删除血糖数据失败");
       //data = [];
     }
   }
@@ -1136,7 +1217,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
 
     try {
       response = await dio.post(
-        "http://43.138.75.58:8080/api/blood-pressure/update",
+        "http://43.138.75.58:8080/api/blood-sugar/update",
         data: newVal,
       );
 
@@ -1856,10 +1937,15 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
                             print(heartRateController.text);
                             print(armButtons.getSelectedButtonIndex());
                             print(feelingsButtons.getSelectedButtonIndex()); */
+                                  double newBloodSugar = double.parse(
+                                      bloodSugarController.text +
+                                          "." +
+                                          bloodSugar_Controller.text);
                                   afterEditedValue = newValue(
                                       widget.id,
                                       widget.time,
-                                      double.parse(bloodSugarController.text),
+                                      //double.parse(bloodSugarController.text),
+                                      newBloodSugar,
                                       mealButtons.getSelectedButtonIndex(),
                                       feelingsButtons.getSelectedButtonIndex(),
                                       remarkController.text);
@@ -1946,23 +2032,23 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
 
   void getDataFromServer() async {
     print(
-        '血糖修改请求日期：${date.year}-${date.month}-${date.day}....................................');
+        '血糖修改页面请求日期：${date.year}-${date.month}-${date.day}....................................');
     String requestDate = getFormattedDate(date);
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
 
     //从后端获取数据
-    /* final dio = Dio();
+    final dio = Dio();
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
     response = await dio.get(
-      "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
-      queryParameters: {
+      "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate",
+      /* queryParameters: {
         "startDate": requestDate,
         "endDate": requestDate,
-      },
+      }, */
     );
     if (response.data["code"] == 200) {
       print("获取血糖数据成功EDIT");
@@ -1972,8 +2058,8 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
     } else {
       print(response);
       data = [];
-    } */
-    data = [
+    }
+    /* data = [
       {
         "id": 12,
         "date": "2023-11-28",
@@ -1992,7 +2078,7 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
         "feeling": 2,
         "remark": "gregrgr",
       },
-    ];
+    ]; */
 
     titleDateWidget =
         TitleDate(date: date, updateView: updateView, updateDate: updateDate);

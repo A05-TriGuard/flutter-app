@@ -2257,7 +2257,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
               width: MediaQuery.of(context).size.width * 0.85,
               alignment: Alignment.centerLeft,
               child: const PageTitle(
-                title: "血脂肪详情",
+                title: "血压详情",
                 icons: "assets/icons/bloodPressure.png",
                 fontSize: 22,
               ),

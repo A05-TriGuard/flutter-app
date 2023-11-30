@@ -10,7 +10,7 @@ import '../../account/token.dart';
 import "../../other/other.dart";
 
 // 删除 取消 确定
-List<String> feelingButtonTypes = ["开心", "还好", "不好"];
+List<String> feelingButtonTypes = ["较好", "还好", "较差"];
 List<String> functionButtonTypes = ["删除", "取消", "确定"];
 List<String> invalidValueText = [
   "",
@@ -244,7 +244,10 @@ class _addDataWidgetState extends State<addDataWidget> {
           "${widget.date.year}-${widget.date.month.toString().padLeft(2, '0')}-${widget.date.day.toString().padLeft(2, '0')}",
       "time":
           "${widget.time.hour.toString().padLeft(2, '0')}:${widget.time.minute.toString().padLeft(2, '0')}",
-      "bloodSugar": int.parse(tcController.text),
+      "tc": double.parse(tcController.text + "." + tc_Controller.text),
+      "tg": double.parse(tgController.text + "." + tg_Controller.text),
+      "ldl": double.parse(ldlController.text + "." + ldl_Controller.text),
+      "hdl": double.parse(hdlController.text + "." + hdl_Controller.text),
       "feeling": feelingsButtons.getSelectedButtonIndex(),
     };
 
@@ -253,11 +256,12 @@ class _addDataWidgetState extends State<addDataWidget> {
     }
 
     print(newVal);
+    // return;
 
     final Dio dio = Dio();
 
     const String addDataApi =
-        'http://43.138.75.58:8080/api/blood-pressure/create';
+        'http://43.138.75.58:8080/api/blood-lipids/create';
 
     try {
       var token = await storage.read(key: 'token');
@@ -1102,15 +1106,15 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
     dio.options.headers["Authorization"] = "Bearer $token";
 
     response = await dio
-        .get("http://43.138.75.58:8080/api/blood-pressure/delete?id=$id");
+        .get("http://43.138.75.58:8080/api/blood-lipids/delete?id=$id");
     if (response.data["code"] == 200) {
-      print("删除血压数据成功");
+      print("删除血脂数据成功");
       //print(response.data["data"]);
       // data = response.data["data"];
       //bpdata = response.data["data"];
     } else {
       print(response);
-      print("删除血压数据失败");
+      print("删除血脂数据失败");
       //data = [];
     }
   }
@@ -1139,7 +1143,7 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
 
     try {
       response = await dio.post(
-        "http://43.138.75.58:8080/api/blood-pressure/update",
+        "http://43.138.75.58:8080/api/blood-lipids/update",
         data: newVal,
       );
 
@@ -1333,7 +1337,7 @@ class BloodFatEditWidgetLess extends StatefulWidget {
 
 class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
   List<String> mealButtonTypes = ["空腹", "餐后", "不选"];
-  List<String> feelingButtonTypes = ["开心", "还好", "不好"];
+  List<String> feelingButtonTypes = ["较好", "还好", "较差"];
   bool showRemark = false;
   PageController pageController = PageController();
 
@@ -2060,27 +2064,27 @@ class _BloodFatEditState extends State<BloodFatEdit> {
     var token = await storage.read(key: 'token');
 
     //从后端获取数据
-    /* final dio = Dio();
+    final dio = Dio();
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
     response = await dio.get(
-      "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
-      queryParameters: {
+      "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate",
+      /* queryParameters: {
         "startDate": requestDate,
         "endDate": requestDate,
-      },
+      }, */
     );
     if (response.data["code"] == 200) {
-      print("获取血糖数据成功EDIT");
+      print("获取血脂lipids数据成功EDIT");
       //print(response.data["data"]);
       data = response.data["data"];
       //bpdata = response.data["data"];
     } else {
       print(response);
       data = [];
-    } */
-    data = [
+    }
+    /*  data = [
       {
         "id": 12,
         "date": "2023-11-28",
@@ -2103,7 +2107,7 @@ class _BloodFatEditState extends State<BloodFatEdit> {
         "feeling": 2,
         "remark": "gregrgyhey464r",
       },
-    ];
+    ]; */
 
     titleDateWidget =
         TitleDate(date: date, updateView: updateView, updateDate: updateDate);
