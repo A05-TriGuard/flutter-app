@@ -13,7 +13,7 @@ import '../fooddiary/fooddiary.dart';
 import '../moment/moment.dart';
 
 Map routes = {
-  '/': (context) => const Article(),
+  '/': (context) => const Moment(),
   // -------------------- 动态模块 ====================
   '/moment': (context) => const Moment(),
   // ==================== 饮食模块 ====================

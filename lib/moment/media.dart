@@ -5,9 +5,13 @@ import 'package:photo_view/photo_view_gallery.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videolink;
+  final bool enlarge;
   final bool fullscreen;
   const VideoPlayerScreen(
-      {super.key, required this.videolink, required this.fullscreen});
+      {super.key,
+      required this.videolink,
+      required this.enlarge,
+      required this.fullscreen});
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
@@ -44,18 +48,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           return AspectRatio(
             aspectRatio: _controller.value.aspectRatio,
             child: Stack(
-              alignment: Alignment.topRight,
+              alignment: Alignment.topLeft,
               children: [
                 Stack(
-                  alignment: Alignment.center,
+                  alignment: Alignment.topRight,
                   children: [
-                    VideoPlayer(_controller),
-                    Visibility(
-                        visible:
-                            !(widget.fullscreen && _controller.value.isPlaying),
-                        child: FloatingActionButton(
-                          backgroundColor: Colors.transparent,
-                          onPressed: () {
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        InkWell(
+                          onTap: () {
                             setState(() {
                               if (_controller.value.isPlaying) {
                                 _controller.pause();
@@ -64,38 +66,90 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                               }
                             });
                           },
-                          child: Icon(
-                            _controller.value.isPlaying
-                                ? Icons.pause
-                                : Icons.play_arrow,
-                          ),
-                        )),
+                          child: VideoPlayer(_controller),
+                        ),
+                        Visibility(
+                            visible: !(_controller.value.isPlaying),
+                            child: FloatingActionButton(
+                              backgroundColor: Colors.transparent,
+                              onPressed: () {
+                                setState(() {
+                                  if (_controller.value.isPlaying) {
+                                    _controller.pause();
+                                  } else {
+                                    _controller.play();
+                                  }
+                                });
+                              },
+                              child: Icon(
+                                _controller.value.isPlaying
+                                    ? Icons.pause
+                                    : Icons.play_arrow,
+                              ),
+                            )),
+                      ],
+                    ),
+                    Visibility(
+                      visible: !widget.enlarge,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_outward),
+                        color: Colors.white,
+                        onPressed: () {
+                          setState(() {
+                            if (_controller.value.isPlaying) {
+                              _controller.pause();
+                            }
+                          });
+
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Center(
+                                  child: Card(
+                                      child: VideoPlayerScreen(
+                                    videolink: widget.videolink,
+                                    enlarge: true,
+                                    fullscreen: false,
+                                  )),
+                                );
+                              });
+                        },
+                      ),
+                    ),
                   ],
                 ),
                 Visibility(
-                    visible: !widget.fullscreen,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_outward),
-                      color: Colors.white,
-                      onPressed: () {
-                        setState(() {
-                          if (_controller.value.isPlaying) {
-                            _controller.pause();
-                          }
-                        });
-
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Center(
-                                child: VideoPlayerScreen(
-                                  videolink: widget.videolink,
-                                  fullscreen: true,
-                                ),
-                              );
-                            });
-                      },
-                    )),
+                  visible: widget.enlarge && !widget.fullscreen,
+                  child: Card(
+                      color: Colors.transparent,
+                      child: IconButton(
+                        onPressed: () {
+                          print("pressed!");
+                          setState(() {
+                            if (_controller.value.isPlaying) {
+                              _controller.pause();
+                            }
+                          });
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Center(
+                                  child: Card(
+                                      child: RotatedBox(
+                                    quarterTurns: 3,
+                                    child: VideoPlayerScreen(
+                                      videolink: widget.videolink,
+                                      enlarge: true,
+                                      fullscreen: true,
+                                    ),
+                                  )),
+                                );
+                              });
+                        },
+                        color: Colors.white,
+                        icon: const Icon(Icons.rotate_90_degrees_cw),
+                      )),
+                )
               ],
             ),
           );

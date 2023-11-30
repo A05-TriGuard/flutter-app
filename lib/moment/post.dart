@@ -15,15 +15,16 @@ class _PostState extends State<Post> {
   String selectedCategory = "饮食";
   bool canPost = false;
   final inputController = TextEditingController();
-  File imageToShow = File("");
+  File? videoPreview;
   bool showPic = false;
+  bool showVid = false;
   var selectedImages = [];
-  var imageList = <Widget>[];
+  var imagePreviewList = <Widget>[];
 
   void createImageList() {
-    imageList.clear();
+    imagePreviewList.clear();
     for (int i = 0; i < selectedImages.length; ++i) {
-      imageList.add(SizedBox(
+      imagePreviewList.add(SizedBox(
         width: 150,
         height: 150,
         child: Image.file(
@@ -31,7 +32,7 @@ class _PostState extends State<Post> {
           fit: BoxFit.cover,
         ),
       ));
-      imageList.add(const SizedBox(width: 10));
+      imagePreviewList.add(const SizedBox(width: 10));
     }
   }
 
@@ -187,25 +188,54 @@ class _PostState extends State<Post> {
                   )
                 ],
               ),
-              // 图片、视频添加按钮
-              IconButton(
-                onPressed: () async {
-                  final image = await ImagePicker().pickMultiImage();
-                  List<XFile> xFilePick = image;
-                  if (xFilePick.isNotEmpty) {
-                    for (var i = 0; i < xFilePick.length; i++) {
-                      selectedImages.add(File(xFilePick[i].path));
-                    }
-                    setState(() {
-                      showPic = true;
-                    });
-                  }
-                },
-                icon: const Icon(
-                  Icons.image_outlined,
-                  color: Colors.blue,
-                  size: 25,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 图片添加按钮
+                  IconButton(
+                    onPressed: showVid
+                        ? null
+                        : () async {
+                            final image = await ImagePicker().pickMultiImage();
+                            List<XFile> xFilePick = image;
+                            if (xFilePick.isNotEmpty) {
+                              for (var i = 0; i < xFilePick.length; i++) {
+                                selectedImages.add(File(xFilePick[i].path));
+                              }
+                              setState(() {
+                                showPic = true;
+                              });
+                            }
+                          },
+                    icon: Icon(
+                      Icons.image_outlined,
+                      color: showVid ? Colors.grey : Colors.blue,
+                      size: 30,
+                    ),
+                  ),
+                  // 视频添加按钮
+                  IconButton(
+                    onPressed: showPic
+                        ? null
+                        : () async {
+                            final video = await ImagePicker()
+                                .pickVideo(source: ImageSource.gallery);
+                            XFile? xFilePick = video;
+                            if (xFilePick != null) {
+                              videoPreview = File(xFilePick.path);
+
+                              setState(() {
+                                showVid = true;
+                              });
+                            }
+                          },
+                    icon: Icon(
+                      Icons.video_file_outlined,
+                      color: showPic ? Colors.grey : Colors.blue,
+                      size: 30,
+                    ),
+                  )
+                ],
               ),
             ],
           ),
@@ -220,8 +250,20 @@ class _PostState extends State<Post> {
                     child: ListView(
                       shrinkWrap: true,
                       scrollDirection: Axis.horizontal,
-                      children: imageList,
+                      children: imagePreviewList,
                     ),
+                  ),
+                  const SizedBox(height: 15),
+                ],
+              )),
+          // 显示视频
+          Visibility(
+              visible: showVid,
+              child: Column(
+                children: [
+                  Text(
+                    videoPreview != null ? videoPreview!.path : "",
+                    style: const TextStyle(color: Colors.blue),
                   ),
                   const SizedBox(height: 15),
                 ],

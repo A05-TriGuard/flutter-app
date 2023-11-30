@@ -3,6 +3,7 @@ import '../component/navigation.dart';
 import '../component/icons.dart';
 import 'media.dart';
 import 'post.dart';
+import 'report.dart';
 
 class PostInfo {
   final String username;
@@ -11,6 +12,7 @@ class PostInfo {
   final String content;
   final List<String> images;
   final String video;
+  bool addfriend;
   bool star;
   bool like;
   PostInfo(
@@ -20,6 +22,7 @@ class PostInfo {
       required this.content,
       required this.images,
       required this.video,
+      required this.addfriend,
       required this.star,
       required this.like});
 }
@@ -54,6 +57,7 @@ class _MomentState extends State<Moment> {
         "https://www.thespruce.com/thmb/1snRSslsAIBo4KFg3ip3wU-KP5Q=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/how-to-choose-carving-pumpkins-1403449-03-b29896bd3fa04574937cfde004e45dd5.jpg"
       ],
       video: "",
+      addfriend: false,
       star: false,
       like: false);
   var testPost2 = PostInfo(
@@ -66,6 +70,7 @@ class _MomentState extends State<Moment> {
       images: [],
       video:
           "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
+      addfriend: false,
       star: false,
       like: false);
 
@@ -344,6 +349,8 @@ class _MomentState extends State<Moment> {
                                     value: "我的点赞", child: Text("我的点赞")),
                                 DropdownMenuItem(
                                     value: "我的收藏", child: Text("我的收藏")),
+                                DropdownMenuItem(
+                                    value: "我的关注", child: Text("我的关注")),
                               ],
                               onChanged: (value) {
                                 setState(() {
@@ -516,6 +523,7 @@ class PostTile extends StatefulWidget {
 }
 
 class _PostTileState extends State<PostTile> {
+  bool addfriend = false;
   var imageContainerList = <Widget>[];
 
   void createImageConList(
@@ -556,6 +564,14 @@ class _PostTileState extends State<PostTile> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    setState(() {
+      addfriend = widget.curPost.addfriend;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     createImageConList(context, widget.curPost.images, widget.width * 0.33);
 
@@ -586,7 +602,7 @@ class _PostTileState extends State<PostTile> {
                     padding: const EdgeInsets.fromLTRB(12, 3, 0, 3),
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             widget.curPost.username,
@@ -602,13 +618,62 @@ class _PostTileState extends State<PostTile> {
                         ]),
                   ),
                 ),
-                // 更多功能按键
-                InkWell(
-                  onTap: () {},
-                  child: const Text(
-                    "。。。",
-                    textAlign: TextAlign.right,
-                  ),
+                Column(
+                  children: [
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      children: [
+                        // 关注按键
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              addfriend = !addfriend;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(5, 0, 7, 0),
+                            decoration: BoxDecoration(
+                                border: Border.all(color: Colors.orange),
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  addfriend ? null : Icons.add,
+                                  size: addfriend ? 3 : 15,
+                                  color: Colors.orange,
+                                ),
+                                Text(
+                                  addfriend ? "取消关注" : "关注",
+                                  style: const TextStyle(
+                                      color: Colors.orange, fontSize: 14),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        // 更多功能按键
+                        InkWell(
+                          onTap: () {
+                            showDialog(
+                                barrierColor: Colors.black87,
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return const ConfirmReportDialog();
+                                });
+                          },
+                          child: const Text(
+                            "○○○",
+                            textAlign: TextAlign.right,
+                          ),
+                        )
+                      ],
+                    )
+                  ],
                 ),
               ],
             ),
@@ -630,7 +695,10 @@ class _PostTileState extends State<PostTile> {
             Visibility(
               visible: widget.curPost.video != "",
               child: VideoPlayerScreen(
-                  fullscreen: false, videolink: widget.curPost.video),
+                enlarge: false,
+                videolink: widget.curPost.video,
+                fullscreen: false,
+              ),
             ),
             const SizedBox(height: 10),
             Container(
