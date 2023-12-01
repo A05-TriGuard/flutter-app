@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../articles/medicinepage.dart';
 import '../articles/foodsearchpage.dart';
-import '../component/navigation.dart';
+import '../component/header/header.dart';
 
 // TOINTERACT: 增加var列表，用来保存内容页面需要展示的内容（图片、文字等）
 // TOINTERACT: 增加bool变量记录文章是否被收藏
@@ -188,26 +188,8 @@ class _CollectionState extends State<Collection> {
               color: Colors.black,
               fontWeight: FontWeight.w900),
         ),
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/articles');
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.black,
-              size: 30,
-            )),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-              gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 250, 209, 252),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )),
-        ),
+        flexibleSpace: getHeader(MediaQuery.of(context).size.width,
+            (MediaQuery.of(context).size.height * 0.1 + 11)),
       ),
 
       // 主体内容
@@ -271,9 +253,6 @@ class _CollectionState extends State<Collection> {
           ],
         ),
       ),
-
-      // 下方导航栏
-      bottomNavigationBar: const MyNavigationBar(currentIndex: 1),
     );
   }
 }

@@ -2,6 +2,20 @@ import 'package:flutter/material.dart';
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
 
+class TodayStatisticsWidget extends StatefulWidget {
+  const TodayStatisticsWidget({super.key});
+
+  @override
+  State<TodayStatisticsWidget> createState() => _TodayStatisticsWidgetState();
+}
+
+class _TodayStatisticsWidgetState extends State<TodayStatisticsWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
 class GuardianPersonPage extends StatefulWidget {
   const GuardianPersonPage({super.key});
 
@@ -31,13 +45,15 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
           //Padding(padding: padding)
           const SizedBox(height: 20),
           const Center(
-            child: Text("监护对象",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontFamily: 'BalooBhai',
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black)),
+            child: Text(
+              "妈妈",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontFamily: 'BalooBhai',
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+            ),
           ),
           const SizedBox(height: 10),
           UnconstrainedBox(
@@ -134,33 +150,72 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                     // 删除按钮
                     // 靠右
 
-                    GestureDetector(
-                      onTap: () {
-                        print("删除");
-                        // Navigator.pushNamed(context, '/edit');
-                      },
-                      child: Container(
-                        width: 80,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: Color.fromARGB(255, 255, 183, 183),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10)),
-                          border: Border.all(
-                            color: const Color.fromRGBO(0, 0, 0, 0.2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        //删除
+                        GestureDetector(
+                          onTap: () {
+                            print("删除");
+                            // Navigator.pushNamed(context, '/edit');
+                          },
+                          child: Container(
+                            width: 80,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 255, 124, 124),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(10)),
+                              border: Border.all(
+                                color: const Color.fromRGBO(0, 0, 0, 0.2),
+                              ),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                "删除",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontFamily: 'BalooBhai',
+                                    fontSize: 16,
+                                    //fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              ),
+                            ),
                           ),
                         ),
-                        child: const Center(
-                          child: Text("删除",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontFamily: 'BalooBhai',
-                                  fontSize: 16,
-                                  //fontWeight: FontWeight.bold,
-                                  color: Colors.black)),
+                        //查看数据详情
+                        GestureDetector(
+                          onTap: () {
+                            print("查看数据详情");
+                            // Navigator.pushNamed(context, '/edit');
+                          },
+                          child: Container(
+                            width: 120,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 183, 242, 255),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(10)),
+                              border: Border.all(
+                                color: const Color.fromRGBO(0, 0, 0, 0.2),
+                              ),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                "查看数据详情",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontFamily: 'BalooBhai',
+                                    fontSize: 16,
+                                    //fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      ],
+                    )
                   ],
                 ),
               ),

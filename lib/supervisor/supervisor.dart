@@ -291,6 +291,22 @@ class _GuardianWidgetState extends State<GuardianWidget> {
   }
 }
 
+// ========================================================
+
+class AddGuardianWidget extends StatefulWidget {
+  const AddGuardianWidget({super.key});
+
+  @override
+  State<AddGuardianWidget> createState() => _AddGuardianWidgetState();
+}
+
+class _AddGuardianWidgetState extends State<AddGuardianWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
 // 被监护模式
 class UnderGuardianshipWidget extends StatefulWidget {
   const UnderGuardianshipWidget({super.key});
@@ -302,35 +318,42 @@ class UnderGuardianshipWidget extends StatefulWidget {
 
 class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
   Widget getGuardianWidget() {
-    return Container(
-      //color: Color.fromARGB(255, 236, 218, 218),
-      width: MediaQuery.of(context).size.width * 0.85,
-      height: 40,
-      decoration: BoxDecoration(
-        border: const Border(
-          bottom: BorderSide(
-            color: Color.fromRGBO(0, 0, 0, 0.2),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          MediaQuery.of(context).size.width * 0.15 * 0.5,
+          0,
+          MediaQuery.of(context).size.width * 0.15 * 0.5,
+          0),
+      child: Container(
+        //color: Color.fromARGB(255, 236, 218, 218),
+        //width: MediaQuery.of(context).size.width * 0.85,
+        height: 40,
+        decoration: BoxDecoration(
+          border: const Border(
+            bottom: BorderSide(
+              color: Color.fromRGBO(0, 0, 0, 0.2),
+            ),
           ),
+          borderRadius: BorderRadius.circular(10),
         ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              "1. 妈妈",
-              style: TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
-            ),
-            //删除
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                print("删除监护人");
-              },
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "1. 妈妈",
+                style: TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
+              ),
+              //删除
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  print("删除监护人");
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -338,6 +361,66 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
 
   @override
   Widget build(BuildContext context) {
+    return ListView(shrinkWrap: true, children: [
+      Padding(
+        padding: EdgeInsets.fromLTRB(
+            MediaQuery.of(context).size.width * 0.15 * 0.5,
+            20,
+            MediaQuery.of(context).size.width * 0.15 * 0.5,
+            0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          //crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              "监护模式",
+              style: TextStyle(
+                  fontSize: 22,
+                  fontFamily: "BalooBhai",
+                  fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+            GestureDetector(
+              onTap: () {
+                print("监护模式是什么？");
+              },
+              child: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.bottomCenter,
+                child: Image.asset("assets/icons/question.png",
+                    width: 20, height: 30),
+              ),
+            )
+          ],
+        ),
+      ),
+
+      Padding(
+        padding: EdgeInsets.fromLTRB(
+            MediaQuery.of(context).size.width * 0.15 * 0.5,
+            0,
+            MediaQuery.of(context).size.width * 0.15 * 0.5,
+            0),
+        child: const PageTitle(
+          title: "监护对象",
+          icons: "assets/icons/audience.png",
+          fontSize: 18,
+        ),
+      ),
+
+      // add
+      getGuardianWidget(),
+      for (int i = 2; i <= 16; i++) getGuardianWidget(),
+
+      const SizedBox(
+        height: 30,
+      ),
+    ]);
+
     return UnconstrainedBox(
       // ignore: sized_box_for_whitespace
       child: Container(
@@ -355,6 +438,18 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
               fontSize: 18,
             ),
             // add
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
+            getGuardianWidget(),
             getGuardianWidget(),
             getGuardianWidget(),
             getGuardianWidget(),
@@ -400,6 +495,160 @@ class _SupervisorState extends State<Supervisor> {
     super.dispose();
   }
 
+  // 显示Overlay
+  void showOverlay(BuildContext context) {
+    OverlayEntry? overlayEntry;
+    TextEditingController usernameController = TextEditingController();
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 0,
+        left: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            //olor: Color.fromRGBO(255, 255, 255, 0.8),
+            //color: Colors.white,
+            child: GestureDetector(
+              onTap: () {
+                // 点击Overlay时移除它
+                overlayEntry?.remove();
+              },
+              child: Center(
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: 200,
+                  // color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 10.0,
+                        spreadRadius: 2.0,
+                      ),
+                    ],
+                  ),
+
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        //const SizedBox(height: 10,),
+
+                        //标题
+                        const Text(
+                          "邀请监护人",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontFamily: "BalooBhai",
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        // 输入ID
+                        Row(
+                          children: [
+                            const Text(
+                              "用户ID: ",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: "BalooBhai",
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              child: TextFormField(
+                                controller: usernameController,
+                                maxLines: 1,
+                                textAlign: TextAlign.left,
+                                textAlignVertical: TextAlignVertical.center,
+                                cursorColor: Colors.black38,
+                                style: const TextStyle(
+                                    color: Colors.black, fontSize: 16),
+                                decoration: InputDecoration(
+                                  //取消奇怪的高度
+                                  isCollapsed: true,
+                                  contentPadding:
+                                      EdgeInsets.fromLTRB(10, 10, 15, 10),
+                                  counterStyle:
+                                      const TextStyle(color: Colors.black38),
+
+                                  labelText: '用户名/邮箱',
+                                  labelStyle: const TextStyle(
+                                    color: Color.fromARGB(96, 104, 104, 104),
+                                  ),
+                                  //fillColor: Color.fromARGB(190, 255, 255, 255),
+                                  fillColor: Color.fromARGB(187, 250, 250, 250),
+                                  filled: true,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                    borderSide: const BorderSide(
+                                        color: Color.fromRGBO(0, 0, 0, 0.2)),
+                                    //borderSide: BorderSide.none
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(25),
+                                      borderSide: const BorderSide(
+                                          color: Color.fromARGB(
+                                              179, 145, 145, 145))),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // 取消，确定
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                // 在这里添加Overlay上按钮的操作
+                                overlayEntry?.remove();
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(
+                                    Color.fromARGB(255, 118, 246, 255)),
+                              ),
+                              child: Text('取消'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                // 在这里添加Overlay上按钮的操作
+                                overlayEntry?.remove();
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(
+                                    Colors.greenAccent),
+                              ),
+                              child: Text('确定'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlayEntry);
+  }
+
   @override
   Widget build(BuildContext context) {
     /* if (pageController.page == 0) {
@@ -418,6 +667,7 @@ class _SupervisorState extends State<Supervisor> {
 
     return PopScope(
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text(
             "TriGuard",
@@ -448,7 +698,8 @@ class _SupervisorState extends State<Supervisor> {
                     icon: Icon(Icons.add),
                     onPressed: () {
                       print("添加监护人");
-                      // Add your add button logic here
+
+                      showOverlay(context);
                     },
                   );
                 } else {

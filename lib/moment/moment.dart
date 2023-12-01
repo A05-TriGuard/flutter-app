@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../component/navigation.dart';
+import '../component/header/header.dart';
 import '../component/icons.dart';
 import 'media.dart';
 import 'post.dart';
@@ -88,17 +89,8 @@ class _MomentState extends State<Moment> {
           style: TextStyle(
               fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-              gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 250, 209, 252),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )),
-        ),
+        flexibleSpace: getHeader(MediaQuery.of(context).size.width,
+            (MediaQuery.of(context).size.height * 0.1 + 11)),
       ),
 
       // 主体内容
@@ -445,9 +437,6 @@ class _MomentState extends State<Moment> {
           ),
         ]),
       ),
-
-      // 下方导航栏
-      bottomNavigationBar: const MyNavigationBar(currentIndex: 3),
     );
   }
 }

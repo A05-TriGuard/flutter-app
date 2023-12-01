@@ -16,6 +16,40 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 
+### 合并时报错 
+#### Your project requires a newer version of the Kotlin Gradle plugin. (Android Studio)
+https://stackoverflow.com/questions/70919127/your-project-requires-a-newer-version-of-the-kotlin-gradle-plugin-android-stud
+```
+buildscript {
+    ext.kotlin_version = '1.7.10' //统一 1.7.10
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+```
+#### Multidex issue with Flutter
+https://stackoverflow.com/questions/49886597/multidex-issue-with-flutter
+
+Open [project_folder]/app/build.gradle and add following lines.
+```
+defaultConfig {
+    ...
+
+    multiDexEnabled true
+}
+dependencies {
+    ...
+
+    implementation 'androidx.multidex:multidex:2.0.1'
+}
+```
+
 ### Apache Echart配置
 https://www.bilibili.com/video/BV1P64y147hr/?spm_id_from=333.337.search-card.all.click&vd_source=242881c2e0028b99f5965425eaeee832
 
@@ -283,5 +317,11 @@ https://baike.baidu.com/item/%E4%BD%8E%E5%AF%86%E5%BA%A6%E8%84%82%E8%9B%8B%E7%99
 | 偏低  | 正常       | 偏高       | 异常  |
 | ----- | ---------- | ---------- | ----- |
 | < 1.0 | [1.0, 1.5] | [1.5, 3.0] | > 3.0 |
-实现视频功能的时候需要：
+
+#### 实现视频功能的时候需要：
 1. 在 android/app/src/main/AndroidManifest.xml 里面添加 <uses-permission android:name="android.permission.INTERNET"/>
+
+
+
+
+

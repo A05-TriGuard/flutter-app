@@ -304,53 +304,55 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
 
   Widget getGroupMemberWidget2(int id) {
     return UnconstrainedBox(
-        child: GestureDetector(
-      onTap: () {
-        print("点击");
-        isExpandedList[id] = !isExpandedList[id];
-        for (int i = 0; i < isExpandedList.length; i++) {
-          if (i != id) {
-            isExpandedList[i] = false;
+      child: GestureDetector(
+        onTap: () {
+          print("点击");
+          isExpandedList[id] = !isExpandedList[id];
+          for (int i = 0; i < isExpandedList.length; i++) {
+            if (i != id) {
+              isExpandedList[i] = false;
+            }
           }
-        }
-        setState(() {});
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: MediaQuery.of(context).size.width * 0.85,
-        height: isExpandedList[id] == false ? 55 : 140,
-        decoration: BoxDecoration(
-          color: isExpandedList[id] == false
-              ? Color.fromARGB(255, 255, 255, 255)
-              : Color.fromARGB(137, 200, 184, 250),
-          borderRadius: const BorderRadius.all(Radius.circular(15)),
-          border: const Border(
-            //bottom
-            bottom: BorderSide(
-              color: Color.fromRGBO(0, 0, 0, 0.2),
+          setState(() {});
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: MediaQuery.of(context).size.width * 0.85,
+          height: isExpandedList[id] == false ? 55 : 140,
+          decoration: BoxDecoration(
+            color: isExpandedList[id] == false
+                ? Color.fromARGB(255, 255, 255, 255)
+                //: Color.fromARGB(137, 200, 184, 250),
+                : Color.fromARGB(255, 255, 255, 255),
+            borderRadius: const BorderRadius.all(Radius.circular(15)),
+            border: const Border(
+              //bottom
+              bottom: BorderSide(
+                color: Color.fromRGBO(0, 0, 0, 0.2),
+              ),
+              //color: const Color.fromRGBO(0, 0, 0, 0.2),
             ),
-            //color: const Color.fromRGBO(0, 0, 0, 0.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color.fromARGB(120, 151, 151, 151),
+                offset: Offset(0, 5),
+                blurRadius: 5.0,
+                spreadRadius: 0.0,
+              ),
+            ],
           ),
-          /* boxShadow: [
-            BoxShadow(
-              color: Color.fromARGB(120, 151, 151, 151),
-              offset: Offset(0, 5),
-              blurRadius: 5.0,
-              spreadRadius: 0.0,
-            ),
-          ], */
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: isExpandedList[id] == false
-              ? getGroupMemberWidgetLess(id)
-              : SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: getGroupMemberWidgetMore(id),
-                ),
+          child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: isExpandedList[id] == false
+                ? getGroupMemberWidgetLess(id)
+                : SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: getGroupMemberWidgetMore(id),
+                  ),
+          ),
         ),
       ),
-    ));
+    );
   }
 
   @override
@@ -432,6 +434,9 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
 
           getGroupMemberWidget2(3),
           getGroupMemberWidget2(4),
+          const SizedBox(
+            height: 20,
+          ),
         ]),
       ),
     );
