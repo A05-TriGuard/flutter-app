@@ -478,19 +478,12 @@ packages:
     source: hosted
     version: "2.1.2"
   string_scanner:
-    dependency: transitive
-    description:
-      name: string_scanner
-      sha256: "556692adab6cfa87322a115640c11f13cb77b3f076ddcc5d6ae3c20242bedcde"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
     version: "1.2.0"
   syncfusion_flutter_core:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
       sha256: "8a1220f978491f56431c66dacf1bb97bf2abcd1458b542fe0dfbf1a630c67260"
-      url: "https://pub.flutter-io.cn"
     source: hosted
     version: "23.2.4"
   syncfusion_flutter_xlsio:
@@ -513,8 +506,6 @@ packages:
     dependency: transitive
     description:
       name: term_glyph
-      sha256: a29248a84fbb7c79282b40b8c72a1209db169a2e0542bce341da992fe1bc7e84
-      url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.2.1"
   test_api:

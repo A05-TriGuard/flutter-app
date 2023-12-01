@@ -283,3 +283,5 @@ https://baike.baidu.com/item/%E4%BD%8E%E5%AF%86%E5%BA%A6%E8%84%82%E8%9B%8B%E7%99
 | 偏低  | 正常       | 偏高       | 异常  |
 | ----- | ---------- | ---------- | ----- |
 | < 1.0 | [1.0, 1.5] | [1.5, 3.0] | > 3.0 |
+实现视频功能的时候需要：
+1. 在 android/app/src/main/AndroidManifest.xml 里面添加 <uses-permission android:name="android.permission.INTERNET"/>
