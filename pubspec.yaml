@@ -54,6 +54,7 @@ dependencies:
   flutter_echarts: ^2.5.0
   loading_animation_widget: ^1.2.0+4
   video_player: ^2.8.1
+  timeline_tile: ^2.0.0
 
 dev_dependencies:
   flutter_test:

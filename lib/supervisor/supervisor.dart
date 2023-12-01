@@ -6,7 +6,9 @@ import './guardianGroup.dart';
 
 //import 'package:flutter_echarts/flutter_echarts.dart';
 
-// 监护模式
+// ====================监护===============================
+
+// 监护页面
 class GuardianWidget extends StatefulWidget {
   const GuardianWidget({super.key});
 
@@ -291,8 +293,9 @@ class _GuardianWidgetState extends State<GuardianWidget> {
   }
 }
 
-// ========================================================
+// ====================被监护============================
 
+// 添加监护人
 class AddGuardianWidget extends StatefulWidget {
   const AddGuardianWidget({super.key});
 
@@ -307,7 +310,7 @@ class _AddGuardianWidgetState extends State<AddGuardianWidget> {
   }
 }
 
-// 被监护模式
+// 被监护页面
 class UnderGuardianshipWidget extends StatefulWidget {
   const UnderGuardianshipWidget({super.key});
 
@@ -317,42 +320,246 @@ class UnderGuardianshipWidget extends StatefulWidget {
 }
 
 class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
-  Widget getGuardianWidget() {
+  List<bool> isExpandedList = List.generate(17, (index) => false);
+
+  bool editNickname = false;
+
+  void updateView(int id) {
+    setState(() {
+      editNickname = false;
+      isExpandedList[id] = !isExpandedList[id];
+      for (int i = 0; i < isExpandedList.length; i++) {
+        if (i != id) {
+          isExpandedList[i] = false;
+        }
+      }
+    });
+  }
+
+  Widget getGuardianWidget(
+      int count, int accountId, String username, String nickname) {
+    TextEditingController nicknameController =
+        TextEditingController(text: nickname.isEmpty ? username : nickname);
     return Padding(
       padding: EdgeInsets.fromLTRB(
           MediaQuery.of(context).size.width * 0.15 * 0.5,
           0,
           MediaQuery.of(context).size.width * 0.15 * 0.5,
           0),
-      child: Container(
-        //color: Color.fromARGB(255, 236, 218, 218),
-        //width: MediaQuery.of(context).size.width * 0.85,
-        height: 40,
-        decoration: BoxDecoration(
-          border: const Border(
-            bottom: BorderSide(
-              color: Color.fromRGBO(0, 0, 0, 0.2),
-            ),
+      child: GestureDetector(
+        onTap: () {
+          print(accountId);
+          updateView(accountId);
+        },
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          width: MediaQuery.of(context).size.width * 0.85,
+          height: isExpandedList[count] ? 80 : 50,
+          constraints: BoxConstraints(
+            minHeight: 50,
           ),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "1. 妈妈",
-                style: TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: const Border(
+              bottom: BorderSide(
+                color: Color.fromRGBO(0, 0, 0, 0.2),
               ),
-              //删除
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () {
-                  print("删除监护人");
-                },
-              ),
-            ],
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+            child: isExpandedList[count]
+                //展开式
+                ? SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // 昵称与编辑昵称
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                          child: editNickname == false
+                              // 不编辑时
+                              ? Row(
+                                  children: [
+                                    Text(
+                                      "$count.   $nickname",
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontFamily: "BalooBhai",
+                                        //fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 5,
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        print("编辑监护人昵称");
+                                        editNickname = !editNickname;
+                                        setState(() {});
+                                      },
+                                      child: Container(
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                        ),
+                                        alignment: Alignment.bottomCenter,
+                                        child: Image.asset(
+                                          "assets/icons/pencil.png",
+                                          width: 20,
+                                          height: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              // 编辑时
+                              : Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    // 编辑昵称
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "${count}.  ",
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontFamily: "BalooBhai"),
+                                        ),
+                                        SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.45,
+                                          height: 30,
+                                          child: TextFormField(
+                                            controller: nicknameController,
+                                            decoration: InputDecoration(
+                                              isCollapsed: true,
+                                              border: UnderlineInputBorder(),
+                                              hintText: '$nickname',
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    /* const SizedBox(
+                                      width: 5,
+                                    ), */
+                                    Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            print("编辑监护人昵称");
+                                            setState(() {
+                                              nicknameController.text =
+                                                  nickname;
+                                              editNickname = !editNickname;
+                                            });
+                                          },
+                                          child: Container(
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                            ),
+                                            alignment: Alignment.bottomCenter,
+                                            child: Image.asset(
+                                                "assets/icons/cancel.png",
+                                                width: 20,
+                                                height: 20),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 5,
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            print("编辑监护人昵称");
+                                            setState(() {
+                                              nickname =
+                                                  nicknameController.text;
+                                              print("新昵称：$nickname");
+                                              editNickname = !editNickname;
+                                            });
+                                          },
+                                          child: Container(
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                            ),
+                                            alignment: Alignment.bottomCenter,
+                                            child: Image.asset(
+                                                "assets/icons/confirm.png",
+                                                width: 24,
+                                                height: 24),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                        ),
+
+                        //
+                        const SizedBox(
+                          height: 5,
+                        ),
+
+                        // ID与删除
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(30, 0, 0, 5),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                constraints: BoxConstraints(
+                                  minHeight: 30,
+                                ),
+                                width: MediaQuery.of(context).size.width * 0.62,
+                                child: Text(
+                                  "ID: $username",
+                                  textAlign: TextAlign.start,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: "BalooBhai",
+                                  ),
+                                ),
+                              ),
+                              //删除
+                              GestureDetector(
+                                onTap: () {
+                                  print("删除监护人");
+                                },
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.bottomCenter,
+                                  child: Image.asset("assets/icons/delete2.png",
+                                      width: 25, height: 25),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                // 不展开时
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "$count.   $nickname",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontFamily: "BalooBhai",
+                          //fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -361,6 +568,7 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
 
   @override
   Widget build(BuildContext context) {
+    print("重建？");
     return ListView(shrinkWrap: true, children: [
       Padding(
         padding: EdgeInsets.fromLTRB(
@@ -413,50 +621,13 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
       ),
 
       // add
-      getGuardianWidget(),
-      for (int i = 2; i <= 16; i++) getGuardianWidget(),
+      for (int i = 1; i <= 16; i++)
+        getGuardianWidget(i, i, "beyzhexuan@gmail.com", "妈妈"),
 
       const SizedBox(
         height: 30,
       ),
     ]);
-
-    return UnconstrainedBox(
-      // ignore: sized_box_for_whitespace
-      child: Container(
-        //color: Color.fromARGB(255, 236, 174, 174),
-        width: MediaQuery.of(context).size.width * 0.85,
-        height: 300,
-        /* child: Center(
-          child: Text("被监护模式"),
-        ), */
-        child: Column(
-          children: [
-            const PageTitle(
-              title: "我的监护人",
-              icons: "assets/icons/audience.png",
-              fontSize: 18,
-            ),
-            // add
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-            getGuardianWidget(),
-          ],
-        ),
-      ),
-    );
   }
 }
 
