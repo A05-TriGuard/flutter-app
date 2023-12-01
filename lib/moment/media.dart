@@ -179,7 +179,7 @@ class Gallery extends StatelessWidget {
             maxScale: PhotoViewComputedScale.covered * 1.3);
       },
       scrollPhysics: const BouncingScrollPhysics(),
-      backgroundDecoration: const BoxDecoration(color: Colors.black38),
+      backgroundDecoration: const BoxDecoration(color: Colors.black54),
       enableRotation: false,
       pageController: PageController(initialPage: curIndex),
     );
