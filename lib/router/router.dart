@@ -17,6 +17,7 @@ import '../homePage/bloodSugar/bloodSugarDetails.dart';
 import '../homePage/bloodFat/bloodFatDetails.dart';
 import '../homePage/bloodSugar/bloodSugarMoreData.dart';
 import '../homePage/bloodFat/bloodFatMoreData.dart';
+import '../homePage/activity/activityDetails.dart';
 
 // 科普模块
 import '../articles/foodsearch.dart';
@@ -57,6 +58,10 @@ Map routes = {
   '/homePage/BloodFat/Details': (context) =>
       BloodFatDetails(arguments: {"userId": 1, "date": DateTime.now()}),
   'homePage/BloodFat/MoreData': (context) => const BloodFatMoreData(),
+
+  //活动
+  '/homePage/Activity/Details': (context) =>
+      ActivityDetails(arguments: {"userId": 1, "date": DateTime.now()}),
 
   '/supervisor': (context) => const Supervisor(),
   '/user': (context) => const User(),

@@ -124,7 +124,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          "ID: ",
+                          "邮箱: ",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               fontFamily: 'BalooBhai',
@@ -133,7 +133,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                               color: Colors.black),
                         ),
                         Text(
-                          " 19249384380",
+                          " bey@qq.com",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               fontFamily: 'BalooBhai',

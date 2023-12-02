@@ -518,7 +518,7 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
                                 ),
                                 width: MediaQuery.of(context).size.width * 0.62,
                                 child: Text(
-                                  "ID: $username",
+                                  "邮箱: $username",
                                   textAlign: TextAlign.start,
                                   style: const TextStyle(
                                     fontSize: 16,
@@ -581,7 +581,7 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
           //crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
-              "监护模式",
+              "关爱模式",
               style: TextStyle(
                   fontSize: 22,
                   fontFamily: "BalooBhai",
@@ -614,15 +614,19 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
             MediaQuery.of(context).size.width * 0.15 * 0.5,
             0),
         child: const PageTitle(
-          title: "监护对象",
+          title: "监护人",
           icons: "assets/icons/audience.png",
           fontSize: 18,
         ),
       ),
 
       // add
-      for (int i = 1; i <= 16; i++)
-        getGuardianWidget(i, i, "beyzhexuan@gmail.com", "妈妈"),
+      //for (int i = 1; i <= 16; i++)
+      // getGuardianWidget(i, i, "beyzhexuan@gmail.com", "妈妈"),
+      getGuardianWidget(1, 1, "beyzhexuan@gmail.com", "妈妈"),
+      getGuardianWidget(2, 2, "bedsfjkduan@gmail.com", "爸爸"),
+      getGuardianWidget(3, 3, "edw@qq.com", "usertest"),
+      getGuardianWidget(4, 4, "wdi@dfkasd.cn", "admin"),
 
       const SizedBox(
         height: 30,
@@ -726,7 +730,7 @@ class _SupervisorState extends State<Supervisor> {
                         Row(
                           children: [
                             const Text(
-                              "用户ID: ",
+                              "邮箱: ",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontFamily: "BalooBhai",
@@ -754,7 +758,7 @@ class _SupervisorState extends State<Supervisor> {
                                   counterStyle:
                                       const TextStyle(color: Colors.black38),
 
-                                  labelText: '用户名/邮箱',
+                                  labelText: '邮箱',
                                   labelStyle: const TextStyle(
                                     color: Color.fromARGB(96, 104, 104, 104),
                                   ),

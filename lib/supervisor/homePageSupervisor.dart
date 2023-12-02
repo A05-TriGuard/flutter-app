@@ -85,7 +85,9 @@ class _MyTitleState extends State<MyTitle> {
 
 class MyBloodPressure extends StatefulWidget {
   final String value;
-  const MyBloodPressure({Key? key, required this.value}) : super(key: key);
+  int accountId = 0;
+  MyBloodPressure({Key? key, required this.value, required this.accountId})
+      : super(key: key);
 
   @override
   State<MyBloodPressure> createState() => _MyBloodPressureState();
@@ -94,6 +96,7 @@ class MyBloodPressure extends StatefulWidget {
 class _MyBloodPressureState extends State<MyBloodPressure> {
   @override
   Widget build(BuildContext context) {
+    print("血压rebuild 值：${widget.value}");
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -236,21 +239,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
               ),
             ),
           ],
-        )
-
-        /* Container(
-          height: 30,
-          width: 80,
-          alignment: Alignment.center,
-          color: const Color.fromARGB(255, 255, 225, 225),
-          //child: TextButton(child: Text("查看更多"), onPressed: () {}),
-          child: Text(
-            "查看更多",
-            style: TextStyle(),
-            textAlign: TextAlign.center,
-          ),
-        ), */
-        //FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add)),
+        ),
       ],
     );
   }
@@ -258,7 +247,9 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
 
 class MyBloodSugar extends StatefulWidget {
   final String value;
-  const MyBloodSugar({Key? key, required this.value}) : super(key: key);
+  int accountId = 0;
+  MyBloodSugar({Key? key, required this.value, required this.accountId})
+      : super(key: key);
 
   @override
   State<MyBloodSugar> createState() => _MyBloodSugarState();
@@ -267,6 +258,7 @@ class MyBloodSugar extends StatefulWidget {
 class _MyBloodSugarState extends State<MyBloodSugar> {
   @override
   Widget build(BuildContext context) {
+    print("血糖rebuild");
     return Column(
       children: [
         MyTitle(
@@ -389,7 +381,9 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
 
 class MyBloodFat extends StatefulWidget {
   final String value;
-  const MyBloodFat({Key? key, required this.value}) : super(key: key);
+  int accountId = 0;
+  MyBloodFat({Key? key, required this.value, required this.accountId})
+      : super(key: key);
 
   @override
   State<MyBloodFat> createState() => _MyBloodFatState();
@@ -398,6 +392,7 @@ class MyBloodFat extends StatefulWidget {
 class _MyBloodFatState extends State<MyBloodFat> {
   @override
   Widget build(BuildContext context) {
+    print("血脂rebuild");
     return Column(children: [
       MyTitle(
           title: "今日血脂",
@@ -525,7 +520,9 @@ class _MyBloodFatState extends State<MyBloodFat> {
 
 class MyActivities extends StatefulWidget {
   final String value;
-  const MyActivities({Key? key, required this.value}) : super(key: key);
+  int accountId = 0;
+  MyActivities({Key? key, required this.value, required this.accountId})
+      : super(key: key);
 
   @override
   State<MyActivities> createState() => _MyActivitiesState();
@@ -534,6 +531,7 @@ class MyActivities extends StatefulWidget {
 class _MyActivitiesState extends State<MyActivities> {
   @override
   Widget build(BuildContext context) {
+    print("活动rebuild");
     return Column(children: [
       MyTitle(
           title: "今日活动",
@@ -693,7 +691,9 @@ class _MyActivitiesState extends State<MyActivities> {
 
 class MyDiet extends StatefulWidget {
   final String value;
-  const MyDiet({Key? key, required this.value}) : super(key: key);
+  int accountId = 0;
+  MyDiet({Key? key, required this.value, required this.accountId})
+      : super(key: key);
 
   @override
   State<MyDiet> createState() => _MyDietState();
@@ -702,6 +702,7 @@ class MyDiet extends StatefulWidget {
 class _MyDietState extends State<MyDiet> {
   @override
   Widget build(BuildContext context) {
+    print("饮食rebuild");
     return Column(children: [
       MyTitle(
           title: "今日饮食",
@@ -907,6 +908,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime? selectedDate;
+  String guardian = "妈妈";
+  int accountId = 0;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -946,12 +949,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    print("监护的首页rebuild");
     final formattedDate = selectedDate != null
         ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日 ${getWeekDay(selectedDate!)}"
         : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日 ${getWeekDay(DateTime.now())}";
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       child: Scaffold(
         appBar: AppBar(
           title: const Text(
@@ -959,48 +963,90 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
                 fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
           ),
-          /* actions: [
-            IconButton(
-              icon: Icon(
-                Icons.search,
-              ),
-              onPressed: () {
-                print("搜索");
-              },
-              color: Colors.black,
-            )
-          ], */
-          //flexibleSpace: header,
-          //toolbarHeight: 45,
-          //toolbarHeight: MediaQuery.of(context).size.height * 0.1,
           flexibleSpace: getHeader(MediaQuery.of(context).size.width,
               (MediaQuery.of(context).size.height * 0.1 + 11)),
 
-          automaticallyImplyLeading: false, //toolbarHeight: 45, 不显示 ← 按钮
+          automaticallyImplyLeading: true, //toolbarHeight: 45, 不显示 ← 按钮
+          actions: [
+            //back button
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_rounded),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
         ),
-        /* body: const Center(
-        child: Text("首页"),
-      ), */
-
+        drawer: Drawer(
+            child: ListView(children: [
+          // 监护对象列表：妈妈，爸爸，爷爷，奶奶，外公，外婆
+          const SizedBox(
+            height: 10,
+          ),
+          const Text("监护对象",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontFamily: 'BalooBhai',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
+          const SizedBox(
+            height: 10,
+          ),
+          ListTile(
+            title: const Text("妈妈"),
+            onTap: () {
+              Navigator.pop(context);
+              setState(() {
+                guardian = "妈妈";
+                accountId = 0;
+              });
+            },
+          ),
+          ListTile(
+            title: const Text("爸爸"),
+            onTap: () {
+              Navigator.pop(context);
+              setState(() {
+                guardian = "爸爸";
+                accountId = 1;
+              });
+            },
+          ),
+          ListTile(
+            title: const Text("爷爷"),
+            onTap: () {
+              Navigator.pop(context);
+              setState(() {
+                guardian = "爷爷";
+                accountId = 2;
+              });
+            },
+          ),
+        ])),
         body: Container(
           // white background
           color: Colors.white,
           child: ListView(
             shrinkWrap: true,
             children: [
-              /* Container(
-            height: 1,
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 169, 171, 179),
-            ),
-          ), */
+              const SizedBox(
+                height: 10,
+              ),
+
+              // 监护对象
+              Text(guardian,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontFamily: 'BalooBhai',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black)),
+
               // 日期选择
               Container(
                 child: Container(
                   alignment: Alignment.center,
-                  //width: 300,
-                  //color: const Color.fromARGB(255, 255, 255, 255),
                   color: Colors.transparent,
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1010,8 +1056,6 @@ class _HomePageState extends State<HomePage> {
                           style: const TextStyle(
                               fontSize: 20, fontFamily: "BalooBhai"),
                         ),
-                        //const SizedBox(height: 5),
-                        //ElevatedButton(
                         SizedBox(
                           width: 40,
                           child: TextButton(
@@ -1025,32 +1069,29 @@ class _HomePageState extends State<HomePage> {
                       ]),
                 ),
               ),
-              /*    const SizedBox(
-            height: 5,
-          ), */
 
               // 今日血压
-              MyBloodPressure(value: "112/95"),
+              MyBloodPressure(accountId: accountId, value: "112/95"),
 
               const SizedBox(
                 height: 15,
               ),
 
               // 今日血糖
-              MyBloodSugar(value: "8.8"),
+              MyBloodSugar(accountId: accountId, value: "8.8"),
 
               const SizedBox(
                 height: 15,
               ),
 
               // 今日血脂
-              MyBloodFat(value: "3.4"),
+              MyBloodFat(accountId: accountId, value: "3.4"),
 
               const SizedBox(
                 height: 15,
               ),
 
-              MyActivities(value: "45"),
+              MyActivities(accountId: accountId, value: "45"),
 
               // 运动
               const SizedBox(
@@ -1062,7 +1103,7 @@ class _HomePageState extends State<HomePage> {
                 height: 15,
               ),
 
-              MyDiet(value: "1723"),
+              MyDiet(accountId: accountId, value: "1723"),
 
               const SizedBox(
                 height: 15,

@@ -1954,98 +1954,6 @@ class ExportExcelWiget extends StatefulWidget {
 }
 
 class _ExportExcelWigetState extends State<ExportExcelWiget> {
-  void exportExcel() async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      // If not we will ask for permission first
-      await Permission.storage.request();
-    }
-
-    /*  final Workbook workbook = Workbook();
-    final List<int> bytes = workbook.saveAsStream();
-    workbook.dispose();
-
-    final String path = (await getApplicationSupportDirectory()).path;
-    final String fileName = '$path/Output.xlsx';
-    final Directory _prjDir = Directory('$path/Output.xlsx');
-    final File file = File(fileName);
-    await file.writeAsBytes(bytes, flush: true);
-    print(fileName);
-    //OpenFile.open(fileName);
-
-    if (await _prjDir.exists()) {
-      print('Project Dir Exist');
-    } */
-
-    /* Directory _directory = Directory("");
-    if (Platform.isAndroid) {
-      // Redirects it to download folder in android
-      _directory = Directory("/storage/emulated/0/Download");
-    } else {
-      _directory = await getApplicationDocumentsDirectory();
-    } */
-
-    /* Directory appDocDir = await getApplicationDocumentsDirectory();
-    String appDocPath = appDocDir.path;
-    print(appDocPath); */
-
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    String appDocPath = appDocDir.path;
-
-    // Directory appDocDir = await ExtStorage.getExternalStoragePublicDirectory(
-    //    ExtStorage.DIRECTORY_DOWNLOADS);
-
-    //String filePath = (await getApplicationSupportDirectory()).path;
-    String filePath = (await getApplicationDocumentsDirectory()).path;
-    String filename = "$filePath/example.xlsx";
-    final Directory _prjDir = Directory('$filePath/example.xlsx');
-    print('supportPath: $filename');
-
-    // 1. 创建 Excel 文档
-    var excel = ExcelPackage.Excel.createExcel();
-
-    // 2. 添加工作表
-    var sheet = excel['Sheet1'];
-
-    // 3. 添加数据
-    sheet.appendRow(['Name', 'Age', 'City']);
-    sheet.appendRow(['John Doe???', 25, 'New York']);
-    sheet.appendRow(['Jane Smith?', 30, 'Los Angeles']);
-    sheet.appendRow(['Bob Johnson?', 28, 'Chicago']);
-
-    // 4. 保存 Excel 文件
-    List<int>? fileBytes = excel.save();
-    //print('saving executed in ${stopwatch.elapsed}');
-    if (fileBytes != null) {
-      File(join(filename))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
-
-    if (await _prjDir.exists()) {
-      print('Project Dir Exist');
-    }
-    /* File fileDef = File(filename);
-    await fileDef.create(recursive: true);
-
-    if (await _prjDir.exists()) {
-      print('Project Dir Exist');
-    } */
-    //OpenFile.open(filename);
-
-    //var file = 'path/to/your/excel/file.xlsx';
-    var file = join(appDocPath, 'example1.xlsx');
-    await File(file).writeAsBytes(excel.encode()!);
-    await Directory(appDocPath).create(recursive: true);
-    //print('Excel file created at: $file');
-
-    // final exPath = _directory.path;
-    //print("Saved Path: $exPath");
-    //await Directory(exPath).create(recursive: true);
-    //await Directory(appDocPath).create(recursive: true);
-    //OpenFile.open('$exPath/example.xlsx');
-  }
-
   Future<String> createFolder(String cow) async {
     final folderName = cow;
     final path = Directory("storage/emulated/0/$folderName");
@@ -2158,7 +2066,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     // 获取文件夹路径
     var dir = await getApplicationSupportDirectory();
-    var folderPath = Directory("${dir.path}/bloodPressure");
+    var folderPath = Directory("${dir.path}/bloodSugar");
 
     print("folderPath: ${folderPath.path}");
 
@@ -2167,31 +2075,11 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
       print("folderPath exist");
     } else {
       print("folderPath not exist");
-      folderPath.create();
+      return;
     }
 
     // 获取文件路径
-    var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
-
-    //创建文件
-    var excel = ExcelPackage.Excel.createExcel();
-
-    // 2. 添加工作表
-    var sheet = excel['Sheet1'];
-
-    // 3. 添加数据
-    sheet.appendRow(['Name', 'Age', 'City']);
-    sheet.appendRow(['ahbey', 21, 'Malaysia']);
-    sheet.appendRow(['Ziqi', 21, 'BP']);
-    sheet.appendRow(['Johnson', 21, 'TongKangPecah']);
-
-    List<int>? fileBytes = excel.save();
-    //print('saving executed in ${stopwatch.elapsed}');
-    if (fileBytes != null) {
-      File(join(fileNamePath))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
+    var fileNamePath = "${folderPath.path}/bloodSugar.xlsx";
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
@@ -2202,12 +2090,12 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
       var downloadPath = await getDownloadsDirectory();
       await File(fileNamePath)
           //.copy('/storage/emulated/0/Download/bloodPressure.xlsx');
-          .copy('${downloadPath!.path}/bloodPressure.xlsx');
+          .copy('${downloadPath!.path}/bloodSugar.xlsx');
       //.copy('/sdcard/Download/bloodPressure.xlsx');
       print("downloadPath: ${downloadPath?.path}");
       // 检测文件是否存在
       //if (await File('/storage/emulated/0/Download/bloodPressure.xlsx')
-      if (await File('${downloadPath?.path}/bloodPressure.xlsx').exists()) {
+      if (await File('${downloadPath?.path}/bloodSugar.xlsx').exists()) {
         print("copy ok");
       }
     }

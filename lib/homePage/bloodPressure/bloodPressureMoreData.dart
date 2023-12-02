@@ -2448,37 +2448,16 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
       print("folderPath exist");
     } else {
       print("folderPath not exist");
-      folderPath.create();
+      return;
     }
 
     // 获取文件路径
     var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
 
-    //创建文件
-    var excel = ExcelPackage.Excel.createExcel();
-
-    // 2. 添加工作表
-    var sheet = excel['Sheet1'];
-
-    // 3. 添加数据
-    sheet.appendRow(['Name', 'Age', 'City']);
-    sheet.appendRow(['ahbey', 21, 'Malaysia']);
-    sheet.appendRow(['Ziqi', 21, 'BP']);
-    sheet.appendRow(['Johnson', 21, 'TongKangPecah']);
-
-    List<int>? fileBytes = excel.save();
-    //print('saving executed in ${stopwatch.elapsed}');
-    if (fileBytes != null) {
-      File(join(fileNamePath))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
-
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
       print("excel exist");
       //打开文件
-      //OpenFile.open(fileNamePath);
       // copy the file to Downloads folder
       var downloadPath = await getDownloadsDirectory();
       await File(fileNamePath)

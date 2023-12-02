@@ -262,6 +262,13 @@ https://pub.dev/packages/excel
 https://pub.dev/packages/timeline_tile
 https://pub.dev/packages/timelines/example
 
+#### 实现步数计数
+https://pub.dev/packages/pedometer/install
+android\app\src\main\AndroidManifest.xml 中添加
+```
+<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+```
+
 ### 血糖标准
 
 空腹

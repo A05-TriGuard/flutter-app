@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import './homePageSupervisor.dart';
 
 class TodayActivities extends StatefulWidget {
   const TodayActivities({super.key});
@@ -176,9 +177,10 @@ class GuardianGroupPage extends StatefulWidget {
 class _GuardianGroupPageState extends State<GuardianGroupPage> {
   List<bool> isExpandedList = [false, false, false, false, false];
   bool isEditingNickname = false;
+  TextEditingController nicknameController = TextEditingController();
 
   Widget getGroupMemberWidgetLess(
-      int userId, String username, String nickname) {
+      int userId, String username, String email, String nickname) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -199,7 +201,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
   }
 
   Widget getGroupMemberWidgetMore(
-      int userId, String username, String nickname) {
+      int userId, String username, String email, String nickname) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,38 +210,84 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
         isEditingNickname == false
             ?
             // 不编辑时
-            Row(
-                children: [
-                  // 昵称：
-                  Text(
-                    "昵称：$nickname",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontFamily: 'BalooBhai',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
-                  ),
-                  // 修改昵称的按钮
-                  GestureDetector(
-                    onTap: () {
-                      print("修改昵称");
-                      // Navigator.pushNamed(context, '/edit');
-                      setState(() {
-                        isEditingNickname = !isEditingNickname;
-                      });
-                    },
-                    child: Container(
-                      width: 25,
-                      height: 25,
-                      child: const Icon(
-                        Icons.edit,
-                        size: 20,
-                        color: Colors.black,
+            Container(
+                constraints: const BoxConstraints(
+                  minHeight: 30,
+                ),
+                //color: Colors.blueAccent,
+                child: Row(
+                  children: [
+                    // 昵称：
+                    /* Text(
+                      "昵称：$nickname",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontFamily: 'BalooBhai',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
+                    ), */
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          constraints: const BoxConstraints(
+                            minHeight: 30,
+                          ),
+                          //color: Colors.yellow,
+                          alignment: Alignment.center,
+                          child: const Text(
+                            "昵称：",
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontFamily: 'BalooBhai',
+                              fontSize: 18,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          constraints: const BoxConstraints(
+                            minHeight: 30,
+                          ),
+                          alignment: Alignment.centerLeft,
+                          //color: Colors.greenAccent,
+                          width: MediaQuery.of(context).size.width * 0.55,
+                          //color: Colors.yellow,
+                          child: Text(
+                            nickname,
+                            textAlign: TextAlign.left,
+                            style: const TextStyle(
+                              fontFamily: 'BalooBhai',
+                              fontSize: 18,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    // 修改昵称的按钮
+                    GestureDetector(
+                      onTap: () {
+                        print("修改昵称");
+                        // Navigator.pushNamed(context, '/edit');
+                        setState(() {
+                          isEditingNickname = !isEditingNickname;
+                        });
+                      },
+                      child: Container(
+                        width: 25,
+                        height: 25,
+                        child: const Icon(
+                          Icons.edit,
+                          size: 20,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               )
             // 编辑昵称时
             : Row(
@@ -271,12 +319,12 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                         height: 40,
                         child: Center(
                           child: TextFormField(
-                            //controller: nicknameController,
+                            controller: nicknameController,
                             maxLength: 15,
                             style: const TextStyle(
                               fontFamily: 'BalooBhai',
                               fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              // fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
                             decoration: InputDecoration(
@@ -287,8 +335,8 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                               hintStyle: const TextStyle(
                                 fontFamily: 'BalooBhai',
                                 fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                //fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 116, 116, 116),
                               ),
 
                               /* labelStyle: const TextStyle(
@@ -316,6 +364,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                             print("编辑监护人昵称");
                             setState(() {
                               isEditingNickname = !isEditingNickname;
+                              nicknameController.text = "";
                               /*  nicknameController.text =
                                                   nickname;
                                               editNickname = !editNickname; */
@@ -337,6 +386,8 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                             print("编辑监护人昵称");
                             setState(() {
                               isEditingNickname = !isEditingNickname;
+                              print("新昵称：${nicknameController.text}");
+                              nicknameController.text = "";
                               /* nickname =
                                                   nicknameController.text;
                                               print("新昵称：$nickname");
@@ -358,24 +409,104 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
               ),
 
         //
-        isEditingNickname == false
+        /* isEditingNickname == false
             ? const SizedBox(height: 10)
-            : const SizedBox(height: 0),
+            : const SizedBox(height: 0), */
 
-        // ID
+        // 用户名
         Container(
           constraints: BoxConstraints(
             minHeight: 30,
-            minWidth: MediaQuery.of(context).size.width * 0.6,
+            minWidth: MediaQuery.of(context).size.width * 0.65,
           ),
-          child: Text(
-            "ID: $username",
-            textAlign: TextAlign.left,
-            style: const TextStyle(
-              fontFamily: 'BalooBhai',
-              fontSize: 18,
-              color: Colors.black,
-            ),
+          //color: Colors.pinkAccent,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                constraints: const BoxConstraints(
+                  minHeight: 30,
+                ),
+                //color: Colors.yellow,
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  "用户名：",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontFamily: 'BalooBhai',
+                    fontSize: 18,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                constraints: const BoxConstraints(
+                  minHeight: 30,
+                ),
+                alignment: Alignment.centerLeft,
+                //color: Colors.greenAccent,
+                width: MediaQuery.of(context).size.width * 0.55,
+                //color: Colors.yellow,
+                child: Text(
+                  username,
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                    fontFamily: 'BalooBhai',
+                    fontSize: 18,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 邮箱
+        Container(
+          constraints: BoxConstraints(
+            minHeight: 30,
+            minWidth: MediaQuery.of(context).size.width * 0.65,
+          ),
+          // color: Colors.pinkAccent,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                constraints: const BoxConstraints(
+                  minHeight: 30,
+                ),
+                //alignment: Alignment.centerLeft,
+                //color: Colors.greenAccent,
+                child: const Text(
+                  "邮箱：",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontFamily: 'BalooBhai',
+                    fontSize: 18,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                constraints: const BoxConstraints(
+                  minHeight: 30,
+                ),
+                //color: Colors.yellow,
+                alignment: Alignment.centerLeft,
+                width: MediaQuery.of(context).size.width * 0.6,
+                child: Text(
+                  email,
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                    fontFamily: 'BalooBhai',
+                    fontSize: 18,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -421,6 +552,21 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
               onTap: () {
                 print("查看数据详情$userId");
                 // Navigator.pushNamed(context, '/edit');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomePage(
+                        /* arguments: {
+                        "bpDataId": 1,
+                        "date": DateTime.now(),
+                        "prevPage": 1,
+                      }, */
+                        ),
+                  ),
+                ).then((_) {
+                  print("哈哈哈");
+                  //widget.updateData();
+                });
               },
               child: Container(
                 width: 120,
@@ -451,7 +597,8 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     );
   }
 
-  Widget getGroupMemberWidget(int userId, String username, String nickname) {
+  Widget getGroupMemberWidget(
+      int userId, String username, String email, String nickname) {
     return UnconstrainedBox(
       child: GestureDetector(
         onTap: () {
@@ -467,7 +614,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: MediaQuery.of(context).size.width * 0.85,
-          height: isExpandedList[userId] == false ? 55 : 140,
+          height: isExpandedList[userId] == false ? 55 : 160,
           decoration: BoxDecoration(
             color: isExpandedList[userId] == false
                 ? Color.fromARGB(255, 255, 255, 255)
@@ -493,10 +640,11 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           child: Padding(
             padding: const EdgeInsets.all(15),
             child: isExpandedList[userId] == false
-                ? getGroupMemberWidgetLess(userId, username, nickname)
+                ? getGroupMemberWidgetLess(userId, username, email, nickname)
                 : SingleChildScrollView(
                     scrollDirection: Axis.vertical,
-                    child: getGroupMemberWidgetMore(userId, username, nickname),
+                    child: getGroupMemberWidgetMore(
+                        userId, username, email, nickname),
                   ),
           ),
         ),
@@ -541,13 +689,13 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
             height: 10,
           ),
 
-          getGroupMemberWidget(0, "19638982346", "爸爸"),
-          getGroupMemberWidget(1, "19533423226", "妈妈"),
-          getGroupMemberWidget(2, "19832329392", "爷爷"),
+          getGroupMemberWidget(0, "无敌暴龙兽", "haha@qq.com", "爸爸"),
+          getGroupMemberWidget(1, "哈哈哈哈哈哈哈", "wjd124@hotmail.com.cn", "妈妈"),
+          getGroupMemberWidget(2, "admin124", "wjd124@hotmail.com.cn", "爷爷"),
 
-          getGroupMemberWidget(3, "19429393239", "奶奶"),
-          getGroupMemberWidget(
-              4, "helloworld123@gmail.comoooooooooooooooooooo", "弟弟"),
+          getGroupMemberWidget(3, "19429393239", "no@gmail.com", "奶奶"),
+          getGroupMemberWidget(4, "testuser",
+              "helloworld123@gmail.comoooooooooooooooooooo", "弟弟"),
           const SizedBox(
             height: 20,
           ),
