@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../component/navigation.dart';
 import '../component/icons.dart';
 import 'media.dart';
@@ -479,7 +480,7 @@ class _MomentState extends State<Moment> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            content: Post(width: screenWidth * 0.9),
+                            content: Post(width: screenWidth * 0.4),
                           );
                         });
                   },
@@ -549,20 +550,28 @@ class CategoryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(11, 0, 11, 0),
-      decoration: BoxDecoration(
-          color: curInd == catInd ? Colors.black : Colors.black12,
-          border: Border.all(color: Colors.black, width: 1),
-          borderRadius: BorderRadius.circular(10)),
-      child: Text(
-        title,
-        textAlign: TextAlign.center,
-        style: TextStyle(
+        padding: const EdgeInsets.fromLTRB(11, 0, 11, 0),
+        decoration: BoxDecoration(
+            color: curInd == catInd ? Colors.black : Colors.black12,
+            border: Border.all(color: Colors.black, width: 1),
+            borderRadius: BorderRadius.circular(10)),
+        child: AutoSizeText(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
             fontWeight: curInd == catInd ? FontWeight.w900 : FontWeight.normal,
             color: curInd == catInd ? Colors.white : Colors.black,
-            fontSize: 16),
-      ),
-    );
+          ),
+        )
+        // Text(
+        //   title,
+        //   textAlign: TextAlign.center,
+        //   style: TextStyle(
+        //       fontWeight: curInd == catInd ? FontWeight.w900 : FontWeight.normal,
+        //       color: curInd == catInd ? Colors.white : Colors.black,
+        //       fontSize: 16),
+        // ),
+        );
   }
 }
 
@@ -703,10 +712,10 @@ class _PostTileState extends State<PostTile> {
                 Expanded(
                   child: Container(
                     height: 44,
-                    padding: const EdgeInsets.fromLTRB(12, 3, 0, 3),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           Text(
                             widget.curPost.username,
@@ -863,8 +872,9 @@ class _PostTileState extends State<PostTile> {
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
+                              insetPadding: EdgeInsets.zero,
                               content: CommentDialog(
-                                  width: screenWidth * 0.9,
+                                  width: screenWidth * 0.65,
                                   height: screenHeight * 0.5),
                             );
                           });

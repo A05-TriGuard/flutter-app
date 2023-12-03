@@ -55,7 +55,6 @@ class _CommentDialogState extends State<CommentDialog> {
   var commentTileList = [];
 
   void createCommentTileList(double width) {
-    var commentWidth = width * 0.64;
     commentTileList.clear();
 
     for (int i = 0; i < commentList.length; ++i) {
@@ -96,78 +95,88 @@ class _CommentDialogState extends State<CommentDialog> {
                     backgroundImage: NetworkImage(commentList[i].profilepic),
                   ),
                 ),
+                const SizedBox(
+                  width: 5,
+                ),
                 // 评论主体
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 评论用户名
-                    Text(
-                      commentList[i].username,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    // 评论内容
-                    SizedBox(
-                      width: commentWidth,
-                      child: Text(
-                        commentList[i].comment,
-                        overflow: TextOverflow.clip,
-                        style: const TextStyle(
-                            fontSize: 14, color: Colors.black87),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    // 评论日期、时间
-                    Text(
-                      commentList[i].commentTime,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    // 引用的评论
-                    Visibility(
-                      visible: commentList[i].hasQuote,
+                Expanded(
+                    flex: 1,
+                    child: SizedBox(
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(
-                            height: 3,
+                          // 评论用户名
+                          Text(
+                            commentList[i].username,
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.grey),
                           ),
-                          Container(
-                            width: commentWidth,
-                            padding: const EdgeInsets.fromLTRB(5, 2, 5, 2),
-                            decoration: BoxDecoration(
-                                color: Colors.black12,
-                                borderRadius: BorderRadius.circular(3)),
+                          const SizedBox(
+                            height: 2,
+                          ),
+                          SizedBox(
+                            child: Text(
+                              commentList[i].comment,
+                              overflow: TextOverflow.clip,
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.black87),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 2,
+                          ),
+                          // 评论日期、时间
+                          Text(
+                            commentList[i].commentTime,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
+                          ),
+                          // 引用的评论
+                          Visibility(
+                            visible: commentList[i].hasQuote,
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  commentList[i].quoteUsername,
-                                  style: const TextStyle(
-                                      fontSize: 14, color: Colors.black54),
-                                ),
                                 const SizedBox(
-                                  height: 2,
+                                  height: 3,
                                 ),
                                 Container(
-                                  child: Text(
-                                    commentList[i].quoteComment,
-                                    overflow: TextOverflow.clip,
-                                    style: const TextStyle(
-                                        fontSize: 14, color: Colors.black54),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 2, 5, 2),
+                                  decoration: BoxDecoration(
+                                      color: Colors.black12,
+                                      borderRadius: BorderRadius.circular(3)),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        commentList[i].quoteUsername,
+                                        style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black54),
+                                      ),
+                                      const SizedBox(
+                                        height: 2,
+                                      ),
+                                      Container(
+                                        child: Text(
+                                          commentList[i].quoteComment,
+                                          overflow: TextOverflow.clip,
+                                          style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black54),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
+                                )
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
-                    ),
-                  ],
-                )
+                    ))
               ],
             ),
           ),
@@ -204,7 +213,7 @@ class _CommentDialogState extends State<CommentDialog> {
           child: SizedBox(
             width: widget.width,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              //mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
                   "评论列表",
