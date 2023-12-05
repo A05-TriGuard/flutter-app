@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '../component/navigation.dart';
+import '../account/token.dart';
 import '../component/icons.dart';
 
 class FoodsearchPage extends StatefulWidget {
@@ -15,8 +15,6 @@ class FoodsearchPage extends StatefulWidget {
 class _FoodsearchPageState extends State<FoodsearchPage> {
   bool addedCollection = false;
   Map foodInfo = {};
-  var token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
 
   TableRow createTableRow(String left, String right) {
     return TableRow(children: [
@@ -37,8 +35,10 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
     ]);
   }
 
-  // Medicine API
-  void fetchNShowMedicineInfo() async {
+  // Food API
+  void fetchNShowFoodInfo() async {
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -62,8 +62,10 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
     }
   }
 
-  // Medicine API
-  void addMedicineToCollection() async {
+  // Food API
+  void addFoodToCollection() async {
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -86,7 +88,10 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
     }
   }
 
-  void removeMedicineFromCollection() async {
+  // Food API
+  void removeFoodFromCollection() async {
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -112,7 +117,7 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
   @override
   void initState() {
     super.initState();
-    fetchNShowMedicineInfo();
+    fetchNShowFoodInfo();
   }
 
   @override
@@ -173,9 +178,9 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
           IconButton(
               onPressed: () {
                 if (!addedCollection) {
-                  addMedicineToCollection();
+                  addFoodToCollection();
                 } else {
-                  removeMedicineFromCollection();
+                  removeFoodFromCollection();
                 }
               },
               icon: addedCollection ? MyIcons().starr() : MyIcons().star()),
@@ -222,9 +227,6 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
           const SizedBox(height: 10),
         ],
       )),
-
-      // 下方导航栏
-      bottomNavigationBar: const MyNavigationBar(currentIndex: 1),
     );
   }
 }

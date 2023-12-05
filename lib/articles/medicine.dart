@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '../component/navigation.dart';
 import 'medicinepage.dart';
+import '../account/token.dart';
 
 class Medicine extends StatefulWidget {
   const Medicine({super.key});
@@ -17,8 +17,6 @@ class _MedicineState extends State<Medicine> {
   var historyCardList = <ResultCard>[];
   var historyList = [];
   var resultList = [];
-  var token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
 
   void createCardList() {
     resultCardList.clear();
@@ -54,6 +52,8 @@ class _MedicineState extends State<Medicine> {
   void fetchNShowSearchResult(String inputMed) async {
     resultList.clear();
 
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -80,6 +80,8 @@ class _MedicineState extends State<Medicine> {
   // Medicine API
   void fetchNShowHistoryResult() async {
     historyList.clear();
+
+    var token = await storage.read(key: 'token');
 
     try {
       final dio = Dio(); // Create Dio instance
@@ -119,6 +121,7 @@ class _MedicineState extends State<Medicine> {
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
 
     createCardList();
     createHistoryList();
@@ -137,7 +140,7 @@ class _MedicineState extends State<Medicine> {
         ),
         leading: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/articles');
+              Navigator.pop(context);
             },
             icon: const Icon(
               Icons.arrow_back,
@@ -162,13 +165,16 @@ class _MedicineState extends State<Medicine> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            // 图标
             Image.asset("assets/icons/medicalRecord.png",
                 width: screenWidth * 0.4),
+            // 标题
             const Text(
               "用药指南查询",
               style: TextStyle(
                   fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 2),
             ),
+            // 药品搜索框
             SizedBox(
               width: screenWidth * 0.8,
               child: TextField(
@@ -178,7 +184,6 @@ class _MedicineState extends State<Medicine> {
                 },
                 onTapOutside: (event) {
                   FocusScope.of(context).requestFocus(FocusNode());
-                  //fetchNShowHistoryResult();
                 },
                 controller: inputController,
                 decoration: InputDecoration(
@@ -207,41 +212,50 @@ class _MedicineState extends State<Medicine> {
                 textAlign: TextAlign.left,
               ),
             ),
+            // 结果列表
             Column(
               children: [
-                Text(
-                  showResult ? "相关搜索结果为：" : "历史查询记录：",
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(
-                  height: 10,
+                Stack(
+                  alignment: Alignment.centerRight,
+                  children: [
+                    SizedBox(
+                      width: screenWidth * 0.8,
+                      child: Text(
+                        showResult ? "相关搜索结果为：" : "历史查询记录：",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                    IconButton(
+                        onPressed: () {
+                          fetchNShowHistoryResult();
+                        },
+                        icon: const Icon(
+                          Icons.refresh,
+                          color: Colors.black26,
+                        )),
+                  ],
                 ),
                 SizedBox(
-                    width: screenWidth * 0.8,
-                    height: screenWidth * 0.6,
-                    // child: ListView(
-                    //     scrollDirection: Axis.vertical,
-                    //     shrinkWrap: true,
-                    //     children: showResult ? resultCardList : historyCardList),
-                    child: ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
-                        itemCount: showResult
-                            ? resultCardList.length
-                            : historyCardList.length,
-                        itemBuilder: (BuildContext context, index) {
-                          return showResult
-                              ? resultCardList[index]
-                              : historyCardList[index];
-                        })),
+                  width: screenWidth * 0.8,
+                  height: screenHeight * 0.35,
+                  child: ListView.builder(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: showResult
+                          ? resultCardList.length
+                          : historyCardList.length,
+                      itemBuilder: (BuildContext context, index) {
+                        return showResult
+                            ? resultCardList[index]
+                            : historyCardList[index];
+                      }),
+                ),
               ],
             ),
           ],
         ),
       ),
-
-      // 下方导航栏
-      bottomNavigationBar: const MyNavigationBar(currentIndex: 1),
     );
   }
 }
@@ -261,7 +275,6 @@ class ResultCard extends StatelessWidget {
         child: InkWell(
           onTap: isResult
               ? () {
-                  //Navigator.pushNamed(context, '/articles/medicine/page');
                   Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -280,46 +293,3 @@ class ResultCard extends StatelessWidget {
         ));
   }
 }
-
-// class ResultCard extends StatefulWidget {
-//   late Map result;
-//   late bool isResult;
-//   ResultCard({super.key, required this.result, required this.isResult});
-
-//   @override
-//   State<ResultCard> createState() => _ResultCardState();
-// }
-
-// class _ResultCardState extends State<ResultCard> {
-//   @override
-//   Widget build(BuildContext context) {
-//     print("in card:" + widget.result["name"]);
-//     return Card(
-//         shape: const RoundedRectangleBorder(
-//             borderRadius: BorderRadius.all(Radius.circular(0))),
-//         shadowColor: Colors.black87,
-//         elevation: 5,
-//         child: InkWell(
-//           onTap: widget.isResult
-//               ? () {
-//                   //Navigator.pushNamed(context, '/articles/medicine/page');
-//                   Navigator.push(
-//                       context,
-//                       MaterialPageRoute(
-//                           builder: (context) => MedicinePage(
-//                               title: "返回查询页面",
-//                               link: '/articles/medicine',
-//                               id: widget.result["id"])));
-//                 }
-//               : null,
-//           child: ListTile(
-//               minVerticalPadding: 15,
-//               title: Text(
-//                 widget.result["name"],
-//                 maxLines: 1,
-//                 style: const TextStyle(fontSize: 20),
-//               ),
-//               visualDensity: const VisualDensity(vertical: -4)),
-//         ));
-//   }
-// }
