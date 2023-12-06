@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../component/icons.dart';
 import '../component/navigation.dart';
+import '../account/token.dart';
 
 // TOIMPROVE: 增加类似目录索引这样方便快速查找
 class MedicinePage extends StatefulWidget {
@@ -35,11 +36,11 @@ class _MedicinePageState extends State<MedicinePage> {
     "image":
         "http://www.santao.com.cn/uploadfile/2019/0123/20190123010435930.jpg",
   };
-  var token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
 
   // Medicine API
   void fetchNShowMedicineInfo() async {
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -65,6 +66,8 @@ class _MedicinePageState extends State<MedicinePage> {
 
   // Medicine API
   void addMedicineToCollection() async {
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -87,7 +90,10 @@ class _MedicinePageState extends State<MedicinePage> {
     }
   }
 
+  // Medicine API
   void removeMedicineFromCollection() async {
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {

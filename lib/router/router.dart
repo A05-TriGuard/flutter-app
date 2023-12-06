@@ -76,15 +76,10 @@ Map routes = {
   // ==================== 科普模块 ====================
   '/articles': (context) => const Article(),
   '/articles/science': (context) => const Science(),
-  '/articles/science/page': (context) =>
-      const SciencePage(title: "返回文章列表", link: '/articles/science'),
   '/articles/foodsearch': (context) => const Foodsearch(),
-
   '/articles/medicine': (context) => const Medicine(),
   '/articles/prevention': (context) => const Prevention(),
   '/articles/collection': (context) => const Collection(),
-  '/articles/collection/articlepage': (context) =>
-      const SciencePage(title: "返回收藏列表", link: '/articles/collection'),
 };
 
 var onGenerateRoute = (RouteSettings settings) {

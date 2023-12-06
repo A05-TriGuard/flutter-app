@@ -26,7 +26,6 @@ class _MainPagesState extends State<MainPages> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     print(widget.arguments);
   }
@@ -34,6 +33,7 @@ class _MainPagesState extends State<MainPages> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       //appBar: AppBar(),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(

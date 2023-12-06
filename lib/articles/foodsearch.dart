@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '../component/navigation.dart';
 import 'foodsearchpage.dart';
+import '../account/token.dart';
 
 class Foodsearch extends StatefulWidget {
   const Foodsearch({super.key});
@@ -17,12 +17,12 @@ class _FoodsearchState extends State<Foodsearch> {
   var historyCardList = <ResultCard>[];
   var resultList = [];
   var historyList = [];
-  var token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
 
   // Food API
   void fetchNShowSearchResult(String inputMed) async {
     resultList.clear();
+
+    var token = await storage.read(key: 'token');
 
     try {
       final dio = Dio(); // Create Dio instance
@@ -51,6 +51,8 @@ class _FoodsearchState extends State<Foodsearch> {
   void fetchNShowHistoryResult() async {
     historyList.clear();
 
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -61,16 +63,16 @@ class _FoodsearchState extends State<Foodsearch> {
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
-        print(response.data);
+        //print(response.data);
         setState(() {
           historyList = response.data["data"];
           showResult = false;
         });
       } else {
-        print('Request failed with status: ${response.statusCode}');
+        //print('Request failed with status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Request failed: $e');
+      //print('Request failed: $e');
     }
   }
 
@@ -113,6 +115,7 @@ class _FoodsearchState extends State<Foodsearch> {
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
 
     createCardList();
     createHistoryList();
@@ -131,7 +134,7 @@ class _FoodsearchState extends State<Foodsearch> {
         ),
         leading: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/articles');
+              Navigator.pop(context);
             },
             icon: const Icon(
               Icons.arrow_back,
@@ -152,88 +155,108 @@ class _FoodsearchState extends State<Foodsearch> {
       ),
 
       // 主体内容
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Image.asset("assets/icons/diet.png", width: screenWidth * 0.4),
-            const Text(
-              "食物营养成分查询",
-              style: TextStyle(
-                  fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 2),
-            ),
-            SizedBox(
-              width: screenWidth * 0.8,
-              child: TextField(
-                style: const TextStyle(fontSize: 22),
-                onTap: () {
-                  setState(() {
-                    fetchNShowHistoryResult();
-                  });
-                },
-                onTapOutside: (event) {
-                  FocusScope.of(context).requestFocus(FocusNode());
-                },
-                controller: inputController,
-                decoration: InputDecoration(
-                    hintText: "输入食物名称",
-                    hintStyle: const TextStyle(
-                        color: Colors.black26, fontWeight: FontWeight.w800),
-                    contentPadding: const EdgeInsets.only(left: 20),
-                    enabledBorder: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(35)),
-                      borderSide: BorderSide(color: Colors.black, width: 1.5),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        borderSide: BorderSide(
-                            color: Color.fromARGB(255, 250, 209, 252),
-                            width: 2)),
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          fetchNShowSearchResult(inputController.text);
-                          FocusScope.of(context).requestFocus(FocusNode());
-                        });
-                      },
-                      icon: Image.asset("assets/icons/searchWhite.png",
-                          width: 20),
-                      padding: const EdgeInsets.only(right: 10),
-                    )),
-                textAlign: TextAlign.left,
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              const SizedBox(height: 20),
+              Image.asset("assets/icons/diet.png", width: screenWidth * 0.4),
+              const SizedBox(height: 10),
+              const Text(
+                "食物成分查询",
+                style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2),
               ),
-            ),
-            Column(
-              children: [
-                Text(
-                  showResult ? "相关搜索结果为：" : "历史查询记录：",
-                  style: const TextStyle(fontSize: 18),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: screenWidth * 0.8,
+                child: TextField(
+                  style: const TextStyle(fontSize: 22),
+                  onTap: () {
+                    setState(() {
+                      fetchNShowHistoryResult();
+                    });
+                  },
+                  onTapOutside: (event) {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                  },
+                  controller: inputController,
+                  decoration: InputDecoration(
+                      hintText: "输入食物名称",
+                      hintStyle: const TextStyle(
+                          color: Colors.black26, fontWeight: FontWeight.w800),
+                      contentPadding: const EdgeInsets.only(left: 20),
+                      enabledBorder: const OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(35)),
+                        borderSide: BorderSide(color: Colors.black, width: 1.5),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          borderSide: BorderSide(
+                              color: Color.fromARGB(255, 250, 209, 252),
+                              width: 2)),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            fetchNShowSearchResult(inputController.text);
+                            FocusScope.of(context).requestFocus(FocusNode());
+                          });
+                        },
+                        icon: Image.asset("assets/icons/searchWhite.png",
+                            width: 20),
+                        padding: const EdgeInsets.only(right: 10),
+                      )),
+                  textAlign: TextAlign.left,
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
-                SizedBox(
-                    width: screenWidth * 0.8,
-                    height: screenWidth * 0.6,
-                    child: ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
-                        itemCount: showResult
-                            ? resultCardList.length
-                            : historyCardList.length,
-                        itemBuilder: (BuildContext context, index) {
-                          return showResult
-                              ? resultCardList[index]
-                              : historyCardList[index];
-                        })),
-              ],
-            )
-          ],
+              ),
+              const SizedBox(height: 10),
+              Column(
+                children: [
+                  Stack(
+                    alignment: Alignment.centerRight,
+                    children: [
+                      SizedBox(
+                        width: screenWidth * 0.8,
+                        child: Text(
+                          showResult ? "相关搜索结果为：" : "历史查询记录：",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                      ),
+                      IconButton(
+                          onPressed: () {
+                            fetchNShowHistoryResult();
+                          },
+                          icon: const Icon(
+                            Icons.refresh,
+                            color: Colors.black26,
+                          )),
+                    ],
+                  ),
+                  SizedBox(
+                      width: screenWidth * 0.8,
+                      height: screenHeight * 0.4,
+                      child: ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          itemCount: showResult
+                              ? resultCardList.length
+                              : historyCardList.length,
+                          itemBuilder: (BuildContext context, index) {
+                            return showResult
+                                ? resultCardList[index]
+                                : historyCardList[index];
+                          })),
+                ],
+              )
+            ],
+          ),
         ),
       ),
-
-      // 下方导航栏
-      bottomNavigationBar: const MyNavigationBar(currentIndex: 1),
     );
   }
 }

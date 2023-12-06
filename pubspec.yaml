@@ -44,6 +44,7 @@ dependencies:
   logger: ^2.0.2+1
   dropdown_button2: ^2.3.8
   http: ^0.13.3
+  auto_size_text: ^3.0.0
   dio: ^5.3.3
   excel: ^3.0.0
   permission_handler: ^10.0.0

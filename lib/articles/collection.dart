@@ -1,20 +1,11 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import '../account/token.dart';
 import '../articles/medicinepage.dart';
 import '../articles/foodsearchpage.dart';
-import '../component/header/header.dart';
+import '../articles/sciencepage.dart';
 
-// TOINTERACT: 增加var列表，用来保存内容页面需要展示的内容（图片、文字等）
-// TOINTERACT: 增加bool变量记录文章是否被收藏
-class ArticleInfo {
-  final String title;
-  final String content;
-  final String imagePath;
-  ArticleInfo(
-      {required this.title, required this.content, required this.imagePath});
-}
-
-// TOIMPROVE: 返回收藏页面的时候保持在上次选的模块
 class Collection extends StatefulWidget {
   const Collection({super.key});
 
@@ -23,46 +14,42 @@ class Collection extends StatefulWidget {
 }
 
 class _CollectionState extends State<Collection> {
-  var token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4iLCJpZCI6MywiZXhwIjoxNzAxMzUwNDMyLCJpYXQiOjE3MDEwOTEyMzIsImp0aSI6IjU0YmY3YWY3LWI3ZDMtNDcxMC1hMzhhLTY3ZDE1ZmM4MTQ1YyIsImF1dGhvcml0aWVzIjpbIlJPTEVfdXNlciJdfQ.E6b_y9olNKiKJAsxWuOhgM0y4ifWZT2taQ9CQJD4SH4';
   var classSelected = <bool>[true, false, false, false];
   int curSelected = 0;
   int curItemCount = 0;
   var medicineArticleList = [];
   var foodArticleList = [];
-  var preventionArticleList = <ArticleInfo>[
-    ArticleInfo(
-        title: "Title 5",
-        content: "This is the fifth content...",
-        imagePath:
-            "https://images.nintendolife.com/3e199ccf1141f/doraemon-nobitars-little-star-wars-2021.large.jpg"),
-    ArticleInfo(
-        title: "Title 9",
-        content: "This is the ninth content...",
-        imagePath:
-            "https://www.billboard.com/wp-content/uploads/2023/06/Oreo-x-Nintendo-billboard-1548.jpg?w=942&h=623&crop=1"),
-  ];
-  var scienceArticleList = <ArticleInfo>[
-    ArticleInfo(
-        title: "Title 7",
-        content: "This is the seventh content...",
-        imagePath:
-            "https://news.cgtn.com/news/3049544e7751544f776b7a4e3249444f776b7a4e31457a6333566d54/img/dbc2bed8083940c4a70ca53dc7e784a2/dbc2bed8083940c4a70ca53dc7e784a2.jpg"),
-    ArticleInfo(
-        title: "Title 3",
-        content: "This is the third content...",
-        imagePath:
-            "https://images.unsplash.com/photo-1576622085773-4eb399076362?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8bWVycnklMjBnbyUyMHJvdW5kfGVufDB8fDB8fHww"),
-    ArticleInfo(
-        title: "Title 2",
-        content: "This is the second content...",
-        imagePath:
-            "https://assets-global.website-files.com/61eaa3470cc7de3ef77364b3/651430a63005ee02c2bab489_istockphoto-1270902491-170667a.jpg"),
-  ];
+  var preventionArticleList = [];
+  var scienceArticleList = [];
   var medicineTileList = <NonArticleTile>[];
   var foodTileList = <NonArticleTile>[];
   var preventionTileList = <ArticleTile>[];
   var scienceTileList = <ArticleTile>[];
+  int pageCount = 1;
+  int batchCount = 6;
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoading = false;
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      if (!_isLoading) {
+        if (curSelected == 2) {
+          setState(() {
+            _isLoading = true;
+            batchCount += 3;
+            fetchNShowDiseaseCollection();
+          });
+        } else if (curSelected == 3) {
+          setState(() {
+            _isLoading = true;
+            batchCount += 3;
+            fetchNShowScienceCollection();
+          });
+        }
+      }
+    }
+  }
 
   void createMedicineTileList() {
     medicineTileList.clear();
@@ -91,22 +78,23 @@ class _CollectionState extends State<Collection> {
   void createScienceTileList() {
     scienceTileList.clear();
 
-    for (int i = 0; i < scienceArticleList.length; ++i) {
-      scienceTileList.add(ArticleTile(articleList: scienceArticleList[i]));
+    for (int i = scienceArticleList.length - 1; i >= 0; --i) {
+      scienceTileList.add(ArticleTile(article: scienceArticleList[i]));
     }
   }
 
   void createPreventionTileList() {
     preventionTileList.clear();
 
-    for (int i = 0; i < preventionArticleList.length; ++i) {
-      preventionTileList
-          .add(ArticleTile(articleList: preventionArticleList[i]));
+    for (int i = preventionArticleList.length - 1; i >= 0; --i) {
+      preventionTileList.add(ArticleTile(article: preventionArticleList[i]));
     }
   }
 
   // Medicine API
   void fetchNShowMedicineCollection() async {
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -136,6 +124,8 @@ class _CollectionState extends State<Collection> {
 
   // Food API
   void fetchNShowFoodCollection() async {
+    var token = await storage.read(key: 'token');
+
     try {
       final dio = Dio(); // Create Dio instance
       final headers = {
@@ -163,10 +153,77 @@ class _CollectionState extends State<Collection> {
     }
   }
 
+  // Disease API
+  void fetchNShowDiseaseCollection() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/article/favorites/disease/list?page=$pageCount&size=$batchCount',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          preventionArticleList = response.data["data"];
+          curItemCount = preventionArticleList.length;
+          classSelected[curSelected] = false;
+          classSelected[2] = true;
+          curSelected = 2;
+          _isLoading = false;
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      ///print('Request failed: $e');
+    }
+  }
+
+  // Science API
+  void fetchNShowScienceCollection() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/article/favorites/science/list?page=$pageCount&size=$batchCount',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          scienceArticleList = response.data["data"];
+          curItemCount = scienceArticleList.length;
+          classSelected[curSelected] = false;
+          classSelected[3] = true;
+          curSelected = 3;
+          _isLoading = false;
+        });
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      ///print('Request failed: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     fetchNShowMedicineCollection();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -188,8 +245,26 @@ class _CollectionState extends State<Collection> {
               color: Colors.black,
               fontWeight: FontWeight.w900),
         ),
-        flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-            (MediaQuery.of(context).size.height * 0.1 + 11)),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.black,
+              size: 30,
+            )),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+              gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 250, 209, 252),
+              Color.fromARGB(255, 255, 255, 255),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          )),
+        ),
       ),
 
       // 主体内容
@@ -211,7 +286,8 @@ class _CollectionState extends State<Collection> {
                   height: screenHeight * 0.06),
               isSelected: classSelected,
               children: const [
-                Text("用药指南"),
+                AutoSizeText("用药指南"),
+                //Text("用药指南"),
                 Text("食物参数"),
                 Text("疾病预防"),
                 Text("科普文章"),
@@ -221,20 +297,19 @@ class _CollectionState extends State<Collection> {
                   fetchNShowMedicineCollection();
                 } else if (index == 1) {
                   fetchNShowFoodCollection();
+                } else if (index == 2) {
+                  fetchNShowDiseaseCollection();
                 } else {
-                  setState(() {
-                    classSelected[curSelected] = false;
-                    classSelected[index] = true;
-                    curSelected = index;
-                    curItemCount = 0;
-                  });
+                  fetchNShowScienceCollection();
                 }
               },
             ),
             SizedBox(
-                height: screenHeight * 0.65,
+                height: screenHeight * 0.7,
                 width: screenWidth * 0.88,
                 child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  controller: _scrollController,
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
                   itemCount: curItemCount,
@@ -257,11 +332,10 @@ class _CollectionState extends State<Collection> {
   }
 }
 
-// TOINTERACT: 在跳转去内容页面时，先设置好要展示的内容
 class ArticleTile extends StatelessWidget {
-  final ArticleInfo articleList;
+  final Map article;
 
-  const ArticleTile({super.key, required this.articleList});
+  const ArticleTile({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
@@ -272,21 +346,37 @@ class ArticleTile extends StatelessWidget {
       elevation: 6,
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, '/articles/collection/articlepage');
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      SciencePage(title: "返回收藏列表", id: article["id"])));
         },
         child: ListTile(
           minVerticalPadding: 15,
-          title: Text(articleList.title, maxLines: 1),
+          title: Text(
+            article["title"],
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           titleTextStyle: const TextStyle(
               fontWeight: FontWeight.w900, color: Colors.black, fontSize: 20),
-          subtitle: Text(articleList.content, maxLines: 1),
+          subtitle: Text(
+            article["subtitle"],
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           leading: Container(
             height: 55,
             clipBehavior: Clip.hardEdge,
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
             child: AspectRatio(
               aspectRatio: 1.6,
-              child: Image.network(articleList.imagePath, fit: BoxFit.cover),
+              child: Image.network(
+                  article["cover"] != ""
+                      ? article["cover"]
+                      : "https://static.vecteezy.com/system/resources/thumbnails/008/034/405/small/loading-bar-doodle-element-hand-drawn-vector.jpg",
+                  fit: BoxFit.cover),
             ),
           ),
         ),
@@ -295,7 +385,6 @@ class ArticleTile extends StatelessWidget {
   }
 }
 
-// TOINTERACT: 在跳转去内容页面时，先设置好要展示的内容
 class NonArticleTile extends StatelessWidget {
   final Map articleInfo;
   final String linkpath;
