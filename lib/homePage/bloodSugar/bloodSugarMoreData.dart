@@ -1954,103 +1954,7 @@ class ExportExcelWiget extends StatefulWidget {
 }
 
 class _ExportExcelWigetState extends State<ExportExcelWiget> {
-  Future<String> createFolder(String cow) async {
-    final folderName = cow;
-    final path = Directory("storage/emulated/0/$folderName");
-    var status = await Permission.storage.status;
-    var status1 = await Permission.storage.request().isGranted;
-    var status2 = await Permission.manageExternalStorage.status;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
-
-    if (!status.isGranted) {
-      await Permission.storage.request();
-    }
-
-    if (!status2.isGranted) {
-      await Permission.manageExternalStorage.request();
-    }
-
-    if (!status1) {
-      print("no permission1");
-    } else {
-      print("permission1 ok");
-    }
-
-    if (!status3) {
-      print("no permission3");
-    } else {
-      print("permission3 ok");
-    }
-
-    var dir = await getApplicationDocumentsDirectory();
-    var dir2 = await getApplicationSupportDirectory();
-    print(dir.path);
-    print(dir2.path);
-    var newpath =
-        Directory("/data/user/0/com.example.triguard/app_flutter/ahbeytest");
-    var newpath2 =
-        Directory('/data/user/0/com.example.triguard/files/ahbeytest2');
-    print(newpath.path);
-    //create folder
-
-    if (await newpath2.exists()) {
-      print("ok");
-    } else {
-      print("no");
-      newpath2.create();
-    }
-
-    var filename =
-        "/data/user/0/com.example.triguard/app_flutter/ahbeytest/test.txt";
-    var filename2 =
-        "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt";
-    var excel = ExcelPackage.Excel.createExcel();
-
-    // 2. 添加工作表
-    var sheet = excel['Sheet1'];
-
-    // 3. 添加数据
-    sheet.appendRow(['Name', 'Age', 'City']);
-    sheet.appendRow(['John Doe???', 25, 'New York']);
-    sheet.appendRow(['Jane Smith?', 30, 'Los Angeles']);
-    sheet.appendRow(['Bob Johnson?', 28, 'Chicago']);
-
-    // 4. 保存 Excel 文件
-/*     List<int>? fileBytes = excel.save();
-    //print('saving executed in ${stopwatch.elapsed}');
-    if (fileBytes != null) {
-      File(join(filename))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
- */
-    File fileDef = File(filename2);
-    try {
-      await fileDef.create();
-    } catch (e) {
-      print(e);
-    }
-
-    if (await File(
-            "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt")
-        .exists()) {
-      print("test2 txt ok");
-    }
-
-    // open the file
-    RandomAccessFile file2 = await fileDef.open(mode: FileMode.write);
-    // write to the file
-    await file2.writeString("??Hello World?????????");
-    // close the file
-    await file2.close();
-
-    //Open the file on the phone
-    OpenFile.open(filename2);
-
-    return "";
-  }
-
-  Future<void> createExportFile() async {
+  Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
     var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
@@ -2070,12 +1974,9 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     print("folderPath: ${folderPath.path}");
 
-    // 判断文件夹是否存在，不存在则创建
-    if (await folderPath.exists()) {
-      print("folderPath exist");
-    } else {
-      print("folderPath not exist");
-      return;
+    // 判断文件夹是否存在
+    if (!await folderPath.exists()) {
+      return false;
     }
 
     // 获取文件路径
@@ -2083,22 +1984,14 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
-      print("excel exist");
-      //打开文件
-      //OpenFile.open(fileNamePath);
-      // copy the file to Downloads folder
       var downloadPath = await getDownloadsDirectory();
-      await File(fileNamePath)
-          //.copy('/storage/emulated/0/Download/bloodPressure.xlsx');
-          .copy('${downloadPath!.path}/bloodSugar.xlsx');
-      //.copy('/sdcard/Download/bloodPressure.xlsx');
-      print("downloadPath: ${downloadPath?.path}");
-      // 检测文件是否存在
-      //if (await File('/storage/emulated/0/Download/bloodPressure.xlsx')
-      if (await File('${downloadPath?.path}/bloodSugar.xlsx').exists()) {
-        print("copy ok");
+      await File(fileNamePath).copy('${downloadPath!.path}/bloodSugar.xlsx');
+      if (await File('${downloadPath.path}/bloodSugar.xlsx').exists()) {
+        return true;
       }
     }
+
+    return false;
   }
 
   @override
@@ -2111,11 +2004,17 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             GestureDetector(
-              onTap: () {
-                print("导出excel");
-                //exportExcel();
-                //createFolder("ahbeytest");
-                createExportFile();
+              onTap: () async {
+                bool exportStatus = await createExportFile();
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(exportStatus
+                        ? '导出成功，请查看"Android/data/com.example.triguard/files/downloads/bloodSugar.xlsx"'
+                        : '导出失败，请检查文件夹权限和重试'),
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
               },
               child: Container(
                 height: 40,

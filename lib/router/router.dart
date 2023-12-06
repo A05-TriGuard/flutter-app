@@ -72,7 +72,7 @@ Map routes = {
   // -------------------- 动态模块 ====================
   '/moment': (context) => const Moment(),
   // ==================== 饮食模块 ====================
-  '/fooddiary': (context) => const FoodDiary(),
+  '/homePage/fooddiary/Details': (context) => const FoodDiary(),
   // ==================== 科普模块 ====================
   '/articles': (context) => const Article(),
   '/articles/science': (context) => const Science(),

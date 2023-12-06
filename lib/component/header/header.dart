@@ -14,16 +14,18 @@ Widget header = Container(
   ),
 );
 
-Widget getHeader(double width, double height) {
+Widget getHeader(double width, double height, {int? color = 0}) {
   return Column(
     children: [
       Container(
         width: width,
         height: height - 11,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 250, 209, 252),
+              color == 0
+                  ? Color.fromARGB(255, 250, 209, 252)
+                  : Color.fromARGB(255, 182, 234, 255),
               Color.fromARGB(255, 255, 255, 255),
             ],
             begin: Alignment.topCenter,

@@ -1,6 +1,5 @@
 //import 'dart:html';
-
-import 'dart:math';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -9,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:pedometer/pedometer.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../account/token.dart';
 import '../../component/header/header.dart';
@@ -139,6 +139,8 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
   List<int> sbpData = [];
   List<int> dbpData = [];
   List<int> heartRateData = [];
+  List<int> exercisingData = [];
+  List<int> stepCountData = [];
 
   // 从后端请求数据
   Future<void> getDataFromServer() async {
@@ -183,6 +185,8 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
     sbpData = [];
     dbpData = [];
     heartRateData = [];
+    exercisingData = [];
+    stepCountData = [];
 
     for (int i = data.length - 1; i >= 0; i--) {
       int id_ = data[i]["id"];
@@ -200,15 +204,9 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
       heartRateData.add(heartRate_);
     }
 
-    //print("dateData: $dateData");
-    //print("valueData: $valueData");
-    //setState(() {});
-
-    /* print("dayData      : $dayData");
-    print("monthData    : $monthData");
-    print("sbpData      : $sbpData");
-    print("dbpData      : $dbpData");
-    print("heartRateData: $heartRateData"); */
+    // TODO 删除
+    exercisingData = sbpData;
+    stepCountData = dbpData;
   }
 
   @override
@@ -263,8 +261,10 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   children: [
                     Container(
                       // width: MediaQuery.of(context).size.width * 1.5,
-                      width: dayData.length <= 5 ? 325 : dayData.length * 65,
-                      height: MediaQuery.of(context).size.height * 0.35,
+                      width:
+                          dayData.length <= 5 ? 300 : dayData.length * 65, //325
+                      height: MediaQuery.of(context).size.height * 0.45,
+
                       child: Echarts(
                         extraScript: '''
                   var month = $monthData;
@@ -276,13 +276,13 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 animation:false,
 
                 title: {
-                  text: '血压',
+                  text: '活动',
                   top:'5%',
                   left:'10',
                 },
 
                 legend: {
-                  data: ['收缩压', '舒张压', '心率'],
+                  data: ['步数', '运动时长'],
                   top:'6%',
                   left:'70',
                 },
@@ -290,12 +290,20 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   grid: {
                   left: '3%',
                   right: '4%',
-                  bottom: '10%',
+                  bottom: '5%',
+                  top: '30%',
                   containLabel: true,
                 },
-                tooltip: {
-                  trigger: 'axis'
-                },
+
+               tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                  type: 'cross',
+                  crossStyle: {
+                    color: '#999'
+                  }
+                }
+              },
 
                 xAxis: {
                   type: 'category',
@@ -313,35 +321,60 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
                 },
 
-                yAxis: {
-                  type: 'value',
-                  //min: 80,
-                  //max: 130,
-                  axisLabel:{
-                    textStyle: {
-                        color: '#000000'
+                yAxis:[
+                  { 
+                    type: 'value',
+                    name: '运动时长',
+                    axisLabel:{
+                      textStyle: {
+                          color: '#000000'
+                      },
+                    },
+                    splitLine:{       //y轴刻度线
+                      show:false
+                    }, 
+                  },
+
+                  {
+                    type: 'value',
+                    name: '步数',
+                    
+                    axisLabel:{
+                      textStyle: {
+                          color: '#000000'
+                      },
                     },
                   },
-                },
+                ],
+
                 series: [{
-                  name: '收缩压',
-                  data: $sbpData,
-                  type: 'line',
-                  smooth: true
+                  name: '步数',
+                  data: $stepCountData,
+                  type: 'bar',
+                  //barWidth: '25%',
+                  barWidth: ${stepCountData.length} < 4? 50 : '60%',
+                  //barGap: '20%',
+                  yAxisIndex: 1,
+                  smooth: true,
+                  tooltip: {
+                    valueFormatter: function (value) {
+                      return value + ' 步';
+                    }
+                  },
                 },
                 {
-                  name: '舒张压',
-                  data: $dbpData,
+                  name: '运动时长',
+                  data: $exercisingData,
                   type: 'line',
+                 
+                  yAxisIndex: 0,
+                  tooltip: {
+                    valueFormatter: function (value) {
+                      return value + ' 分钟';
+                    }
+                  },
                   smooth: true
                 },
-
-                 {
-                  name: '心率',
-                  data: $heartRateData,
-                  type: 'line',
-                  smooth: true
-                }
                 ]
               }
             ''',
@@ -1199,7 +1232,7 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                PageTitle(
+                const PageTitle(
                   title: "当日血压数据",
                   icons: "assets/icons/list.png",
                   fontSize: 18,
@@ -2228,6 +2261,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
     initPlatformState();
   }
 
+  // 步数相关
   void initPlatformState() {
     _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
     _pedestrianStatusStream
@@ -2245,29 +2279,30 @@ class _TodayActivitiesState extends State<TodayActivities> {
   }
 
   void onStepCount(StepCount event) {
-    print(event);
+    // print(event);
     setState(() {
       _steps = event.steps.toString();
     });
+    //print(_steps);
   }
 
   void onPedestrianStatusChanged(PedestrianStatus event) {
-    print(event);
+    //print(event);
     setState(() {
       _status = event.status;
     });
   }
 
   void onPedestrianStatusError(error) {
-    print('onPedestrianStatusError: $error');
+    // print('onPedestrianStatusError: $error');
     setState(() {
       _status = 'Pedestrian Status not available';
     });
-    print(_status);
+    //print(_status);
   }
 
   void onStepCountError(error) {
-    print('onStepCountError: $error');
+    // print('onStepCountError: $error');
     setState(() {
       _steps = 'Step Count not available';
     });
@@ -2454,85 +2489,422 @@ class _TodayActivitiesState extends State<TodayActivities> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    double height1 = 50;
-    return Column(
-      children: [
-        // 步数统计
-        UnconstrainedBox(
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.2),
-              ),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromRGBO(0, 0, 0, 0.2),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
-                ),
-              ],
+  // 获取步数运动权限
+  Future<void> getActivityRecognitionPermission() async {
+    var permissionStatus =
+        await Permission.activityRecognition.request().isGranted;
+
+    if (!permissionStatus) {
+      await Permission.activityRecognition.request();
+    }
+  }
+
+  // 步数计数组件
+  Widget stepCountWidget() {
+    // 先获取权限
+    getActivityRecognitionPermission();
+    return UnconstrainedBox(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.85,
+        height: 80,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: const Color.fromRGBO(0, 0, 0, 0.2),
+          ),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: const [
+            BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.2),
+              offset: Offset(0, 5),
+              blurRadius: 5.0,
+              spreadRadius: 0.0,
             ),
-            //alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
+          ],
+        ),
+        //alignment: Alignment.centerLeft,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // 标题
+              Container(
+                height: 50,
+                alignment: Alignment.topCenter,
+                child: const PageTitle(
+                  title: "今日步数",
+                  icons: "assets/icons/footprints.png",
+                  fontSize: 20,
+                ),
+              ),
+
+              Row(
                 children: [
-                  // 标题
                   Container(
                     height: 50,
-                    alignment: Alignment.topCenter,
-                    child: const PageTitle(
-                      title: "今日步数",
-                      icons: "assets/icons/footprints.png",
-                      fontSize: 20,
+                    alignment: Alignment.center,
+                    child: Text(
+                      //'$steps2',
+                      _steps == "Step Count not available" ? "-" : _steps,
+                      style: const TextStyle(
+                        fontSize: 35,
+                        //fontSize: 15,
+                        fontFamily: "BalooBhai",
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 70, 165, 119),
+                      ),
                     ),
                   ),
-
-                  Row(
-                    children: [
-                      Container(
-                        height: 50,
-                        alignment: Alignment.center,
-                        child: Text(
-                          //'$steps2',
-                          _steps == "Step Count not available" ? "-" : _steps,
-                          style: const TextStyle(
-                            fontSize: 35,
-                            //fontSize: 15,
-                            fontFamily: "BalooBhai",
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 70, 165, 119),
-                          ),
-                        ),
+                  Container(
+                    height: 50,
+                    alignment: Alignment.center,
+                    child: const Text(
+                      ' 步',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: "BalooBhai",
+                        fontWeight: FontWeight.bold,
                       ),
-                      Container(
-                        height: 50,
-                        alignment: Alignment.center,
-                        child: const Text(
-                          ' 步',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontFamily: "BalooBhai",
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 运动时长组件
+  Widget exercisingWidget() {
+    double height1 = 50;
+    return UnconstrainedBox(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.85,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: const Color.fromRGBO(0, 0, 0, 0.2),
+          ),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: const [
+            BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.2),
+              offset: Offset(0, 5),
+              blurRadius: 5.0,
+              spreadRadius: 0.0,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // 今日运动 + 运动时长
+              Container(
+                height: 50,
+                //color: Colors.indigo,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 标题
+                    Container(
+                      height: height1,
+                      alignment: Alignment.topCenter,
+                      child: const PageTitle(
+                        title: "今日运动",
+                        icons: "assets/icons/footprints.png",
+                        fontSize: 20,
+                      ),
+                    ),
+
+                    // 运动时长 x小时 y分钟
+                    Row(
+                      children: [
+                        Container(
+                          height: height1,
+                          alignment: Alignment.center,
+                          child: Text(
+                            exercisingHours,
+                            style: const TextStyle(
+                              fontSize: 35,
+                              fontFamily: "BalooBhai",
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 104, 200, 255),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: height1,
+                          alignment: Alignment.center,
+                          child: const Text(
+                            ' 小时 ',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontFamily: "BalooBhai",
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: height1,
+                          alignment: Alignment.center,
+                          child: Text(
+                            exercisingMins,
+                            style: const TextStyle(
+                              fontSize: 35,
+                              fontFamily: "BalooBhai",
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 104, 200, 255),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 50,
+                          alignment: Alignment.center,
+                          child: const Text(
+                            ' 分钟',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontFamily: "BalooBhai",
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ], // 运动中或开始运动
+                ),
+              ),
+              // 运动中或开始运动
+              isExpanded == false
+                  ? isExercising == false
+                      // 不在运动时
+                      ? // 开始/结束运动按钮
+                      Container(
+                          height: 50,
+                          alignment: Alignment.center,
+                          //color: Colors.amber,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isExpanded = !isExpanded;
+                              });
+                            },
+                            child: Container(
+                              width: 100,
+                              height: 35,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 104, 200, 255),
+                                border: Border.all(
+                                  color: const Color.fromRGBO(0, 0, 0, 0.2),
+                                ),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: const Text(
+                                '开始运动',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontFamily: "BalooBhai",
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      //运动时
+                      : Column(
+                          children: [
+                            // 计时器
+                            SizedBox(
+                              height: height1,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    "本次运动时长：",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontFamily: "BalooBhai",
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Container(
+                                    //color: Colors.greenAccent,
+                                    height: 50,
+                                    alignment: Alignment.center,
+                                    child: getStopWatchTimer(),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // 运动类型
+                            Container(
+                              height: height1,
+                              alignment: Alignment.center,
+                              child: Text(
+                                "运动类型：${items[selectedType]}",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontFamily: "BalooBhai",
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+
+                            // 暂停与结束运动按钮
+                            SizedBox(
+                              height: height1,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // 暂停
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          if (isPause == false) {
+                                            isPause = true;
+                                            watchTimer.onStopTimer();
+                                            print("暂停运动");
+                                          } else {
+                                            isPause = false;
+                                            watchTimer.onStartTimer();
+                                            print("继续运动");
+                                          }
+                                        });
+                                      },
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: const Color.fromARGB(
+                                              255, 104, 255, 112),
+                                          border: Border.all(
+                                            color: const Color.fromRGBO(
+                                                0, 0, 0, 0.2),
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                        child: Text(
+                                          isPause == false ? '暂停运动' : '继续运动',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontFamily: "BalooBhai",
+                                            fontWeight: FontWeight.bold,
+                                            color: Color.fromARGB(255, 0, 0, 0),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  //结束
+                                  Container(
+                                    height: 100,
+                                    alignment: Alignment.center,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          isExercising = false;
+                                          watchTimer.onStopTimer();
+
+                                          // endTime = DateTime.now();
+                                          //endTime= watchTimer.
+                                          /*       final end = endTime
+                                                  .difference(startTime)
+                                                  .inSeconds; */
+                                          final displayTime =
+                                              StopWatchTimer.getDisplayTime(
+                                                  watchTimer.rawTime.value,
+                                                  hours: true,
+                                                  minute: true,
+                                                  second: true,
+                                                  milliSecond: false);
+
+                                          watchTimer.onResetTimer();
+                                          print(
+                                              "结束运动 类型:${items[selectedType]}  ${startTime} ~ ${displayTime}");
+                                        });
+                                      },
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: const Color.fromARGB(
+                                              255, 255, 104, 104),
+                                          border: Border.all(
+                                            color: const Color.fromRGBO(
+                                                0, 0, 0, 0.2),
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                        child: const Text(
+                                          '结束运动',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontFamily: "BalooBhai",
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                  // 选择运动类型并开始
+                  : SizedBox(
+                      height: 380,
+                      child: getTypeSelector(),
+                    ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // var permissionStatus = await Permission.activityRecognition.request().isGranted;
+    double height1 = 50;
+    return Column(
+      children: [
+        UnconstrainedBox(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            child: const PageTitle(
+              title: "今日活动",
+              icons: "assets/icons/exercising.png",
+              fontSize: 18,
             ),
           ),
         ),
+
+        // 步数统计
+        stepCountWidget(),
 
         //
         const SizedBox(
@@ -2540,314 +2912,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
         ),
 
         // 运动时长统计
-        UnconstrainedBox(
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.2),
-              ),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromRGBO(0, 0, 0, 0.2),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 今日运动 + 运动时长
-                  Container(
-                    height: 50,
-                    //color: Colors.indigo,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // 标题
-                        Container(
-                          height: height1,
-                          alignment: Alignment.topCenter,
-                          child: const PageTitle(
-                            title: "今日运动",
-                            icons: "assets/icons/footprints.png",
-                            fontSize: 20,
-                          ),
-                        ),
-
-                        // 运动时长 x小时 y分钟
-                        Row(
-                          children: [
-                            Container(
-                              height: height1,
-                              alignment: Alignment.center,
-                              child: Text(
-                                exercisingHours,
-                                style: const TextStyle(
-                                  fontSize: 35,
-                                  fontFamily: "BalooBhai",
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 104, 200, 255),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              height: height1,
-                              alignment: Alignment.center,
-                              child: const Text(
-                                ' 小时 ',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontFamily: "BalooBhai",
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              height: height1,
-                              alignment: Alignment.center,
-                              child: Text(
-                                exercisingMins,
-                                style: const TextStyle(
-                                  fontSize: 35,
-                                  fontFamily: "BalooBhai",
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 104, 200, 255),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              height: 50,
-                              alignment: Alignment.center,
-                              child: const Text(
-                                ' 分钟',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontFamily: "BalooBhai",
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ], // 运动中或开始运动
-                    ),
-                  ),
-                  // 运动中或开始运动
-                  isExpanded == false
-                      ? isExercising == false
-                          // 不在运动时
-                          ? // 开始/结束运动按钮
-                          Container(
-                              height: 50,
-                              alignment: Alignment.center,
-                              //color: Colors.amber,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    isExpanded = !isExpanded;
-                                  });
-                                },
-                                child: Container(
-                                  width: 100,
-                                  height: 35,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: const Color.fromARGB(
-                                        255, 104, 200, 255),
-                                    border: Border.all(
-                                      color: const Color.fromRGBO(0, 0, 0, 0.2),
-                                    ),
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: const Text(
-                                    '开始运动',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: "BalooBhai",
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                          //运动时
-                          : Column(
-                              children: [
-                                // 计时器
-                                SizedBox(
-                                  height: height1,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        "本次运动时长：",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontFamily: "BalooBhai",
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Container(
-                                        //color: Colors.greenAccent,
-                                        height: 50,
-                                        alignment: Alignment.center,
-                                        child: getStopWatchTimer(),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // 运动类型
-                                Container(
-                                  height: height1,
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    "运动类型：${items[selectedType]}",
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontFamily: "BalooBhai",
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-
-                                // 暂停与结束运动按钮
-                                SizedBox(
-                                  height: height1,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      // 暂停
-                                      Container(
-                                        alignment: Alignment.center,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              if (isPause == false) {
-                                                isPause = true;
-                                                watchTimer.onStopTimer();
-                                                print("暂停运动");
-                                              } else {
-                                                isPause = false;
-                                                watchTimer.onStartTimer();
-                                                print("继续运动");
-                                              }
-                                            });
-                                          },
-                                          child: Container(
-                                            width: 100,
-                                            height: 35,
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                              color: const Color.fromARGB(
-                                                  255, 104, 255, 112),
-                                              border: Border.all(
-                                                color: const Color.fromRGBO(
-                                                    0, 0, 0, 0.2),
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                            ),
-                                            child: Text(
-                                              isPause == false
-                                                  ? '暂停运动'
-                                                  : '继续运动',
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontFamily: "BalooBhai",
-                                                fontWeight: FontWeight.bold,
-                                                color: Color.fromARGB(
-                                                    255, 0, 0, 0),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      //结束
-                                      Container(
-                                        height: 100,
-                                        alignment: Alignment.center,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              isExercising = false;
-                                              watchTimer.onStopTimer();
-
-                                              // endTime = DateTime.now();
-                                              //endTime= watchTimer.
-                                              /*       final end = endTime
-                                                  .difference(startTime)
-                                                  .inSeconds; */
-                                              final displayTime =
-                                                  StopWatchTimer.getDisplayTime(
-                                                      watchTimer.rawTime.value,
-                                                      hours: true,
-                                                      minute: true,
-                                                      second: true,
-                                                      milliSecond: false);
-
-                                              watchTimer.onResetTimer();
-                                              print(
-                                                  "结束运动 类型:${items[selectedType]}  ${startTime} ~ ${displayTime}");
-                                            });
-                                          },
-                                          child: Container(
-                                            width: 100,
-                                            height: 35,
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                              color: const Color.fromARGB(
-                                                  255, 255, 104, 104),
-                                              border: Border.all(
-                                                color: const Color.fromRGBO(
-                                                    0, 0, 0, 0.2),
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                            ),
-                                            child: const Text(
-                                              '结束运动',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontFamily: "BalooBhai",
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            )
-                      // 选择运动类型并开始
-                      : SizedBox(
-                          height: 380,
-                          child: getTypeSelector(),
-                        ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        exercisingWidget(),
       ],
     );
   }
@@ -2979,6 +3044,9 @@ class _ActivityDetailsState extends State<ActivityDetails> {
           const SizedBox(
             height: 10,
           ),
+
+          // 步数与运动时长数据图
+          bloodPressureGraphtWidget,
 
           // 血压图表组件
           /* bloodPressureGraphtWidget,

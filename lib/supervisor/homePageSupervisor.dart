@@ -964,7 +964,8 @@ class _HomePageState extends State<HomePage> {
                 fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
           ),
           flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-              (MediaQuery.of(context).size.height * 0.1 + 11)),
+              (MediaQuery.of(context).size.height * 0.1 + 11),
+              color: 1),
 
           automaticallyImplyLeading: true, //toolbarHeight: 45, 不显示 ← 按钮
           actions: [

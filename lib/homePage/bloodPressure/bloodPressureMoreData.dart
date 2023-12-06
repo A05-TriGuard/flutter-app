@@ -247,8 +247,18 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       await Permission.storage.request();
     }
 
+    // if (!await Permission.storage.request().isGranted) {
+    if (!status1) {
+      await Permission.manageExternalStorage.status;
+    }
+
     if (!status2) {
       await Permission.manageExternalStorage.request();
+    }
+
+    // if (!await Permission.manageExternalStorage.request().isGranted) {
+    if (!status3) {
+      await Permission.manageExternalStorage.status;
     }
 
     // 获取文件夹路径
@@ -410,6 +420,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     }
 
     excel.delete('Sheet1');
+    //var downloadFolderPath = '/storage/emulated/0/Download/bp.xlsx';
 
     // 保存
     List<int>? fileBytes = excel.save();
@@ -417,7 +428,16 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       File(join(fileNamePath))
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes);
+      /*  File(join(downloadFolderPath))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fileBytes); */
     }
+
+    /* if (await File(downloadFolderPath).exists()) {
+      print("excel export download ok");
+      //打开文件
+      // OpenFile.open(fileNamePath);
+    } */
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
@@ -2423,7 +2443,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     return "";
   }
 
-  Future<void> createExportFile() async {
+  Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
     var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
@@ -2443,12 +2463,9 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     print("folderPath: ${folderPath.path}");
 
-    // 判断文件夹是否存在，不存在则创建
-    if (await folderPath.exists()) {
-      print("folderPath exist");
-    } else {
-      print("folderPath not exist");
-      return;
+    // 判断文件夹是否存在
+    if (!await folderPath.exists()) {
+      return false;
     }
 
     // 获取文件路径
@@ -2456,21 +2473,35 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
-      print("excel exist");
-      //打开文件
-      // copy the file to Downloads folder
       var downloadPath = await getDownloadsDirectory();
       await File(fileNamePath)
           //.copy('/storage/emulated/0/Download/bloodPressure.xlsx');
           .copy('${downloadPath!.path}/bloodPressure.xlsx');
-      //.copy('/sdcard/Download/bloodPressure.xlsx');
-      print("downloadPath: ${downloadPath?.path}");
       // 检测文件是否存在
       //if (await File('/storage/emulated/0/Download/bloodPressure.xlsx')
       if (await File('${downloadPath?.path}/bloodPressure.xlsx').exists()) {
-        print("copy ok");
+        print("export bloodPressure.xlsx successfully");
+        return true;
       }
     }
+
+    return false;
+
+    // var downloadFolderPath = Directory('sdcard/Download');
+/* 
+    var downloadFolderPath = Directory('/storage/emulated/0/Download/');
+    if (await downloadFolderPath.exists()) {
+      print("downloadFolderPath exist");
+      print("!!");
+      //await File(fileNamePath).copy('sdcard/Download/bp.xlsx');
+      await File(fileNamePath).copy('/storage/emulated/0/Download/bp.xlsx');
+      print("???");
+      if (await File('/storage/emulated/0/Download/bp.xlsx').exists()) {
+        print("copy to DOWNLOAD ok");
+      } else {
+        print("downloadFolderPath not exist");
+      }
+    } */
   }
 
   @override
@@ -2483,43 +2514,50 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             GestureDetector(
-              onTap: () {
-                print("导出excel");
-                //exportExcel();
-                //createFolder("ahbeytest");
-                createExportFile();
+              onTap: () async {
+                bool exportStatus = await createExportFile();
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(exportStatus
+                        ? '导出成功，请查看"Android/data/com.example.triguard/files/downloads/bloodPressure.xlsx"'
+                        : '导出失败，请检查文件夹权限和重试'),
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
               },
               child: Container(
-                  height: 40,
-                  width: 150,
-                  padding: const EdgeInsets.all(0.0),
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 148, 252, 148),
-                    borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                        color: const Color.fromRGBO(122, 119, 119, 0.43)),
-                  ),
-                  //alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "导出Excel文件",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 15.0,
-                          fontFamily: 'Blinker',
-                        ),
-                        textAlign: TextAlign.center,
+                height: 40,
+                width: 150,
+                padding: const EdgeInsets.all(0.0),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 148, 252, 148),
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                      color: const Color.fromRGBO(122, 119, 119, 0.43)),
+                ),
+                //alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "导出Excel文件",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 15.0,
+                        fontFamily: 'Blinker',
                       ),
-                      Image.asset(
-                        "assets/icons/excel.png",
-                        height: 25,
-                        width: 25,
-                      ),
-                    ],
-                  )),
+                      textAlign: TextAlign.center,
+                    ),
+                    Image.asset(
+                      "assets/icons/excel.png",
+                      height: 25,
+                      width: 25,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

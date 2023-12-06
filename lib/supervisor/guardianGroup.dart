@@ -1,7 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:timeline_tile/timeline_tile.dart';
+import 'package:filter_list/filter_list.dart';
+
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
-import 'package:timeline_tile/timeline_tile.dart';
 import './homePageSupervisor.dart';
 
 class TodayActivities extends StatefulWidget {
@@ -104,8 +108,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
             textAlign: TextAlign.center,
             style: const TextStyle(
                 fontFamily: 'BalooBhai',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                //fontWeight: FontWeight.bold,
                 color: Colors.black),
           ),
         ),
@@ -165,6 +169,28 @@ class _TodayActivitiesState extends State<TodayActivities> {
   }
 }
 
+class User2 {
+  final String? name;
+  final String? avatar;
+  User2({this.name, this.avatar});
+}
+
+List<User2> userList = [
+  User2(name: "Jon", avatar: ""),
+  User2(name: "Lindsey ", avatar: ""),
+  User2(name: "Valarie ", avatar: ""),
+  User2(name: "Elyse ", avatar: ""),
+  User2(name: "Ethel ", avatar: ""),
+  User2(name: "Emelyan ", avatar: ""),
+  User2(name: "Catherine ", avatar: ""),
+  User2(name: "Stepanida  ", avatar: ""),
+  User2(name: "Carolina ", avatar: ""),
+  User2(name: "Nail  ", avatar: ""),
+  User2(name: "Kamil ", avatar: ""),
+  User2(name: "Mariana ", avatar: ""),
+  User2(name: "Katerina ", avatar: ""),
+];
+
 // ==============================================
 // 此页面
 class GuardianGroupPage extends StatefulWidget {
@@ -175,9 +201,14 @@ class GuardianGroupPage extends StatefulWidget {
 }
 
 class _GuardianGroupPageState extends State<GuardianGroupPage> {
-  List<bool> isExpandedList = [false, false, false, false, false];
-  bool isEditingNickname = false;
+  TextEditingController groupNameController = TextEditingController();
   TextEditingController nicknameController = TextEditingController();
+  List<bool> isExpandedList = [false, false, false, false, false];
+  List<User2> selectedUserList = [];
+  bool isEditingNickname = false;
+  bool isEditingGroupName = false;
+  String groupName = "我们一家人";
+  int memberCount = 5;
 
   Widget getGroupMemberWidgetLess(
       int userId, String username, String email, String nickname) {
@@ -187,14 +218,20 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
       children: [
         Image.asset("assets/icons/exercising.png", width: 20, height: 20),
         const SizedBox(width: 10),
-        Text(
-          nickname.isEmpty ? username : nickname,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-              fontFamily: 'BalooBhai',
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black),
+        Container(
+          constraints: BoxConstraints(
+            minHeight: 30,
+            maxWidth: MediaQuery.of(context).size.width * 0.65,
+          ),
+          child: Text(
+            nickname.isEmpty ? username : nickname,
+            textAlign: TextAlign.left,
+            style: const TextStyle(
+                fontFamily: 'BalooBhai',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black),
+          ),
         ),
       ],
     );
@@ -216,69 +253,71 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                 ),
                 //color: Colors.blueAccent,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // 昵称：
-                    /* Text(
-                      "昵称：$nickname",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
+                    // 昵称
+                    Container(
+                      constraints: const BoxConstraints(
+                        minHeight: 30,
+                      ),
+                      //color: Colors.yellow,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        "昵称：",
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
                           fontFamily: 'BalooBhai',
-                          fontSize: 18,
+                          fontSize: 16,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                    ), */
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          constraints: const BoxConstraints(
-                            minHeight: 30,
-                          ),
-                          //color: Colors.yellow,
-                          alignment: Alignment.center,
-                          child: const Text(
-                            "昵称：",
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontFamily: 'BalooBhai',
-                              fontSize: 18,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                         ),
-                        Container(
-                          constraints: const BoxConstraints(
-                            minHeight: 30,
-                          ),
-                          alignment: Alignment.centerLeft,
-                          //color: Colors.greenAccent,
-                          width: MediaQuery.of(context).size.width * 0.55,
-                          //color: Colors.yellow,
-                          child: Text(
-                            nickname,
-                            textAlign: TextAlign.left,
-                            style: const TextStyle(
-                              fontFamily: 'BalooBhai',
-                              fontSize: 18,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
+
+                    // 昵称名
+                    Container(
+                      constraints: BoxConstraints(
+                        minHeight: 30,
+                        maxWidth: MediaQuery.of(context).size.width * 0.55,
+                      ),
+                      //color: Colors.amber,
+                      alignment: Alignment.centerLeft,
+                      //color: Colors.greenAccent,
+                      //width: MediaQuery.of(context).size.width * 0.55,
+                      //color: Colors.yellow,
+                      child: Text(
+                        nickname,
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(
+                          fontFamily: 'BalooBhai',
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(
+                      width: 5,
+                    ),
+
                     // 修改昵称的按钮
-                    GestureDetector(
-                      onTap: () {
-                        print("修改昵称");
-                        // Navigator.pushNamed(context, '/edit');
-                        setState(() {
-                          isEditingNickname = !isEditingNickname;
-                        });
-                      },
-                      child: Container(
-                        width: 25,
-                        height: 25,
+                    Container(
+                      constraints:
+                          const BoxConstraints(minHeight: 20, minWidth: 20),
+                      //width: 25,
+                      //height: 25,
+                      //color: Colors.red,
+                      child: GestureDetector(
+                        onTap: () {
+                          print("修改昵称");
+                          // Navigator.pushNamed(context, '/edit');
+                          setState(() {
+                            isEditingNickname = !isEditingNickname;
+                          });
+                        },
+                        /*  child: Image.asset("assets/icons/pencil.png",
+                            width: 10, height: 10), */
                         child: const Icon(
                           Icons.edit,
                           size: 20,
@@ -298,43 +337,41 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                   Row(
                     children: [
                       const SizedBox(
-                        height: 40,
+                        height: 30,
                         child: Center(
                           child: Text(
-                            // "${count}.  ",
                             "昵称：  ",
                             textAlign: TextAlign.left,
-
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontFamily: "BalooBhai",
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
+                      // 输入框
                       SizedBox(
-                        //color: Colors.greenAccent,
                         width: MediaQuery.of(context).size.width * 0.35,
-                        height: 40,
+                        height: 30,
                         child: Center(
                           child: TextFormField(
                             controller: nicknameController,
-                            maxLength: 15,
+                            maxLength: 14,
                             style: const TextStyle(
                               fontFamily: 'BalooBhai',
-                              fontSize: 18,
+                              fontSize: 16,
                               // fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
                             decoration: InputDecoration(
                               isCollapsed: true,
-                              border: UnderlineInputBorder(),
+                              border: const UnderlineInputBorder(),
                               counterText: "",
                               hintText: nickname,
                               hintStyle: const TextStyle(
                                 fontFamily: 'BalooBhai',
-                                fontSize: 18,
+                                fontSize: 16,
                                 //fontWeight: FontWeight.bold,
                                 color: Color.fromARGB(255, 116, 116, 116),
                               ),
@@ -356,7 +393,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                   Container(
                     //color: Colors.blueAccent,
                     alignment: Alignment.center,
-                    height: 40,
+                    height: 30,
                     child: Row(
                       children: [
                         GestureDetector(
@@ -387,6 +424,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                             setState(() {
                               isEditingNickname = !isEditingNickname;
                               print("新昵称：${nicknameController.text}");
+                              nickname = nicknameController.text;
                               nicknameController.text = "";
                               /* nickname =
                                                   nicknameController.text;
@@ -407,11 +445,6 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                   ),
                 ],
               ),
-
-        //
-        /* isEditingNickname == false
-            ? const SizedBox(height: 10)
-            : const SizedBox(height: 0), */
 
         // 用户名
         Container(
@@ -434,7 +467,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontFamily: 'BalooBhai',
-                    fontSize: 18,
+                    fontSize: 16,
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
@@ -453,7 +486,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                   textAlign: TextAlign.left,
                   style: const TextStyle(
                     fontFamily: 'BalooBhai',
-                    fontSize: 18,
+                    fontSize: 16,
                     color: Colors.black,
                   ),
                 ),
@@ -483,7 +516,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontFamily: 'BalooBhai',
-                    fontSize: 18,
+                    fontSize: 16,
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
@@ -501,7 +534,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                   textAlign: TextAlign.left,
                   style: const TextStyle(
                     fontFamily: 'BalooBhai',
-                    fontSize: 18,
+                    fontSize: 16,
                     color: Colors.black,
                   ),
                 ),
@@ -652,6 +685,335 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     );
   }
 
+  Future<void> openFilterDelegate() async {
+    await FilterListDelegate.show<User2>(
+      context: context,
+      list: userList,
+      selectedListData: selectedUserList,
+      //enableOnlySingleSelection: true,
+      //applyButtonText: "??",
+      theme: FilterListDelegateThemeData(
+        listTileTheme: ListTileThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          tileColor: Colors.white,
+          selectedColor: Colors.red,
+          selectedTileColor: const Color(0xFF649BEC).withOpacity(.5),
+          textColor: Colors.blue,
+        ),
+      ),
+      // enableOnlySingleSelection: true,
+      onItemSearch: (user, query) {
+        return user.name!.toLowerCase().contains(query.toLowerCase());
+      },
+      tileLabel: (user) => user!.name,
+      emptySearchChild: const Center(child: Text('No user found')),
+      // enableOnlySingleSelection: true,
+      searchFieldHint: 'Search Here..',
+      /*suggestionBuilder: (context, user, isSelected) {
+        return ListTile(
+          title: Text(user.name!),
+          leading: const CircleAvatar(
+            backgroundColor: Colors.blue,
+          ),
+          selected: isSelected,
+        );
+      },*/
+      onApplyButtonClick: (list) {
+        setState(() {
+          selectedUserList = list!;
+          if (selectedUserList.isNotEmpty) {
+            //print(selectedUserList[0].name);
+            for (int i = 0; i < selectedUserList.length; i++) {
+              print(selectedUserList[i].name);
+            }
+          }
+        });
+      },
+    );
+  }
+
+  // 选择要添加的成员
+  void openFilterDialog() async {
+    // await FilterListDelegate.show(context: context, list: userList, onItemSearch:  , onApplyButtonClick: );
+
+    await FilterListDialog.display<User2>(
+      context,
+      listData: userList,
+      selectedListData: selectedUserList,
+      choiceChipLabel: (user) => user!.name,
+      validateSelectedItem: (list, val) => list!.contains(val),
+      onItemSearch: (user, query) {
+        return user.name!.toLowerCase().contains(query.toLowerCase());
+      },
+      onApplyButtonClick: (list) {
+        setState(() {
+          selectedUserList = List.from(list!);
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  // 添加成员
+  void showOverlay(BuildContext context) {
+    OverlayEntry? overlayEntry;
+    TextEditingController usernameController = TextEditingController();
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 0,
+        left: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            //olor: Color.fromRGBO(255, 255, 255, 0.8),
+            //color: Colors.white,
+            child: Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: 500,
+                // color: Colors.white,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 2),
+                      blurRadius: 10.0,
+                      spreadRadius: 2.0,
+                    ),
+                  ],
+                ),
+
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      //const SizedBox(height: 10,),
+
+                      //标题
+                      const Text(
+                        "添加成员",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontFamily: "BalooBhai",
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      // 选择要添加的成员
+                      Container(
+                        height: 250,
+                        width: MediaQuery.of(context).size.width * 0.6,
+                        child: FilterListWidget<User2>(
+                          listData: userList,
+                          selectedListData: selectedUserList,
+                          onApplyButtonClick: (list) {
+                            // do something with list ..
+                          },
+                          choiceChipLabel: (item) {
+                            /// Used to display text on chip
+                            return item!.name;
+                          },
+                          validateSelectedItem: (list, val) {
+                            ///  identify if item is selected or not
+                            return list!.contains(val);
+                          },
+                          onItemSearch: (user, query) {
+                            /// When search query change in search bar then this method will be called
+                            ///
+                            /// Check if items contains query
+                            return user.name!
+                                .toLowerCase()
+                                .contains(query.toLowerCase());
+                          },
+                        ),
+                      ),
+
+                      // 取消，确定
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              // 在这里添加Overlay上按钮的操作
+                              overlayEntry?.remove();
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(
+                                  Color.fromARGB(255, 118, 246, 255)),
+                            ),
+                            child: Text('取消'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              // 在这里添加Overlay上按钮的操作
+                              overlayEntry?.remove();
+                            },
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.greenAccent),
+                            ),
+                            child: Text('确定'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlayEntry);
+  }
+
+  Widget editingGroupNameWidget() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          constraints: BoxConstraints(
+            minHeight: 30,
+            maxWidth: MediaQuery.of(context).size.width * 0.65,
+          ),
+          child: SizedBox(
+            //color: Colors.greenAccent,
+            width: MediaQuery.of(context).size.width * 0.35,
+            height: 40,
+            child: Center(
+              child: TextFormField(
+                controller: groupNameController,
+                maxLength: 15,
+                style: const TextStyle(
+                  fontFamily: 'BalooBhai',
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+                decoration: InputDecoration(
+                  isCollapsed: true,
+                  border: UnderlineInputBorder(),
+                  counterText: "",
+                  hintText: groupName,
+                  hintStyle: const TextStyle(
+                    fontFamily: 'BalooBhai',
+                    fontSize: 18,
+                    //fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 116, 116, 116),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 5,
+        ),
+        Container(
+          alignment: Alignment.center,
+          height: 40,
+          child: Row(
+            children: [
+              // 取消
+              GestureDetector(
+                onTap: () {
+                  print("取消编辑群名");
+                  setState(() {
+                    isEditingGroupName = !isEditingGroupName;
+                    groupNameController.text = groupName;
+                  });
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset("assets/icons/cancel.png",
+                      width: 27, height: 27),
+                ),
+              ),
+              const SizedBox(
+                width: 5,
+              ),
+
+              // 确定
+              GestureDetector(
+                onTap: () {
+                  print("编辑监护人昵称");
+                  setState(() {
+                    isEditingGroupName = !isEditingGroupName;
+                    print("新群名：${groupNameController.text}");
+                    groupName = groupNameController.text;
+                    groupNameController.text = groupName;
+                  });
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset("assets/icons/confirm.png",
+                      width: 30, height: 30),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget groupNameHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          constraints: BoxConstraints(
+            minHeight: 30,
+            maxWidth: MediaQuery.of(context).size.width * 0.65,
+          ),
+          child: Text(
+            "$groupName ($memberCount)",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'BalooBhai',
+              fontSize: 22,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 5,
+        ),
+        GestureDetector(
+          onTap: () {
+            print("修改群组名");
+            setState(() {
+              isEditingGroupName = !isEditingGroupName;
+            });
+          },
+          child: Container(
+            width: 20,
+            height: 20,
+            child: Image.asset("assets/icons/pencil.png"),
+          ),
+        ),
+        const SizedBox(
+          width: 20,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -663,6 +1025,36 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
         ),
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              print("添加成员");
+              //showOverlay(context);
+              openFilterDelegate();
+            },
+            child: Container(
+              width: 20,
+              height: 20,
+              child: Image.asset("assets/icons/add.png"),
+            ),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          GestureDetector(
+            onTap: () {
+              print("删除成员");
+            },
+            child: Container(
+              width: 20,
+              height: 20,
+              child: Image.asset("assets/icons/delete.png"),
+            ),
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+        ],
       ),
 
       //
@@ -672,24 +1064,21 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           //
           const SizedBox(height: 20),
 
+          //editingGroupNameWidget(),
           //群组名
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              PageTitle(
-                title: "我们一家人 (5)",
-                icons: "assets/icons/group.png",
-                fontSize: 22,
-              ),
-            ],
-          ),
+          isEditingGroupName == false
+              ? groupNameHeader()
+              : editingGroupNameWidget(),
 
           const SizedBox(
             height: 10,
           ),
 
-          getGroupMemberWidget(0, "无敌暴龙兽", "haha@qq.com", "爸爸"),
+          getGroupMemberWidget(
+              0,
+              "无敌暴龙兽卫计委来加了及4零2加来及4来4殴342",
+              "haha@qq.com34543广东人当日哥哥哥热管424让他给",
+              "爸爸fdssssssssssadasd啊是多久啊扣税的23很健康会发生卡"),
           getGroupMemberWidget(1, "哈哈哈哈哈哈哈", "wjd124@hotmail.com.cn", "妈妈"),
           getGroupMemberWidget(2, "admin124", "wjd124@hotmail.com.cn", "爷爷"),
 

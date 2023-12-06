@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-//import '../component/mainPagesBar/mainPagesBar.dart';
-import '../component/header/header.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
-//import '../other/gradientBorder/gradient_borders.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
+import '../account/token.dart';
+import '../other/other.dart';
 
 class MyTitle extends StatefulWidget {
   final String title;
@@ -84,16 +87,102 @@ class _MyTitleState extends State<MyTitle> {
 }
 
 class MyBloodPressure extends StatefulWidget {
+  final DateTime date;
   final String value;
-  const MyBloodPressure({Key? key, required this.value}) : super(key: key);
+  const MyBloodPressure({Key? key, required this.value, required this.date})
+      : super(key: key);
 
   @override
   State<MyBloodPressure> createState() => _MyBloodPressureState();
 }
 
 class _MyBloodPressureState extends State<MyBloodPressure> {
+  // 从后端请求得到的原始数据
+  List<dynamic> data = [];
+
+  // 显示的数据
+  List<int> dayData = [];
+  List<int> monthData = [];
+  List<int> sbpData = [];
+  List<int> dbpData = [];
+  List<int> heartRateData = [];
+
+  // 从后端请求数据
+  Future<void> getDataFromServer() async {
+    // String requestStartDate = getStartDate(widget.date, widget.selectedDays);
+    String requestDate = getFormattedDate(widget.date);
+    print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+    //print(value);
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
+        queryParameters: {
+          "startDate": requestDate,
+          "endDate": requestDate,
+        },
+      );
+      if (response.data["code"] == 200) {
+        print("获取血压数据成功");
+        //print(response.data["data"]);
+        data = response.data["data"];
+        //bpdata = response.data["data"];
+      } else {
+        print(response);
+        data = [];
+      }
+    } catch (e) {
+      print(e);
+      data = [];
+    }
+
+    print("血压数据： $data");
+
+    dayData = [];
+    monthData = [];
+    sbpData = [];
+    dbpData = [];
+    heartRateData = [];
+
+    for (int i = data.length - 1; i >= 0; i--) {
+      int id_ = data[i]["id"];
+      String date_ = data[i]["date"];
+      int month_ = int.parse(date_.split("-")[1]);
+      int day_ = int.parse(date_.split("-")[2]);
+      int sbp_ = data[i]["sbp"];
+      int dbp_ = data[i]["dbp"];
+      int heartRate_ = data[i]["heartRate"];
+
+      dayData.add(day_);
+      monthData.add(month_);
+      sbpData.add(sbp_);
+      dbpData.add(dbp_);
+      heartRateData.add(heartRate_);
+    }
+
+    //print("dateData: $dateData");
+    //print("valueData: $valueData");
+    //setState(() {});
+
+    /* print("dayData      : $dayData");
+    print("monthData    : $monthData");
+    print("sbpData      : $sbpData");
+    print("dbpData      : $dbpData");
+    print("heartRateData: $heartRateData"); */
+  }
+
   @override
   Widget build(BuildContext context) {
+    print("血压 ${widget.date}");
+    getDataFromServer();
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -869,7 +958,7 @@ chart.on('updateAxisPointer', function (event) {
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushNamed(context, "/homePage/BloodPressure/Details");
+            Navigator.pushNamed(context, "/homePage/fooddiary/Details");
           },
           child: Container(
             height: 30,
@@ -906,7 +995,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  DateTime? selectedDate;
+  DateTime selectedDate = DateTime.now();
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -940,6 +1029,7 @@ class _HomePageState extends State<HomePage> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
+        //print(selectedDate);
       });
     }
   }
@@ -949,7 +1039,7 @@ class _HomePageState extends State<HomePage> {
     final formattedDate = selectedDate != null
         ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日 ${getWeekDay(selectedDate!)}"
         : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日 ${getWeekDay(DateTime.now())}";
-
+    print(formattedDate);
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -1030,7 +1120,7 @@ class _HomePageState extends State<HomePage> {
           ), */
 
               // 今日血压
-              MyBloodPressure(value: "112/95"),
+              MyBloodPressure(value: "112/95", date: selectedDate),
 
               const SizedBox(
                 height: 15,
