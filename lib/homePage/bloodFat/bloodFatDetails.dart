@@ -193,6 +193,15 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
       ldlData.add(ldl);
       hdlData.add(hdl);
     }
+
+    if (data.isEmpty) {
+      dayData.add(0);
+      monthData.add(0);
+      tcData.add(0);
+      tgData.add(0);
+      ldlData.add(0);
+      hdlData.add(0);
+    }
   }
 
   @override
@@ -204,9 +213,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
   Widget build(BuildContext context) {
     print('血压折线图更新build：${widget.date}，天数：${widget.selectedDays}');
 
-    // after getDataFromServer finish then return the Echarts widget
     return FutureBuilder(
-      // Replace getDataFromServer with the Future you want to wait for
       future: getDataFromServer(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
@@ -273,7 +280,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   grid: {
                   left: '3%',
                   right: '4%',
-                  bottom: '10%',
+                  bottom: '5%',
                   containLabel: true,
                 },
                 tooltip: {
@@ -303,6 +310,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                         color: '#000000'
                     },
                   },
+                  ${data.isEmpty ? "min: 0, max: 5," : ""}
                 },
                 series: [{
                   name: '总胆固醇',
@@ -334,7 +342,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
               }
             ''',
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),

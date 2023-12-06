@@ -133,9 +133,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
   List<int> dayData = [];
   List<int> monthData = [];
   List<double> bloodSugarData = [];
-  //List<int> sbpData = [];
-  //List<int> dbpData = [];
-  //List<int> heartRateData = [];
 
   // 从后端请求数据
   Future<void> getDataFromServer() async {
@@ -146,7 +143,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
@@ -156,16 +152,10 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
     try {
       response = await dio.get(
         "http://43.138.75.58:8080/api/blood-sugar/get-by-date-range?startDate=$requestStartDate&endDate=$requestEndDate",
-        /*  queryParameters: {
-          "startDate": requestStartDate,
-          "endDate": requestEndDate,
-        }, */
       );
       if (response.data["code"] == 200) {
-        print("获取血压数据成功");
-        //print(response.data["data"]);
+        print("获取血糖数据成功");
         data = response.data["data"];
-        //bpdata = response.data["data"];
       } else {
         print(response);
         data = [];
@@ -185,19 +175,19 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
       int month_ = int.parse(date_.split("-")[1]);
       int day_ = int.parse(date_.split("-")[2]);
       double bs_ = data[i]["bs"];
-      //int sbp_ = data[i]["sbp"];
-      //int dbp_ = data[i]["dbp"];
-      //int heartRate_ = data[i]["heartRate"];
 
       dayData.add(day_);
       monthData.add(month_);
       bloodSugarData.add(bs_);
-      //sbpData.add(sbp_);
-      //dbpData.add(dbp_);
-      //heartRateData.add(heartRate_);
     }
 
     print("bloodSugarData: $bloodSugarData");
+
+    if (data.isEmpty) {
+      dayData.add(widget.date.day);
+      monthData.add(widget.date.month);
+      bloodSugarData.add(0);
+    }
 
     //print("dateData: $dateData");
     //print("valueData: $valueData");
@@ -212,19 +202,14 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    //print('血压图表更新：${widget.date}');
-    //widget.updateDate(widget.date);
   }
 
   @override
   Widget build(BuildContext context) {
     print('血压折线图更新build：${widget.date}，天数：${widget.selectedDays}');
 
-    // after getDataFromServer finish then return the Echarts widget
     return FutureBuilder(
-      // Replace getDataFromServer with the Future you want to wait for
       future: getDataFromServer(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
@@ -238,13 +223,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 255, 255, 255),
                   borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  /* border: GradientBoxBorder(
-                    gradient: LinearGradient(colors: [
-                      Color.fromARGB(146, 253, 69, 69),
-                      Color.fromARGB(157, 255, 199, 223)
-                    ]),
-                    width: 1,
-                  ), */
                   border: Border.all(
                     color: Color.fromRGBO(0, 0, 0, 0.2),
                   ),
@@ -261,7 +239,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   scrollDirection: Axis.horizontal,
                   children: [
                     Container(
-                      // width: MediaQuery.of(context).size.width * 1.5,
                       width: dayData.length <= 5 ? 325 : dayData.length * 65,
                       height: MediaQuery.of(context).size.height * 0.35,
                       child: Echarts(
@@ -289,7 +266,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   grid: {
                   left: '3%',
                   right: '4%',
-                  bottom: '10%',
+                  bottom: '5%',
                   containLabel: true,
                 },
                 tooltip: {
@@ -319,6 +296,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                         color: '#000000'
                     },
                   },
+                    ${data.isEmpty ? "min: 0, max: 120," : ""}
                 },
                 series: [{
                   name: '血糖',
@@ -338,7 +316,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 }
             ''',
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -1334,7 +1312,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
   @override
   void initState() {
-    // TODO: 从后端请求数据
     super.initState();
     bloodSugarTimes = [0, 0, 0, 0];
     total = 0;
@@ -1470,7 +1447,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
             ),
             const Text(
               'mmol/L',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 12,
                   fontFamily: "Blinker",
                   fontWeight: FontWeight.bold),

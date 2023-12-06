@@ -326,8 +326,9 @@ class _UserWidget2State extends State<UserWidget2> {
                     GestureDetector(
                       onTap: () {
                         print("我的资料");
+                        Navigator.pop(context);
                       },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
+                      child: getButtonSet("assets/icons/logout.png", "退出登录"),
                     ),
                   ],
                 ),

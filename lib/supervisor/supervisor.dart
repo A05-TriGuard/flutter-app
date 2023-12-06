@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
 import './guardianPerson.dart';
 import './guardianGroup.dart';
+import '../account/token.dart';
 
 //import 'package:flutter_echarts/flutter_echarts.dart';
 typedef UpdateVisibleInvitationWidgetCallback = void Function(bool visible);
@@ -643,21 +647,6 @@ class _GuardianWidgetState extends State<GuardianWidget> {
 
 // ====================关爱模式============================
 
-// 添加监护人
-class AddGuardianWidget extends StatefulWidget {
-  const AddGuardianWidget({super.key});
-
-  @override
-  State<AddGuardianWidget> createState() => _AddGuardianWidgetState();
-}
-
-class _AddGuardianWidgetState extends State<AddGuardianWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
 // 被监护页面
 // ignore: must_be_immutable
 class UnderGuardianshipWidget extends StatefulWidget {
@@ -681,6 +670,37 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
   bool editNickname = false;
   TextEditingController usernameController = TextEditingController();
   int inviteStatus = 0;
+  List<dynamic> guardianList = [];
+
+  // 获取监护人列表
+  Future<void> getGuardianListFromServer() async {
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+    //print(value);
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/guardian/list",
+      );
+      if (response.data["code"] == 200) {
+        // print("获取监护人列表成功");
+        guardianList = response.data["data"];
+      } else {
+        print(response);
+        guardianList = [];
+      }
+    } catch (e) {
+      print(e);
+      guardianList = [];
+    }
+
+    print("监护人：$guardianList");
+  }
 
   void updateView(int id) {
     setState(() {
@@ -1209,48 +1229,54 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
   @override
   Widget build(BuildContext context) {
     //print("重建？");
-    return Stack(
-      children: [
-        ListView(shrinkWrap: true, children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-                MediaQuery.of(context).size.width * 0.15 * 0.5,
-                20,
-                MediaQuery.of(context).size.width * 0.15 * 0.5,
-                0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              //crossAxisAlignment: CrossAxisAlignment.center,
+    //getGuardianListFromServer();
+    return FutureBuilder(
+        // Replace getDataFromServer with the Future you want to wait for
+        future: getGuardianListFromServer(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Stack(
               children: [
-                const Text(
-                  "关爱模式",
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontFamily: "BalooBhai",
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(
-                  width: 5,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    print("监护模式是什么？");
-                  },
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
+                ListView(shrinkWrap: true, children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                        MediaQuery.of(context).size.width * 0.15 * 0.5,
+                        20,
+                        MediaQuery.of(context).size.width * 0.15 * 0.5,
+                        0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      //crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "关爱模式",
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontFamily: "BalooBhai",
+                              fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            print("监护模式是什么？");
+                          },
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.bottomCenter,
+                            child: Image.asset("assets/icons/question.png",
+                                width: 20, height: 30),
+                          ),
+                        ),
+                      ],
                     ),
-                    alignment: Alignment.bottomCenter,
-                    child: Image.asset("assets/icons/question.png",
-                        width: 20, height: 30),
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          // “监护人”
-          /* Padding(
+                  // “监护人”
+                  /* Padding(
             padding: EdgeInsets.fromLTRB(
                 MediaQuery.of(context).size.width * 0.15 * 0.5,
                 0,
@@ -1262,22 +1288,25 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
               fontSize: 18,
             ),
           ), */
-          // “监护人” 与 添加监护人
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // “监护人”
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                    MediaQuery.of(context).size.width * 0.15 * 0.5, 0, 0, 0),
-                child: const PageTitle(
-                  title: "监护人",
-                  icons: "assets/icons/audience.png",
-                  fontSize: 18,
-                ),
-              ),
-              // 添加监护人
-              Padding(
+                  // “监护人” 与 添加监护人
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // “监护人”
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            MediaQuery.of(context).size.width * 0.15 * 0.5,
+                            0,
+                            0,
+                            0),
+                        child: const PageTitle(
+                          title: "监护人",
+                          icons: "assets/icons/audience.png",
+                          fontSize: 18,
+                        ),
+                      ),
+                      // 添加监护人
+                      /*  Padding(
                 padding: EdgeInsets.fromLTRB(
                     0, 0, MediaQuery.of(context).size.width * 0.15 * 0.5, 0),
                 child: GestureDetector(
@@ -1303,26 +1332,90 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
                   ),
                 ),
               ),
-            ],
-          ),
+             */
+                    ],
+                  ),
 
-          // add
-          //for (int i = 1; i <= 16; i++)
-          // getGuardianWidget(i, i, "beyzhexuan@gmail.com", "妈妈"),
-          getGuardianWidget(1, 1, "admin", "妈妈", "beyzhexuan@gmail.com"),
-          getGuardianWidget(2, 2, "hellowdd", "爸爸", "bedsfjkduan@gmail.com"),
-          getGuardianWidget(3, 3, "shadjkasd", "usertest", "edw@qq.com"),
-          getGuardianWidget(4, 4, "af325fsd", "admin", "wdi@dfkasd.cn"),
+                  // add
+                  //for (int i = 1; i <= 16; i++)
+                  // getGuardianWidget(i, i, "beyzhexuan@gmail.com", "妈妈"),
+                  getGuardianWidget(
+                      1, 1, "admin", "妈妈", "beyzhexuan@gmail.com"),
+                  getGuardianWidget(
+                      2, 2, "hellowdd", "爸爸", "bedsfjkduan@gmail.com"),
+                  getGuardianWidget(
+                      3, 3, "shadjkasd", "usertest", "edw@qq.com"),
+                  getGuardianWidget(4, 4, "af325fsd", "admin", "wdi@dfkasd.cn"),
 
-          const SizedBox(
-            height: 30,
-          ),
-        ]),
-        widget.visibleInviteGuardianWidget == true
-            ? getInviteGuardianWidget()
-            : const SizedBox(),
-      ],
-    );
+                  const SizedBox(
+                    height: 30,
+                  ),
+                ]),
+                widget.visibleInviteGuardianWidget == true
+                    ? getInviteGuardianWidget()
+                    : const SizedBox(),
+              ],
+            );
+          } else {
+            //return const Center(child: CircularProgressIndicator());
+            return Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      MediaQuery.of(context).size.width * 0.15 * 0.5,
+                      20,
+                      MediaQuery.of(context).size.width * 0.15 * 0.5,
+                      0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    //crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "关爱模式",
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontFamily: "BalooBhai",
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          print("监护模式是什么？");
+                        },
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.bottomCenter,
+                          child: Image.asset("assets/icons/question.png",
+                              width: 20, height: 30),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      MediaQuery.of(context).size.width * 0.15 * 0.5,
+                      0,
+                      MediaQuery.of(context).size.width * 0.15 * 0.5,
+                      0),
+                  child: const PageTitle(
+                    title: "监护人",
+                    icons: "assets/icons/audience.png",
+                    fontSize: 18,
+                  ),
+                ),
+                Center(
+                  child: LoadingAnimationWidget.staggeredDotsWave(
+                      color: Colors.pink, size: 25),
+                )
+              ],
+            );
+          }
+        });
   }
 }
 
@@ -1563,6 +1656,8 @@ class _SupervisorState extends State<Supervisor> {
   bool visibleInviteGuardianWidget = false;
   bool visibleCreateGroupWidget = false;
   List<bool> ccount = [false, false, false, false, false];
+  List<dynamic> invitationList = [];
+  bool shouldLoadData = true;
 
   @override
   void initState() {
@@ -1592,7 +1687,64 @@ class _SupervisorState extends State<Supervisor> {
   }
 
   // 邀请监护人
-  void inviteGuardian() {
+  Future<bool> inviteGuardian(String email) async {
+    var token = await storage.read(key: 'token');
+
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+    try {
+      response = await dio.post(
+        "http://43.138.75.58:8080/api/guardian/invite",
+        queryParameters: {
+          "email": email,
+        },
+      );
+
+      print(response.data);
+
+      if (response.data['code'] == 200) {
+        print("邀请成功");
+        return true;
+      } else {
+        print("邀请失败");
+      }
+    } on DioException catch (error) {
+      final response = error.response;
+      if (response != null) {
+        print(response.data);
+        print("邀请失败1");
+      } else {
+        print(error.requestOptions);
+        print(error.message);
+        print("邀请失败2");
+      }
+    }
+    return false;
+  }
+
+  Future<void> getInvitationNotification() async {
+    var token = await storage.read(key: 'token');
+
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/ward/invitation/list",
+      );
+      if (response.data["code"] == 200) {
+        print("获取血压数据成功");
+        invitationList = response.data["data"];
+      } else {
+        print(response);
+        invitationList = [];
+      }
+    } catch (e) {
+      print(e);
+      invitationList = [];
+    }
+    print('invitationList: $invitationList');
     return;
   }
 
@@ -1616,7 +1768,7 @@ class _SupervisorState extends State<Supervisor> {
   // 邀请监护人
   void showInviteGuardianWidget(BuildContext context) {
     //OverlayEntry? overlayEntry;
-    TextEditingController usernameController = TextEditingController();
+    TextEditingController emailController = TextEditingController();
 
     overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -1684,6 +1836,7 @@ class _SupervisorState extends State<Supervisor> {
                               alignment: Alignment.center,
                               child: GestureDetector(
                                 onTap: () {
+                                  inviteStatus = 0;
                                   overlayEntry?.remove();
                                 },
                                 child: Container(
@@ -1721,7 +1874,7 @@ class _SupervisorState extends State<Supervisor> {
                             SizedBox(
                               width: MediaQuery.of(context).size.width * 0.50,
                               child: TextFormField(
-                                controller: usernameController,
+                                controller: emailController,
                                 maxLines: 1,
                                 textAlign: TextAlign.left,
                                 textAlignVertical: TextAlignVertical.center,
@@ -1762,20 +1915,25 @@ class _SupervisorState extends State<Supervisor> {
                         ),
 
                         // 邀请失败提示
-                        inviteStatus > 0
-                            ? Center(
-                                child: Text(
-                                  inviteStatus == 1
-                                      ? "发送邀请成功"
-                                      : "邀请失败，邮箱不存在或已被邀请过",
-                                  style: TextStyle(
-                                    color: inviteStatus == 1
-                                        ? Colors.greenAccent
-                                        : Colors.redAccent,
-                                  ),
-                                ),
-                              )
-                            : const SizedBox(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            inviteStatus > 0
+                                ? Center(
+                                    child: Text(
+                                      inviteStatus == 1
+                                          ? "发送邀请成功"
+                                          : "邀请失败，邮箱不存在或已被邀请过",
+                                      style: TextStyle(
+                                        color: inviteStatus == 1
+                                            ? Colors.greenAccent
+                                            : Colors.redAccent,
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox(),
+                          ],
+                        ),
 
                         // 取消，确定
                         Row(
@@ -1783,7 +1941,8 @@ class _SupervisorState extends State<Supervisor> {
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                // 在这里添加Overlay上按钮的操作
+                                inviteStatus = 0;
+
                                 overlayEntry?.remove();
                               },
                               style: ButtonStyle(
@@ -1796,12 +1955,17 @@ class _SupervisorState extends State<Supervisor> {
                               width: 5,
                             ),
                             ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 // 在这里添加Overlay上按钮的操作
                                 //overlayEntry?.remove();
-                                inviteStatus++;
-                                inviteStatus %= 3;
-                                //setState(() {});
+                                bool status =
+                                    await inviteGuardian(emailController.text);
+                                status == true
+                                    ? inviteStatus = 1
+                                    : inviteStatus = 2;
+                                //inviteStatus++;
+                                //inviteStatus %= 3;
+                                setState(() {});
                                 overlayEntry?.markNeedsBuild();
                               },
                               style: ButtonStyle(
@@ -1828,9 +1992,10 @@ class _SupervisorState extends State<Supervisor> {
   }
 
   // 邀请消息通知栏
-  void invitationNotification(BuildContext context) {
+  void invitationNotification(BuildContext context) async {
     print("invitationgrd");
     //OverlayEntry? overlayEntry;
+    await getInvitationNotification();
 
     overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -1894,6 +2059,7 @@ class _SupervisorState extends State<Supervisor> {
                             alignment: Alignment.center,
                             child: GestureDetector(
                               onTap: () {
+                                setState(() {});
                                 overlayEntry?.remove();
                               },
                               child: Container(
@@ -1929,7 +2095,7 @@ class _SupervisorState extends State<Supervisor> {
       ),
     );
     final overlay = Overlay.of(context);
-    //Overlay.of(context).insert(overlayEntry);
+    //Overlay.of(context).insert(overlayEntry!);
     overlay.insert(overlayEntry!);
   }
 
@@ -1942,19 +2108,35 @@ class _SupervisorState extends State<Supervisor> {
 
   // 获取所有通知
   Widget getAllNotification() {
+    List<Widget> notificationList = [];
+    for (int i = 0; i < invitationList.length; i++) {
+      notificationList.add(showNotification(
+        invitationList[i]["invitationId"],
+        invitationList[i]["wardId"],
+        invitationList[i]["wardName"],
+        "2023-12-6",
+        //invitationList[i]["date"], // TODO 日期格式不对
+      ));
+    }
+
     return Column(
-      children: [
-        showNotification(0, "admin", "2023-11-11"),
-        showNotification(1, "hellowww", "2023-11-23"),
-        showNotification(2, "admin1", "2023-11-31"),
-        showNotification(3, "admin2", "2023-11-11"),
-        showNotification(4, "admin3", "2023-11-11"),
-      ],
+      children: notificationList,
     );
+
+    /*  return Column(
+      children: [
+        showNotification(0, 0, "admin", "2023-11-11"),
+        showNotification(1, 1, "hellowww", "2023-11-23"),
+        showNotification(2, 2, "admin1", "2023-11-31"),
+        showNotification(3, 3, "admin2", "2023-11-11"),
+        showNotification(4, 4, "admin3", "2023-11-11"),
+      ],
+    ); */
   }
 
   // 每一个通知
-  Widget showNotification(int guardianId, String username, String date) {
+  Widget showNotification(
+      int invitationId, int guardianId, String username, String date) {
     //username = "admin";
     //date = "2023-11-11";
     bool count = false;
@@ -1977,7 +2159,7 @@ class _SupervisorState extends State<Supervisor> {
         Row(mainAxisAlignment: MainAxisAlignment.end, children: [
           GestureDetector(
             onTap: () {
-              print("拒绝");
+              print("拒绝 $invitationId");
             },
             child: Container(
               width: 60,
@@ -1998,7 +2180,7 @@ class _SupervisorState extends State<Supervisor> {
           ),
           GestureDetector(
             onTap: () {
-              print("接受");
+              print("接受 $invitationId");
               // setState(() {
               count = !count;
               ccount[guardianId] = !ccount[guardianId];
@@ -2028,14 +2210,14 @@ class _SupervisorState extends State<Supervisor> {
           height: 1,
           color: Color.fromRGBO(169, 171, 179, 1), // 设置分割线的颜色
         ),
-        ccount[guardianId] == true ? Text("count") : Text("count2"),
+        //ccount[guardianId] == true ? Text("count") : Text("count2"),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    //print("监护rebuild");
+    print("监护rebuild");
 
     return PopScope(
       canPop: false,
@@ -2064,8 +2246,9 @@ class _SupervisorState extends State<Supervisor> {
                 } else {
                   return IconButton(
                     icon: Icon(Icons.notifications),
-                    onPressed: () {
+                    onPressed: () async {
                       print("通知");
+                      //getInvitationNotification();
                       invitationNotification(context);
                     },
                   );
@@ -2074,31 +2257,21 @@ class _SupervisorState extends State<Supervisor> {
             ),
           ],
         ),
-        /*  floatingActionButton: pageController.page == 0
-            ? FloatingActionButton(
-                onPressed: () {
-                  print("添加监护人");
-                  setState(() {
-                    visibleInviteGuardianWidget = !visibleInviteGuardianWidget;
-                  });
-                  //showInviteGuardianWidget(context);
-                },
-                shape: const CircleBorder(),
-                backgroundColor: const Color.fromARGB(255, 255, 160, 191),
-                child: const Icon(Icons.notification_important),
-              )
-            : null, */
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
         body: Stack(children: [
           PageView(
             controller: pageController,
             scrollDirection: Axis.horizontal,
+            onPageChanged: (int page) {
+              // This callback will be called when the page changes
+              print("Page changed to: $page");
+              // You can trigger a rebuild or perform actions based on the page change
+              setState(() {});
+            },
             children: <Widget>[
-              //GuardianWidget(),
-              //ListView
+              // 监护模式
               Container(
-                //color: Colors.white,
-                constraints: BoxConstraints.expand(),
+                constraints: const BoxConstraints.expand(),
                 decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage("assets/images/2278.jpg"),
@@ -2111,9 +2284,10 @@ class _SupervisorState extends State<Supervisor> {
                   updateVisibleCreateGroupWidgetCallback: createGroup,
                 ),
               ),
+              // 关爱模式
               Container(
                 //color: Colors.white,
-                constraints: BoxConstraints.expand(),
+                constraints: const BoxConstraints.expand(),
                 decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage("assets/images/5234772.jpg"),

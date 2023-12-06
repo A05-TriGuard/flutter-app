@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
@@ -107,9 +108,11 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
   List<int> dbpData = [];
   List<int> heartRateData = [];
 
+  int todaySBP = 0;
+  int todayDBP = 0;
+
   // 从后端请求数据
   Future<void> getDataFromServer() async {
-    // String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestDate = getFormattedDate(widget.date);
     print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
@@ -132,9 +135,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
       );
       if (response.data["code"] == 200) {
         print("获取血压数据成功");
-        //print(response.data["data"]);
         data = response.data["data"];
-        //bpdata = response.data["data"];
       } else {
         print(response);
         data = [];
@@ -144,7 +145,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
       data = [];
     }
 
-    print("血压数据： $data");
+    //print("血压数据： $data");
 
     dayData = [];
     monthData = [];
@@ -153,7 +154,6 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
     heartRateData = [];
 
     for (int i = data.length - 1; i >= 0; i--) {
-      int id_ = data[i]["id"];
       String date_ = data[i]["date"];
       int month_ = int.parse(date_.split("-")[1]);
       int day_ = int.parse(date_.split("-")[2]);
@@ -168,166 +168,191 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
       heartRateData.add(heartRate_);
     }
 
-    //print("dateData: $dateData");
-    //print("valueData: $valueData");
-    //setState(() {});
+    if (data.isNotEmpty) {
+      todaySBP = data[0]["sbp"];
+      todayDBP = data[0]["dbp"];
+    }
 
-    /* print("dayData      : $dayData");
-    print("monthData    : $monthData");
-    print("sbpData      : $sbpData");
-    print("dbpData      : $dbpData");
-    print("heartRateData: $heartRateData"); */
+    if (data.isEmpty) {
+      dayData.add(widget.date.day);
+      monthData.add(widget.date.month);
+      sbpData.add(0);
+      dbpData.add(0);
+      heartRateData.add(0);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     print("血压 ${widget.date}");
-    getDataFromServer();
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        MyTitle(
-            title: "今日血压",
-            icon: "assets/icons/bloodPressure.png",
-            value: widget.value,
-            unit: "mmHg",
-            route: "/homePage/BloodPressure/Edit"),
+    //getDataFromServer();
+    return FutureBuilder(
+      // Replace getDataFromServer with the Future you want to wait for
+      future: getDataFromServer(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          //获取数据后
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              MyTitle(
+                  title: "今日血压",
+                  icon: "assets/icons/bloodPressure.png",
+                  value: "$todaySBP/$todayDBP",
+                  unit: "mmHg",
+                  route: "/homePage/BloodPressure/Edit"),
 
-        const SizedBox(
-          height: 5,
-        ),
+              const SizedBox(
+                height: 5,
+              ),
 
-        // 血压图表
-        Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            UnconstrainedBox(
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: MediaQuery.of(context).size.height * 0.25,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 255, 255),
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  /* border: GradientBoxBorder(
-                    gradient: LinearGradient(colors: [
-                      Color.fromARGB(146, 253, 69, 69),
-                      Color.fromARGB(157, 255, 199, 223)
-                    ]),
-                    width: 1,
-                  ), */
-                  border: Border.all(
-                    color: const Color.fromRGBO(0, 0, 0, 0.2),
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromARGB(120, 151, 151, 151),
-                      offset: Offset(0, 5),
-                      blurRadius: 5.0,
-                      spreadRadius: 0.0,
-                    ),
-                  ],
-                ),
+              // 血压图表
+              Stack(
                 alignment: Alignment.centerRight,
-                child: Echarts(
-                  option: '''
+                children: [
+                  UnconstrainedBox(
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.85,
+                      height: MediaQuery.of(context).size.height * 0.30,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15)),
+                        border: Border.all(
+                          color: const Color.fromRGBO(0, 0, 0, 0.2),
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color.fromARGB(120, 151, 151, 151),
+                            offset: Offset(0, 5),
+                            blurRadius: 5.0,
+                            spreadRadius: 0.0,
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        // width: MediaQuery.of(context).size.width * 1.5,
+                        //width: dayData.length <= 5 ? 325 : dayData.length * 65,
+                        width: MediaQuery.of(context).size.width * 0.85, //345
+                        height: MediaQuery.of(context).size.height * 0.30,
+                        child: Echarts(
+                          extraScript: '''
+                          var month = $monthData;
+                          var day = $dayData;
+                        ''',
+                          option: '''
               {
                 animation:false,
 
                 title: {
-                text: '血压',
-                top:'5%',
-                left:'2%',
-              },
-                            legend: {
-                data: ['收缩压', '舒张压', '心率'],
-                top:'5%',
-                left:'20%',
-              },
-            
-                grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '5%',
-                containLabel: true
-              },
-              tooltip: {
-                trigger: 'axis'
-              },
+                  text: '血压',
+                  top:'5%',
+                  left:'10',
+                },
+
+                legend: {
+                  data: ['收缩压', '舒张压', '心率'],
+                  top:'6%',
+                  left:'70',
+                },
+
+                  grid: {
+                  left: '10', // 3%
+                  right: '20', // 4%
+                  //top: '45',
+                  bottom: '5%',
+                  containLabel: true,
+                },
+                tooltip: {
+                  trigger: 'axis'
+                },
+
                 xAxis: {
-                  
                   type: 'category',
                   boundaryGap: true,
-                  data: ['8/11', '9/11', '10/11','11/11']
+                  axisLabel: {
+                   interval: 0,
+                   textStyle: {
+                      color: '#000000'
+                  },
+                   formatter: function(index) {
+                        // 自定义显示格式
+                         return day[index] + '/' + month[index]; // 取日期的第一部分
+                   }
+                  },
+
                 },
+
                 yAxis: {
                   type: 'value',
-                  min: 70,
-                  max: 130,
+                  //min: 80,
+                  //max: 130,
+                  ${data.isEmpty ? "min: 0, max: 120," : ""}
+                  axisLabel:{
+                    textStyle: {
+                        color: '#000000'
+                    },
+                  },
                 },
                 series: [{
                   name: '收缩压',
-                  data: [102, 120, 112,123],
+                  data: $sbpData,
                   type: 'line',
-                  smooth: true,
-                  // itemStyle: {
-                  //     normal: {
-                  //         color: "#FD3F61",
-                  //         lineStyle: {
-                  //             color: "#FF8C4B"
-                  //         }
-                  //     }
-                  // },
+                  smooth: true
                 },
                 {
                   name: '舒张压',
-                  data: [86, 82, 95,80],
+                  data: $dbpData,
                   type: 'line',
                   smooth: true
                 },
 
                  {
                   name: '心率',
-                  data: [97, 93, 92,97],
+                  data: $heartRateData,
                   type: 'line',
                   smooth: true
                 }
                 ]
               }
             ''',
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, "/homePage/BloodPressure/Details");
-              },
-              child: Container(
-                height: 30,
-                width: 30,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 225, 225),
-                  borderRadius: BorderRadius.circular(5),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromARGB(120, 151, 151, 151),
-                      offset: Offset(0, 5),
-                      blurRadius: 5.0,
-                      spreadRadius: 0.0,
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-        )
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, "/homePage/BloodPressure/Details");
+                    },
+                    child: Container(
+                      height: 30,
+                      width: 30,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 225, 225),
+                        borderRadius: BorderRadius.circular(5),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color.fromARGB(120, 151, 151, 151),
+                            offset: Offset(0, 5),
+                            blurRadius: 5.0,
+                            spreadRadius: 0.0,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              )
 
-        /* Container(
+              /* Container(
           height: 30,
           width: 80,
           alignment: Alignment.center,
@@ -339,94 +364,217 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
             textAlign: TextAlign.center,
           ),
         ), */
-        //FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add)),
-      ],
+              //FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add)),
+            ],
+          );
+        } else {
+          // 未获取到数据时显示的内容
+          return Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                MyTitle(
+                    title: "今日血压",
+                    icon: "assets/icons/bloodPressure.png",
+                    value: widget.value,
+                    unit: "mmHg",
+                    route: "/homePage/BloodPressure/Edit"),
+                const SizedBox(
+                  height: 5,
+                ),
+                Center(
+                  child: LoadingAnimationWidget.staggeredDotsWave(
+                      color: Colors.pink, size: 25),
+                )
+              ]);
+        }
+      },
     );
   }
 }
 
 class MyBloodSugar extends StatefulWidget {
   final String value;
-  const MyBloodSugar({Key? key, required this.value}) : super(key: key);
+  final DateTime date;
+  const MyBloodSugar({Key? key, required this.value, required this.date})
+      : super(key: key);
 
   @override
   State<MyBloodSugar> createState() => _MyBloodSugarState();
 }
 
 class _MyBloodSugarState extends State<MyBloodSugar> {
+  // 从后端请求得到的原始数据
+  List<dynamic> data = [];
+
+  // 显示的数据
+  List<int> dayData = [];
+  List<int> monthData = [];
+  List<double> bloodSugarData = [];
+  double todayBS = 0;
+
+  // 从后端请求数据
+  Future<void> getDataFromServer() async {
+    String requestDate = getFormattedDate(widget.date);
+    print('请求日期：$requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate",
+      );
+      if (response.data["code"] == 200) {
+        print("获取血糖数据成功");
+        data = response.data["data"];
+      } else {
+        print(response);
+        data = [];
+      }
+    } catch (e) {
+      print(e);
+      data = [];
+    }
+
+    dayData = [];
+    monthData = [];
+    bloodSugarData = [];
+
+    for (int i = data.length - 1; i >= 0; i--) {
+      String date_ = data[i]["date"];
+      int month_ = int.parse(date_.split("-")[1]);
+      int day_ = int.parse(date_.split("-")[2]);
+      double bs_ = data[i]["bs"];
+
+      dayData.add(day_);
+      monthData.add(month_);
+      bloodSugarData.add(bs_);
+    }
+
+    if (data.isNotEmpty) {
+      todayBS = data[0]["bs"];
+    }
+
+    if (data.isEmpty) {
+      dayData.add(widget.date.day);
+      monthData.add(widget.date.month);
+      bloodSugarData.add(0);
+    }
+
+    //print("bloodSugarData: $bloodSugarData");
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        MyTitle(
-            title: "今日血糖",
-            icon: "assets/icons/bloodSugar.png",
-            value: widget.value,
-            unit: "mmol/L",
-            route: "/homePage/BloodSugar/Edit"), //TODO
+    return FutureBuilder(
+      // Replace getDataFromServer with the Future you want to wait for
+      future: getDataFromServer(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Column(
+            children: [
+              MyTitle(
+                  title: "今日血糖",
+                  icon: "assets/icons/bloodSugar.png",
+                  value: todayBS.toStringAsFixed(1),
+                  unit: "mmol/L",
+                  route: "/homePage/BloodSugar/Edit"), //TODO
 
-        const SizedBox(
-          height: 5,
-        ),
-
-        // 血糖图表
-        Stack(alignment: Alignment.centerRight, children: [
-          UnconstrainedBox(
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.85,
-              height: MediaQuery.of(context).size.height * 0.25,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 255, 255, 255),
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-                border: Border.all(
-                  color: const Color.fromRGBO(0, 0, 0, 0.2),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromARGB(120, 151, 151, 151),
-                    offset: Offset(0, 5),
-                    blurRadius: 5.0,
-                    spreadRadius: 0.0,
-                  ),
-                ],
+              const SizedBox(
+                height: 5,
               ),
-              alignment: Alignment.centerRight,
-              child: Echarts(
-                option: '''
+
+              // 血糖图表
+              Stack(alignment: Alignment.centerRight, children: [
+                UnconstrainedBox(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    height: MediaQuery.of(context).size.height * 0.30,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                      borderRadius: const BorderRadius.all(Radius.circular(15)),
+                      border: Border.all(
+                        color: const Color.fromRGBO(0, 0, 0, 0.2),
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(120, 151, 151, 151),
+                          offset: Offset(0, 5),
+                          blurRadius: 5.0,
+                          spreadRadius: 0.0,
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.85,
+                      height: MediaQuery.of(context).size.height * 0.30,
+                      child: Echarts(
+                        extraScript: '''
+                  var month = $monthData;
+                  var day = $dayData;
+                  
+                  ''',
+                        option: '''
               {
                 animation:false,
+
                 title: {
-    text: '血糖',
-    top:'5%',
-    left:'2%',
-  },
-                legend: {
-    data: ['血糖'],
-    top:'5%',
-    //left:'20%',
-  },
- 
-    grid: {
-    left: '3%',
-    right: '4%',
-    bottom: '5%',
-    containLabel: true
-  },
-  tooltip: {
-    trigger: 'axis'
-  },
-                xAxis: {
-                  
-                  type: 'category',
-                  //boundaryGap: false,
-                  data: ['8/11', '9/11', '10/11','11/11']
+                  text: '血糖',
+                  top:'5%',
+                  left:'10',
                 },
+
+                legend: {
+                  data: ['血糖'],
+                  top:'6%',
+                  left:'70',
+                },
+
+                  grid: {
+                  left: '3%',
+                  right: '4%',
+                  bottom: '5%',
+                  containLabel: true,
+                },
+                tooltip: {
+                  trigger: 'axis'
+                },
+
+                xAxis: {
+                  type: 'category',
+                  boundaryGap: true,
+                  axisLabel: {
+                   interval: 0,
+                   textStyle: {
+                      color: '#000000'
+                  },
+                   formatter: function(index) {
+                        // 自定义显示格式
+                         return day[index] + '/' + month[index]; // 取日期的第一部分
+                   }
+                  },
+
+                },
+
                 yAxis: {
                   type: 'value',
+                  axisLabel:{
+                    textStyle: {
+                        color: '#000000'
+                    },
+                  },
+                  ${data.isEmpty ? "min: 0, max: 120," : ""}
                 },
                 series: [{
                   name: '血糖',
-                  data: [5.3, 6.8, 5.9,8.8],
+                  data: $bloodSugarData,
                   type: 'line',
                   smooth: true,
                   itemStyle: {
@@ -439,176 +587,342 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
                   },
                 },
                 ]
-              }
+                }
             ''',
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, "/homePage/BloodSugar/Details");
-            },
-            child: Container(
-              height: 30,
-              width: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 255, 225, 225),
-                borderRadius: BorderRadius.circular(5),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromARGB(120, 151, 151, 151),
-                    offset: Offset(0, 5),
-                    blurRadius: 5.0,
-                    spreadRadius: 0.0,
+                      ),
+                    ),
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 20,
-              ),
-            ),
-          ),
-        ]),
-      ],
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, "/homePage/BloodSugar/Details");
+                  },
+                  child: Container(
+                    height: 30,
+                    width: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 225, 225),
+                      borderRadius: BorderRadius.circular(5),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(120, 151, 151, 151),
+                          offset: Offset(0, 5),
+                          blurRadius: 5.0,
+                          spreadRadius: 0.0,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ]),
+            ],
+          );
+        } else {
+          // 未获取到数据时显示的内容
+          return Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                MyTitle(
+                    title: "今日血糖",
+                    icon: "assets/icons/bloodSugar.png",
+                    value: widget.value,
+                    unit: "mmol/L",
+                    route: "/homePage/BloodSugar/Edit"),
+                const SizedBox(
+                  height: 5,
+                ),
+                Center(
+                  child: LoadingAnimationWidget.staggeredDotsWave(
+                      color: Colors.pink, size: 25),
+                )
+              ]);
+        }
+      },
     );
   }
 }
 
 class MyBloodFat extends StatefulWidget {
   final String value;
-  const MyBloodFat({Key? key, required this.value}) : super(key: key);
+  final DateTime date;
+  const MyBloodFat({Key? key, required this.value, required this.date})
+      : super(key: key);
 
   @override
   State<MyBloodFat> createState() => _MyBloodFatState();
 }
 
 class _MyBloodFatState extends State<MyBloodFat> {
+  // 从后端请求得到的原始数据
+  List<dynamic> data = [];
+
+  // 显示的数据
+  List<int> dayData = [];
+  List<int> monthData = [];
+  List<double> tcData = [];
+  List<double> tgData = [];
+  List<double> ldlData = [];
+  List<double> hdlData = [];
+  double todayTC = 0;
+
+  // 从后端请求数据
+  Future<void> getDataFromServer() async {
+    String requestDate = getFormattedDate(widget.date);
+    print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate",
+      );
+      if (response.data["code"] == 200) {
+        print("获取血脂数据成功");
+        data = response.data["data"];
+      } else {
+        print(response);
+        data = [];
+      }
+    } catch (e) {
+      print(e);
+      data = [];
+    }
+
+    dayData = [];
+    monthData = [];
+    tcData = [];
+    tgData = [];
+    ldlData = [];
+    hdlData = [];
+
+    for (int i = data.length - 1; i >= 0; i--) {
+      String date_ = data[i]["date"];
+      int month_ = int.parse(date_.split("-")[1]);
+      int day_ = int.parse(date_.split("-")[2]);
+      double tc = data[i]["tc"];
+      double tg = data[i]["tg"];
+      double ldl = data[i]["ldl"];
+      double hdl = data[i]["hdl"];
+
+      dayData.add(day_);
+      monthData.add(month_);
+
+      tcData.add(tc);
+      tgData.add(tg);
+      ldlData.add(ldl);
+      hdlData.add(hdl);
+    }
+
+    if (data.isNotEmpty) {
+      todayTC = data[0]["tc"];
+    }
+
+    if (data.isEmpty) {
+      dayData.add(0);
+      monthData.add(0);
+      tcData.add(0);
+      tgData.add(0);
+      ldlData.add(0);
+      hdlData.add(0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      MyTitle(
-          title: "今日血脂",
-          icon: "assets/icons/bloodFat.png",
-          value: widget.value,
-          unit: "mmol/L",
-          route: "/homePage/BloodFat/Edit"),
-      const SizedBox(
-        height: 5,
-      ),
-      Stack(alignment: Alignment.centerRight, children: [
-        UnconstrainedBox(
-          child: Container(
-            alignment: Alignment.centerRight,
-            width: MediaQuery.of(context).size.width * 0.85,
-            height: MediaQuery.of(context).size.height * 0.25,
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              borderRadius: const BorderRadius.all(Radius.circular(15)),
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.2),
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
-                ),
-              ],
+    return FutureBuilder(
+      future: getDataFromServer(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Column(children: [
+            MyTitle(
+                title: "今日血脂",
+                icon: "assets/icons/bloodFat.png",
+                value: todayTC.toStringAsFixed(1),
+                unit: "mmol/L",
+                route: "/homePage/BloodFat/Edit"),
+            const SizedBox(
+              height: 5,
             ),
-            child: Echarts(
-              option: '''
-              {
-                title: {
-                text: '血脂',
-                top:'5%',
-                left:'2%',
-              },
-                            legend: {
-                data: ['总胆固醇' , '高密度脂蛋白脂','甘油三酯','低密度脂蛋白脂'],
-                top:'5%',
-                left:'20%',
-              },
-            
-                grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '5%',
-                containLabel: true
-              },
-              tooltip: {
-                trigger: 'axis'
-              },
-                xAxis: {
+            Stack(alignment: Alignment.centerRight, children: [
+              UnconstrainedBox(
+                child: Container(
+                  alignment: Alignment.centerRight,
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  height: MediaQuery.of(context).size.height * 0.3,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 255, 255, 255),
+                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                    border: Border.all(
+                      color: const Color.fromRGBO(0, 0, 0, 0.2),
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromARGB(120, 151, 151, 151),
+                        offset: Offset(0, 5),
+                        blurRadius: 5.0,
+                        spreadRadius: 0.0,
+                      ),
+                    ],
+                  ),
+                  child: ListView(scrollDirection: Axis.horizontal, children: [
+                    Container(
+                      // width: MediaQuery.of(context).size.width * 1.5,
+                      width: dayData.length * 65 <= 550
+                          ? 550
+                          : dayData.length * 65,
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: Echarts(
+                        extraScript: '''
+                  var month = $monthData;
+                  var day = $dayData;
                   
+''',
+                        option: '''
+              {
+                animation:false,
+
+                title: {
+                  text: '血脂',
+                  top:'5%',
+                  left:'10',
+                },
+
+                legend: {
+                  data: ['总胆固醇', '甘油三酯', '低密度脂蛋白胆固醇', '高密度脂蛋白胆固醇'],
+                  top:'6%',
+                  left:'70',
+                },
+
+                  grid: {
+                  left: '3%',
+                  right: '4%',
+                  bottom: '5%',
+                  containLabel: true,
+                },
+                tooltip: {
+                  trigger: 'axis'
+                },
+
+                xAxis: {
                   type: 'category',
                   boundaryGap: true,
-                  data: ['8/11', '9/11', '10/11','11/11']
+                  axisLabel: {
+                   interval: 0,
+                   textStyle: {
+                      color: '#000000'
+                  },
+                   formatter: function(index) {
+                        // 自定义显示格式
+                         return day[index] + '/' + month[index]; // 取日期的第一部分
+                   }
+                  },
+
                 },
+
                 yAxis: {
                   type: 'value',
+                  axisLabel:{
+                    textStyle: {
+                        color: '#000000'
+                    },
+                  },
+                  ${data.isEmpty ? "min: 0, max: 5," : ""}
                 },
                 series: [{
                   name: '总胆固醇',
-                  data: [3.1,4.2,5.2,4.6],
+                  data: $tcData,
                   type: 'line',
                   smooth: true
                 },
                 {
                   name: '甘油三酯',
-                  data: [4.6,2.6,5.6,2.7],
+                  data: $tgData,
                   type: 'line',
                   smooth: true
                 },
 
                  {
-                  name: '高密度脂蛋白脂',
-                  data: [3.0,6.3,5.3,5.6],
+                  name: '低密度脂蛋白胆固醇',
+                  data: $ldlData,
                   type: 'line',
                   smooth: true
                 },
-                 {
-                  name: '低密度脂蛋白脂',
-                  data: [4.7,4.98,4.3,3.4],
+
+                {
+                  name: '高密度脂蛋白胆固醇',
+                  data: $hdlData,
                   type: 'line',
                   smooth: true
-                },
+                }
                 ]
               }
             ''',
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(context, "/homePage/BloodFat/Details");
-          },
-          child: Container(
-            height: 30,
-            width: 30,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 255, 225, 225),
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
+                      ),
+                    ),
+                  ]),
                 ),
-              ],
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, "/homePage/BloodFat/Details");
+                },
+                child: Container(
+                  height: 30,
+                  width: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 255, 225, 225),
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromARGB(120, 151, 151, 151),
+                        offset: Offset(0, 5),
+                        blurRadius: 5.0,
+                        spreadRadius: 0.0,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ]),
+          ]);
+        } else {
+          //return CircularProgressIndicator();
+          return Column(children: [
+            const MyTitle(
+                title: "今日血脂",
+                icon: "assets/icons/bloodFat.png",
+                value: "-",
+                unit: "mmol/L",
+                route: "/homePage/BloodFat/Edit"),
+            const SizedBox(
+              height: 5,
             ),
-            child: const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 20,
+            Center(
+              child: LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.pink, size: 25),
             ),
-          ),
-        ),
-      ]),
-    ]);
+          ]);
+        }
+      },
+    );
   }
 }
 
@@ -1127,14 +1441,14 @@ class _HomePageState extends State<HomePage> {
               ),
 
               // 今日血糖
-              MyBloodSugar(value: "8.8"),
+              MyBloodSugar(value: "8.8", date: selectedDate),
 
               const SizedBox(
                 height: 15,
               ),
 
               // 今日血脂
-              MyBloodFat(value: "3.4"),
+              MyBloodFat(value: "3.4", date: selectedDate),
 
               const SizedBox(
                 height: 15,

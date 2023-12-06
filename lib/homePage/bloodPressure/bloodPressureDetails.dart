@@ -196,6 +196,14 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
       heartRateData.add(heartRate_);
     }
 
+    if (data.isEmpty) {
+      dayData.add(widget.date.day);
+      monthData.add(widget.date.month);
+      sbpData.add(0);
+      dbpData.add(0);
+      heartRateData.add(0);
+    }
+
     //print("dateData: $dateData");
     //print("valueData: $valueData");
     //setState(() {});
@@ -263,10 +271,9 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                       height: MediaQuery.of(context).size.height * 0.35,
                       child: Echarts(
                         extraScript: '''
-                  var month = $monthData;
-                  var day = $dayData;
-                  
-''',
+                          var month = $monthData;
+                          var day = $dayData;
+                        ''',
                         option: '''
               {
                 animation:false,
@@ -284,9 +291,9 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 },
 
                   grid: {
-                  left: '3%',
-                  right: '4%',
-                  bottom: '10%',
+                  left: '20', // 3%
+                  right: '20', // 4%
+                  bottom: '5%',
                   containLabel: true,
                 },
                 tooltip: {
@@ -313,6 +320,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   type: 'value',
                   //min: 80,
                   //max: 130,
+                  ${data.isEmpty ? "min: 0, max: 120," : ""}
                   axisLabel:{
                     textStyle: {
                         color: '#000000'

@@ -237,13 +237,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 255, 255, 255),
                   borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  /* border: GradientBoxBorder(
-                    gradient: LinearGradient(colors: [
-                      Color.fromARGB(146, 253, 69, 69),
-                      Color.fromARGB(157, 255, 199, 223)
-                    ]),
-                    width: 1,
-                  ), */
                   border: Border.all(
                     color: Color.fromRGBO(0, 0, 0, 0.2),
                   ),
@@ -260,9 +253,9 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   scrollDirection: Axis.horizontal,
                   children: [
                     Container(
-                      // width: MediaQuery.of(context).size.width * 1.5,
-                      width:
-                          dayData.length <= 5 ? 300 : dayData.length * 65, //325
+                      width: dayData.length <= 5
+                          ? MediaQuery.of(context).size.width * 0.85
+                          : dayData.length * 65, //325
                       height: MediaQuery.of(context).size.height * 0.45,
 
                       child: Echarts(

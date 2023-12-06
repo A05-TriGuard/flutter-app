@@ -648,20 +648,16 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           duration: const Duration(milliseconds: 200),
           width: MediaQuery.of(context).size.width * 0.85,
           height: isExpandedList[userId] == false ? 55 : 160,
-          decoration: BoxDecoration(
-            color: isExpandedList[userId] == false
-                ? Color.fromARGB(255, 255, 255, 255)
-                //: Color.fromARGB(137, 200, 184, 250),
-                : Color.fromARGB(255, 255, 255, 255),
-            borderRadius: const BorderRadius.all(Radius.circular(15)),
-            border: const Border(
+          decoration: const BoxDecoration(
+            color: Color.fromARGB(255, 255, 255, 255),
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            border: Border(
               //bottom
               bottom: BorderSide(
                 color: Color.fromRGBO(0, 0, 0, 0.2),
               ),
-              //color: const Color.fromRGBO(0, 0, 0, 0.2),
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
                 color: Color.fromARGB(120, 151, 151, 151),
                 offset: Offset(0, 5),
@@ -677,7 +673,11 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                 : SingleChildScrollView(
                     scrollDirection: Axis.vertical,
                     child: getGroupMemberWidgetMore(
-                        userId, username, email, nickname),
+                      userId,
+                      username,
+                      email,
+                      nickname,
+                    ),
                   ),
           ),
         ),
