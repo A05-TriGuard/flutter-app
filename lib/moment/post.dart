@@ -47,7 +47,7 @@ class _PostState extends State<Post> {
     createImageList();
 
     return SizedBox(
-      width: widget.width,
+      //width: widget.width,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -95,179 +95,181 @@ class _PostState extends State<Post> {
             ),
           ),
           const SizedBox(height: 15),
-          // 分类 & 照片添加栏
+          // 分类
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  // 主题分类
-                  Container(
-                    color: Colors.black12,
-                    height: 30,
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.only(left: 10),
-                    child: DropdownButton(
-                      icon: const Icon(Icons.arrow_drop_down),
-                      iconSize: 30,
-                      hint: Text(selectedClass,
-                          style: const TextStyle(
-                              fontSize: 18, color: Colors.black)),
-                      items: const [
-                        DropdownMenuItem(
-                            value: "高血脂",
-                            child: Text(
-                              "高血脂",
-                              style: TextStyle(fontSize: 18),
-                            )),
-                        DropdownMenuItem(
-                            value: "高血压",
-                            child: Text(
-                              "高血压",
-                              style: TextStyle(fontSize: 18),
-                            )),
-                        DropdownMenuItem(
-                            value: "高血糖",
-                            child: Text(
-                              "高血糖",
-                              style: TextStyle(fontSize: 18),
-                            )),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedClass = value!;
-                        });
-                      },
-                    ),
+              // 主题分类
+              Expanded(
+                  child: Container(
+                color: Colors.black12,
+                height: 30,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.only(left: 10),
+                child: DropdownButton(
+                  icon: const Icon(Icons.arrow_drop_down),
+                  iconSize: 30,
+                  hint: Text(
+                    selectedClass,
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
                   ),
-                  const SizedBox(width: 10),
-                  // 话题分类
-                  Container(
-                    color: Colors.black12,
-                    height: 30,
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.only(left: 10),
-                    child: DropdownButton(
-                      icon: const Icon(Icons.arrow_drop_down),
-                      iconSize: 30,
-                      hint: Text(selectedCategory,
-                          style: const TextStyle(
-                              fontSize: 18, color: Colors.black)),
-                      items: const [
-                        DropdownMenuItem(
-                            value: "饮食",
-                            child: Text(
-                              "饮食",
-                              style: TextStyle(fontSize: 18),
-                            )),
-                        DropdownMenuItem(
-                            value: "运动",
-                            child: Text(
-                              "运动",
-                              style: TextStyle(fontSize: 18),
-                            )),
-                        DropdownMenuItem(
-                            value: "生活",
-                            child: Text(
-                              "生活",
-                              style: TextStyle(fontSize: 18),
-                            )),
-                        DropdownMenuItem(
-                            value: "其他",
-                            child: Text(
-                              "其他",
-                              style: TextStyle(fontSize: 18),
-                            )),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCategory = value!;
-                        });
+                  items: const [
+                    DropdownMenuItem(
+                        value: "高血脂",
+                        child: Text(
+                          "高血脂",
+                          style: TextStyle(fontSize: 16),
+                        )),
+                    DropdownMenuItem(
+                        value: "高血压",
+                        child: Text(
+                          "高血压",
+                          style: TextStyle(fontSize: 16),
+                        )),
+                    DropdownMenuItem(
+                        value: "高血糖",
+                        child: Text(
+                          "高血糖",
+                          style: TextStyle(fontSize: 16),
+                        )),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      selectedClass = value!;
+                    });
+                  },
+                ),
+              )),
+              const SizedBox(width: 10),
+              // 话题分类
+              Expanded(
+                  child: Container(
+                color: Colors.black12,
+                height: 30,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.only(left: 10),
+                child: DropdownButton(
+                  icon: const Icon(Icons.arrow_drop_down),
+                  iconSize: 30,
+                  hint: Text(selectedCategory,
+                      style:
+                          const TextStyle(fontSize: 16, color: Colors.black)),
+                  items: const [
+                    DropdownMenuItem(
+                        value: "饮食",
+                        child: Text(
+                          "饮食",
+                          style: TextStyle(fontSize: 16),
+                        )),
+                    DropdownMenuItem(
+                        value: "运动",
+                        child: Text(
+                          "运动",
+                          style: TextStyle(fontSize: 16),
+                        )),
+                    DropdownMenuItem(
+                        value: "生活",
+                        child: Text(
+                          "生活",
+                          style: TextStyle(fontSize: 16),
+                        )),
+                    DropdownMenuItem(
+                        value: "其他",
+                        child: Text(
+                          "其他",
+                          style: TextStyle(fontSize: 18),
+                        )),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCategory = value!;
+                    });
+                  },
+                ),
+              ))
+            ],
+          ),
+          const SizedBox(height: 15),
+          // 照片添加栏
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // 图片添加按钮
+              IconButton(
+                onPressed: showVid
+                    ? null
+                    : () async {
+                        final image = await ImagePicker().pickMultiImage();
+                        List<XFile> xFilePick = image;
+                        if (xFilePick.isNotEmpty) {
+                          for (var i = 0; i < xFilePick.length; i++) {
+                            selectedImages.add(File(xFilePick[i].path));
+                          }
+                          setState(() {
+                            showPic = true;
+                          });
+                        }
                       },
-                    ),
-                  )
-                ],
+                icon: Icon(
+                  Icons.image_outlined,
+                  color: showVid ? Colors.grey : Colors.blue,
+                  size: 30,
+                ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // 图片添加按钮
-                  IconButton(
-                    onPressed: showVid
-                        ? null
-                        : () async {
-                            final image = await ImagePicker().pickMultiImage();
-                            List<XFile> xFilePick = image;
-                            if (xFilePick.isNotEmpty) {
-                              for (var i = 0; i < xFilePick.length; i++) {
-                                selectedImages.add(File(xFilePick[i].path));
-                              }
-                              setState(() {
-                                showPic = true;
-                              });
-                            }
-                          },
-                    icon: Icon(
-                      Icons.image_outlined,
-                      color: showVid ? Colors.grey : Colors.blue,
-                      size: 30,
-                    ),
-                  ),
-                  // 视频添加按钮
-                  IconButton(
-                    onPressed: showPic
-                        ? null
-                        : () async {
-                            final video = await ImagePicker()
-                                .pickVideo(source: ImageSource.gallery);
-                            XFile? xFilePick = video;
-                            if (xFilePick != null) {
-                              videoPreview = File(xFilePick.path);
+              // 视频添加按钮
+              IconButton(
+                onPressed: showPic
+                    ? null
+                    : () async {
+                        final video = await ImagePicker()
+                            .pickVideo(source: ImageSource.gallery);
+                        XFile? xFilePick = video;
+                        if (xFilePick != null) {
+                          videoPreview = File(xFilePick.path);
 
-                              setState(() {
-                                showVid = true;
-                              });
-                            }
-                          },
-                    icon: Icon(
-                      Icons.video_file_outlined,
-                      color: showPic ? Colors.grey : Colors.blue,
-                      size: 30,
-                    ),
-                  )
-                ],
-              ),
+                          setState(() {
+                            showVid = true;
+                          });
+                        }
+                      },
+                icon: Icon(
+                  Icons.video_file_outlined,
+                  color: showPic ? Colors.grey : Colors.blue,
+                  size: 30,
+                ),
+              )
             ],
           ),
           const SizedBox(height: 15),
           // 显示图片
           Visibility(
-              visible: showPic,
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 150,
-                    child: ListView(
-                      shrinkWrap: true,
-                      scrollDirection: Axis.horizontal,
-                      children: imagePreviewList,
-                    ),
+            visible: showPic,
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 150,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(children: imagePreviewList),
                   ),
-                  const SizedBox(height: 15),
-                ],
-              )),
+                ),
+                const SizedBox(height: 15),
+              ],
+            ),
+          ),
           // 显示视频
           Visibility(
-              visible: showVid,
-              child: Column(
-                children: [
-                  Text(
-                    videoPreview != null ? videoPreview!.path : "",
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                  const SizedBox(height: 15),
-                ],
-              ))
+            visible: showVid,
+            child: Column(
+              children: [
+                Text(
+                  videoPreview != null ? videoPreview!.path : "",
+                  style: const TextStyle(color: Colors.blue),
+                ),
+                const SizedBox(height: 15),
+              ],
+            ),
+          )
         ],
       ),
     );

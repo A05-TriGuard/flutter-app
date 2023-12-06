@@ -124,7 +124,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       color: Colors.transparent,
                       child: IconButton(
                         onPressed: () {
-                          print("pressed!");
+                          //print("pressed!");
                           setState(() {
                             if (_controller.value.isPlaying) {
                               _controller.pause();

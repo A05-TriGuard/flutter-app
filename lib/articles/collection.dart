@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../account/token.dart';
@@ -285,7 +286,8 @@ class _CollectionState extends State<Collection> {
                   height: screenHeight * 0.06),
               isSelected: classSelected,
               children: const [
-                Text("用药指南"),
+                AutoSizeText("用药指南"),
+                //Text("用药指南"),
                 Text("食物参数"),
                 Text("疾病预防"),
                 Text("科普文章"),
@@ -303,9 +305,10 @@ class _CollectionState extends State<Collection> {
               },
             ),
             SizedBox(
-                height: screenHeight * 0.65,
+                height: screenHeight * 0.7,
                 width: screenWidth * 0.88,
                 child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
                   controller: _scrollController,
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,

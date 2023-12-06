@@ -119,6 +119,7 @@ class _ScienceState extends State<Science> {
       body: Container(
           padding: const EdgeInsets.all(20),
           child: ListView.builder(
+            physics: const BouncingScrollPhysics(),
             controller: _scrollController,
             scrollDirection: Axis.vertical,
             itemCount: articleTileList.length,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../component/icons.dart';
 
 class Article extends StatefulWidget {
@@ -9,10 +10,17 @@ class Article extends StatefulWidget {
 }
 
 class _ArticleState extends State<Article> {
+  bool isShortDevice = false;
+
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
     var buttonHeight = screenWidth * 0.35;
+    if (buttonHeight > screenHeight * 0.18) {
+      buttonHeight = screenHeight * 0.18;
+      isShortDevice = true;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -61,6 +69,7 @@ class _ArticleState extends State<Article> {
                       bheight: buttonHeight,
                       bwidth: buttonHeight,
                       linkPage: '/articles/medicine',
+                      shortDevice: isShortDevice,
                     ),
                     const SizedBox(width: 30),
                     ArticleButton(
@@ -69,6 +78,7 @@ class _ArticleState extends State<Article> {
                       bheight: buttonHeight,
                       bwidth: buttonHeight,
                       linkPage: '/articles/foodsearch',
+                      shortDevice: isShortDevice,
                     )
                   ],
                 ),
@@ -82,6 +92,7 @@ class _ArticleState extends State<Article> {
                       bheight: buttonHeight,
                       bwidth: buttonHeight,
                       linkPage: '/articles/prevention',
+                      shortDevice: isShortDevice,
                     ),
                     const SizedBox(width: 30),
                     ArticleButton(
@@ -90,6 +101,7 @@ class _ArticleState extends State<Article> {
                       bheight: buttonHeight,
                       bwidth: buttonHeight,
                       linkPage: '/articles/science',
+                      shortDevice: isShortDevice,
                     )
                   ],
                 ),
@@ -100,6 +112,7 @@ class _ArticleState extends State<Article> {
                   bheight: buttonHeight,
                   bwidth: (buttonHeight * 2) + 30,
                   linkPage: '/articles/collection',
+                  shortDevice: isShortDevice,
                 ),
               ],
             ),
@@ -116,13 +129,15 @@ class ArticleButton extends StatelessWidget {
   final double bheight;
   final double bwidth;
   final String linkPage;
+  final bool shortDevice;
   const ArticleButton(
       {super.key,
       required this.text,
       required this.icon,
       required this.bheight,
       required this.bwidth,
-      required this.linkPage});
+      required this.linkPage,
+      required this.shortDevice});
 
   @override
   Widget build(BuildContext context) {
@@ -152,11 +167,16 @@ class ArticleButton extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                text,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+              shortDevice
+                  ? AutoSizeText(
+                      text,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    )
+                  : Text(
+                      text,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
               icon
             ],
           ),
