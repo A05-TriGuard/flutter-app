@@ -20,7 +20,6 @@ class FoodDiary extends StatefulWidget {
 
 // TOINTERACT: 变量基本上都需要从后端获取数据
 class _FoodDiaryState extends State<FoodDiary> {
-  int _currentIndex = 0;
   var haveRecord = <bool>[false, false, false, false];
   var breakfastRecord = <FoodInfo>[
     FoodInfo(name: "牛角面包", weight: "100克", calorie: "122千卡"),
@@ -118,6 +117,7 @@ class _FoodDiaryState extends State<FoodDiary> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
+
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: const Text(
@@ -130,7 +130,7 @@ class _FoodDiaryState extends State<FoodDiary> {
         ),
         leading: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '');
+              Navigator.pop(context);
             },
             icon: const Icon(
               Icons.arrow_back,
@@ -151,223 +151,20 @@ class _FoodDiaryState extends State<FoodDiary> {
       ),
 
       // 主体内容
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // 上面那栏
-            Container(
-              width: screenWidth * 0.9,
-              height: screenHeight * 0.15,
-              padding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black, width: 0),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(
-                        color: Colors.black38,
-                        offset: Offset(0, 3),
-                        spreadRadius: 0.5,
-                        blurRadius: 7)
-                  ]),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                        padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
-                        decoration: BoxDecoration(
-                            color: Colors.black12,
-                            border: Border.all(color: Colors.black, width: 1.5),
-                            borderRadius: BorderRadius.circular(20)),
-                        child: const Center(
-                            child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                              Text(
-                                "2023年11月",
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    letterSpacing: 2,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                              Text(
-                                "20",
-                                style: TextStyle(
-                                    fontSize: 26, fontWeight: FontWeight.w900),
-                              ),
-                              Text(
-                                "星期一",
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    letterSpacing: 5,
-                                    fontWeight: FontWeight.w600),
-                              )
-                            ]))),
-                    Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          InkWell(
-                              onTap: () {
-                                setState(() {
-                                  haveRecord[0] = !haveRecord[0];
-                                });
-                              },
-                              onLongPress: () {
-                                showAddFoodDialog(context, "早餐");
-                              },
-                              child: FoodButton(
-                                  haveRecord: haveRecord[0],
-                                  title: "  早餐",
-                                  color: MyIcons().breakfastColor(),
-                                  bnw: MyIcons().breakfastBnW())),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                haveRecord[2] = !haveRecord[2];
-                              });
-                            },
-                            onLongPress: () {
-                              showAddFoodDialog(context, "晚餐");
-                            },
-                            child: FoodButton(
-                                haveRecord: haveRecord[2],
-                                title: "  晚餐",
-                                color: MyIcons().dinnerColor(),
-                                bnw: MyIcons().dinnerBnW()),
-                          )
-                        ]),
-                    Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          InkWell(
-                              onTap: () {
-                                setState(() {
-                                  haveRecord[1] = !haveRecord[1];
-                                });
-                              },
-                              onLongPress: () {
-                                showAddFoodDialog(context, "晚餐");
-                              },
-                              child: FoodButton(
-                                  haveRecord: haveRecord[1],
-                                  title: "  午餐",
-                                  color: MyIcons().lunchColor(),
-                                  bnw: MyIcons().lunchBnW())),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                haveRecord[3] = !haveRecord[3];
-                              });
-                            },
-                            onLongPress: () {
-                              showAddFoodDialog(context, "其他");
-                            },
-                            child: FoodButton(
-                                haveRecord: haveRecord[3],
-                                title: "  其他",
-                                color: MyIcons().snackColor(),
-                                bnw: MyIcons().snackBnW()),
-                          )
-                        ])
-                  ]),
-            ),
-
-            // 中间那栏
-            Container(
-              width: screenWidth * 0.9,
-              height: screenHeight * 0.33,
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black, width: 0),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(
-                        color: Colors.black38,
-                        offset: Offset(0, 3),
-                        spreadRadius: 0.5,
-                        blurRadius: 7)
-                  ]),
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // 切换按钮
-                    ToggleButtons(
-                        fillColor: const Color.fromARGB(255, 250, 209, 252),
-                        textStyle: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        color: Colors.black38,
-                        selectedColor: Colors.black,
-                        borderRadius: BorderRadius.circular(15),
-                        constraints: BoxConstraints.expand(
-                            width: screenWidth * 0.8 * 0.2,
-                            height: screenHeight * 0.025),
-                        isSelected: classSelected,
-                        children: const [
-                          Text("全天"),
-                          Text("早餐"),
-                          Text("午餐"),
-                          Text("晚餐"),
-                          Text("其他")
-                        ],
-                        onPressed: (index) {
-                          setState(() {
-                            classSelected[curSelected] = false;
-                            classSelected[index] = true;
-                            curSelected = index;
-                            // TOINTERACT: 获取数据更新显示内容
-                          });
-                        }),
-
-                    // 卡路里圈
-                    CircularPercentIndicator(
-                      radius: 55,
-                      lineWidth: 4,
-                      percent: 0.75,
-                      center: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("还可摄入", textAlign: TextAlign.center),
-                          Text(
-                            "$calorieDiff",
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                          const Text("千卡", textAlign: TextAlign.center),
-                        ],
-                      ),
-                      progressColor: const Color.fromARGB(255, 24, 165, 247),
-                    ),
-
-                    // 营养成分
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children:
-                              createNutritionRowList(1, 3, screenWidth * 0.25),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children:
-                              createNutritionRowList(4, 3, screenWidth * 0.25),
-                        )
-                      ],
-                    ),
-                  ]),
-            ),
-
-            // 下面那栏
-            Container(
+      body: ListView(shrinkWrap: true, children: [
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              const SizedBox(
+                height: 15,
+              ),
+              // 上面那栏
+              Container(
                 width: screenWidth * 0.9,
-                height: screenHeight * 0.3,
-                padding: const EdgeInsets.all(15),
+                //height: screenHeight * 0.15,
+                height: 125,
+                padding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
                 decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(color: Colors.black, width: 0),
@@ -379,52 +176,281 @@ class _FoodDiaryState extends State<FoodDiary> {
                           spreadRadius: 0.5,
                           blurRadius: 7)
                     ]),
-                child: ListView(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Visibility(
-                          visible: haveRecord[0],
-                          child: FoodHeader(
-                              text: "   早餐 Breakfast",
-                              icon: MyIcons().breakfastColorBig())),
-                      Visibility(
-                          visible: haveRecord[0],
-                          child: Column(children: breakfastRowList)),
-                      Visibility(
-                          visible: haveRecord[0] && haveRecord[1],
-                          child: const Divider(thickness: 2)),
-                      Visibility(
-                          visible: haveRecord[1],
-                          child: FoodHeader(
-                              text: "   午餐 Lunch",
-                              icon: MyIcons().lunchColorBig())),
-                      Visibility(
-                          visible: haveRecord[1],
-                          child: Column(children: lunchRowList)),
-                      Visibility(
-                          visible:
-                              haveRecord[2] && (haveRecord[1] || haveRecord[0]),
-                          child: const Divider(thickness: 2)),
-                      Visibility(
-                          visible: haveRecord[2],
-                          child: FoodHeader(
-                              text: "   晚餐 Dinner",
-                              icon: MyIcons().dinnerColorBig())),
-                      Visibility(
-                          visible: haveRecord[3] &&
-                              (haveRecord[2] || haveRecord[1] || haveRecord[0]),
-                          child: const Divider(thickness: 2)),
-                      Visibility(
-                          visible: haveRecord[3],
-                          child: FoodHeader(
-                              text: "   其他 Others",
-                              icon: MyIcons().snackColorBig())),
-                    ])),
-          ],
-        ),
-      ),
+                      Container(
+                          padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+                          decoration: BoxDecoration(
+                              color: Colors.black12,
+                              border:
+                                  Border.all(color: Colors.black, width: 1.5),
+                              borderRadius: BorderRadius.circular(20)),
+                          child: const Center(
+                              child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                Text(
+                                  "2023年11月",
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      letterSpacing: 2,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  "20",
+                                  style: TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w900),
+                                ),
+                                Text(
+                                  "星期一",
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      letterSpacing: 5,
+                                      fontWeight: FontWeight.w600),
+                                )
+                              ]))),
+                      Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    haveRecord[0] = !haveRecord[0];
+                                  });
+                                },
+                                onLongPress: () {
+                                  showAddFoodDialog(context, "早餐");
+                                },
+                                child: FoodButton(
+                                    haveRecord: haveRecord[0],
+                                    title: "  早餐",
+                                    color: MyIcons().breakfastColor(),
+                                    bnw: MyIcons().breakfastBnW())),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  haveRecord[2] = !haveRecord[2];
+                                });
+                              },
+                              onLongPress: () {
+                                showAddFoodDialog(context, "晚餐");
+                              },
+                              child: FoodButton(
+                                  haveRecord: haveRecord[2],
+                                  title: "  晚餐",
+                                  color: MyIcons().dinnerColor(),
+                                  bnw: MyIcons().dinnerBnW()),
+                            )
+                          ]),
+                      Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    haveRecord[1] = !haveRecord[1];
+                                  });
+                                },
+                                onLongPress: () {
+                                  showAddFoodDialog(context, "晚餐");
+                                },
+                                child: FoodButton(
+                                    haveRecord: haveRecord[1],
+                                    title: "  午餐",
+                                    color: MyIcons().lunchColor(),
+                                    bnw: MyIcons().lunchBnW())),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  haveRecord[3] = !haveRecord[3];
+                                });
+                              },
+                              onLongPress: () {
+                                showAddFoodDialog(context, "其他");
+                              },
+                              child: FoodButton(
+                                  haveRecord: haveRecord[3],
+                                  title: "  其他",
+                                  color: MyIcons().snackColor(),
+                                  bnw: MyIcons().snackBnW()),
+                            )
+                          ])
+                    ]),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              // 中间那栏
+              Container(
+                width: screenWidth * 0.9,
+                //height: screenHeight * 0.33,
+                height: 250,
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black, width: 0),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black38,
+                          offset: Offset(0, 3),
+                          spreadRadius: 0.5,
+                          blurRadius: 7)
+                    ]),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // 切换按钮
+                      ToggleButtons(
+                          fillColor: const Color.fromARGB(255, 250, 209, 252),
+                          textStyle: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          color: Colors.black38,
+                          selectedColor: Colors.black,
+                          borderRadius: BorderRadius.circular(15),
+                          constraints: BoxConstraints.expand(
+                              width: screenWidth * 0.8 * 0.2, height: 25),
+                          isSelected: classSelected,
+                          children: const [
+                            Text("全天"),
+                            Text("早餐"),
+                            Text("午餐"),
+                            Text("晚餐"),
+                            Text("其他")
+                          ],
+                          onPressed: (index) {
+                            setState(() {
+                              classSelected[curSelected] = false;
+                              classSelected[index] = true;
+                              curSelected = index;
+                              // TOINTERACT: 获取数据更新显示内容
+                            });
+                          }),
 
+                      // 卡路里圈
+                      CircularPercentIndicator(
+                        radius: 55,
+                        lineWidth: 4,
+                        percent: 0.75,
+                        center: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("还可摄入", textAlign: TextAlign.center),
+                            Text(
+                              "$calorieDiff",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+                            const Text("千卡", textAlign: TextAlign.center),
+                          ],
+                        ),
+                        progressColor: const Color.fromARGB(255, 24, 165, 247),
+                      ),
+
+                      // 营养成分
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: createNutritionRowList(
+                                1, 3, screenWidth * 0.25),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: createNutritionRowList(
+                                4, 3, screenWidth * 0.25),
+                          )
+                        ],
+                      ),
+                    ]),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              // 下面那栏
+              Container(
+                  width: screenWidth * 0.9,
+                  height: screenHeight * 0.4,
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black, width: 0),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: Colors.black38,
+                            offset: Offset(0, 3),
+                            spreadRadius: 0.5,
+                            blurRadius: 7)
+                      ]),
+                  child: ListView(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      children: [
+                        const Center(
+                          child: Text(
+                            "今日进食记录",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Visibility(
+                            visible: haveRecord[0],
+                            child: FoodHeader(
+                                text: "   早餐 Breakfast",
+                                icon: MyIcons().breakfastColorBig())),
+                        Visibility(
+                            visible: haveRecord[0],
+                            child: Column(children: breakfastRowList)),
+                        Visibility(
+                            visible: haveRecord[0] && haveRecord[1],
+                            child: const Divider(thickness: 2)),
+                        Visibility(
+                            visible: haveRecord[1],
+                            child: FoodHeader(
+                                text: "   午餐 Lunch",
+                                icon: MyIcons().lunchColorBig())),
+                        Visibility(
+                            visible: haveRecord[1],
+                            child: Column(children: lunchRowList)),
+                        Visibility(
+                            visible: haveRecord[2] &&
+                                (haveRecord[1] || haveRecord[0]),
+                            child: const Divider(thickness: 2)),
+                        Visibility(
+                            visible: haveRecord[2],
+                            child: FoodHeader(
+                                text: "   晚餐 Dinner",
+                                icon: MyIcons().dinnerColorBig())),
+                        Visibility(
+                            visible: haveRecord[3] &&
+                                (haveRecord[2] ||
+                                    haveRecord[1] ||
+                                    haveRecord[0]),
+                            child: const Divider(thickness: 2)),
+                        Visibility(
+                            visible: haveRecord[3],
+                            child: FoodHeader(
+                                text: "   其他 Others",
+                                icon: MyIcons().snackColorBig())),
+                      ])),
+              const SizedBox(
+                height: 20,
+              ),
+            ],
+          ),
+        ),
+      ]),
       // 下方导航栏
     );
   }

@@ -56,3 +56,32 @@ Widget getHeader(double width, double height, {int? color = 0}) {
     ],
   );
 }
+
+PreferredSizeWidget getAppBar() {
+  return AppBar(
+    automaticallyImplyLeading: false,
+    title: const Text(
+      "TriGuard",
+      style:
+          TextStyle(fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
+    ),
+    flexibleSpace: Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color.fromARGB(255, 250, 209, 252),
+            Color.fromARGB(255, 255, 255, 255),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: Color.fromRGBO(169, 171, 179, 1),
+            width: 1,
+          ),
+        ),
+      ),
+    ),
+  );
+}

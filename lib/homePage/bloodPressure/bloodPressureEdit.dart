@@ -1028,7 +1028,7 @@ class _TitleDateState extends State<TitleDate> {
                             fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 5),
-                      Image.asset("assets/icons/edit.png",
+                      Image.asset("assets/icons/bloodPressure.png",
                           width: 20, height: 20),
                     ]),
               ),

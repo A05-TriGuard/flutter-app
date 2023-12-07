@@ -2059,26 +2059,6 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
       print(response);
       data = [];
     }
-    /* data = [
-      {
-        "id": 12,
-        "date": "2023-11-28",
-        "time": "09:06",
-        "bs": 5.6,
-        "meal": 0,
-        "feeling": 1,
-        "remark": "egrgre",
-      },
-      {
-        "id": 15,
-        "date": "2023-11-27",
-        "time": "12:06",
-        "bs": 4.3,
-        "meal": 1,
-        "feeling": 2,
-        "remark": "gregrgr",
-      },
-    ]; */
 
     titleDateWidget =
         TitleDate(date: date, updateView: updateView, updateDate: updateDate);

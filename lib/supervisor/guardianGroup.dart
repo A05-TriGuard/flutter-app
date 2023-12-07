@@ -310,7 +310,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                       //color: Colors.red,
                       child: GestureDetector(
                         onTap: () {
-                          print("修改昵称");
+                          print("修改昵称?");
                           // Navigator.pushNamed(context, '/edit');
                           setState(() {
                             isEditingNickname = !isEditingNickname;
@@ -1016,6 +1016,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
 
   @override
   Widget build(BuildContext context) {
+    //print("rebuild");
     return Scaffold(
       appBar: AppBar(
         title: const Text(

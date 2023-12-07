@@ -130,12 +130,14 @@ class MyIcons {
   Image star() {
     return Image.asset(
       "assets/icons/star.png",
+      height: 30,
     );
   }
 
   Image starr() {
     return Image.asset(
       "assets/icons/starr.png",
+      height: 30,
     );
   }
 

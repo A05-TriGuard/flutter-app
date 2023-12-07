@@ -114,7 +114,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
   // 从后端请求数据
   Future<void> getDataFromServer() async {
     String requestDate = getFormattedDate(widget.date);
-    print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+    // print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
@@ -134,7 +134,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
         },
       );
       if (response.data["code"] == 200) {
-        print("获取血压数据成功");
+        //print("获取血压数据成功");
         data = response.data["data"];
       } else {
         print(response);
@@ -184,7 +184,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
 
   @override
   Widget build(BuildContext context) {
-    print("血压 ${widget.date}");
+    //print("血压 ${widget.date}");
     //getDataFromServer();
     return FutureBuilder(
       // Replace getDataFromServer with the Future you want to wait for
@@ -416,7 +416,7 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
   // 从后端请求数据
   Future<void> getDataFromServer() async {
     String requestDate = getFormattedDate(widget.date);
-    print('请求日期：$requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+    //print('请求日期：$requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
@@ -431,7 +431,7 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
         "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate",
       );
       if (response.data["code"] == 200) {
-        print("获取血糖数据成功");
+        //print("获取血糖数据成功");
         data = response.data["data"];
       } else {
         print(response);
@@ -675,7 +675,7 @@ class _MyBloodFatState extends State<MyBloodFat> {
   // 从后端请求数据
   Future<void> getDataFromServer() async {
     String requestDate = getFormattedDate(widget.date);
-    print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+    //print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
@@ -690,7 +690,7 @@ class _MyBloodFatState extends State<MyBloodFat> {
         "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate",
       );
       if (response.data["code"] == 200) {
-        print("获取血脂数据成功");
+        //print("获取血脂数据成功");
         data = response.data["data"];
       } else {
         print(response);
