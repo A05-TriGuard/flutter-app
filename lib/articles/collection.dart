@@ -5,16 +5,18 @@ import '../account/token.dart';
 import '../articles/medicinepage.dart';
 import '../articles/foodsearchpage.dart';
 import '../articles/sciencepage.dart';
+import '../component/mainPagesBar/mainPagesBar.dart';
 
 class Collection extends StatefulWidget {
-  const Collection({super.key});
+  final List<bool> selectedButton;
+  const Collection({super.key, required this.selectedButton});
 
   @override
   State<Collection> createState() => _CollectionState();
 }
 
 class _CollectionState extends State<Collection> {
-  var classSelected = <bool>[true, false, false, false];
+  var classSelected = <bool>[false, false, false, false];
   int curSelected = 0;
   int curItemCount = 0;
   var medicineArticleList = [];
@@ -26,7 +28,8 @@ class _CollectionState extends State<Collection> {
   var preventionTileList = <ArticleTile>[];
   var scienceTileList = <ArticleTile>[];
   int pageCount = 1;
-  int batchCount = 6;
+  int batchCount = 10;
+  int increaseNum = 5;
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
 
@@ -37,13 +40,13 @@ class _CollectionState extends State<Collection> {
         if (curSelected == 2) {
           setState(() {
             _isLoading = true;
-            batchCount += 3;
+            batchCount += increaseNum;
             fetchNShowDiseaseCollection();
           });
         } else if (curSelected == 3) {
           setState(() {
             _isLoading = true;
-            batchCount += 3;
+            batchCount += increaseNum;
             fetchNShowScienceCollection();
           });
         }
@@ -59,6 +62,7 @@ class _CollectionState extends State<Collection> {
         articleInfo: medicineArticleList[i],
         linkpath: '/articles/collection/medicinepage',
         isMed: true,
+        updateCollection: fetchNShowMedicineCollection,
       ));
     }
   }
@@ -71,6 +75,7 @@ class _CollectionState extends State<Collection> {
         articleInfo: foodArticleList[i],
         linkpath: '/articles/collection/foodsearchpage',
         isMed: false,
+        updateCollection: fetchNShowFoodCollection,
       ));
     }
   }
@@ -79,7 +84,11 @@ class _CollectionState extends State<Collection> {
     scienceTileList.clear();
 
     for (int i = scienceArticleList.length - 1; i >= 0; --i) {
-      scienceTileList.add(ArticleTile(article: scienceArticleList[i]));
+      scienceTileList.add(ArticleTile(
+        article: scienceArticleList[i],
+        isPrevention: false,
+        updateCollection: fetchNShowScienceCollection,
+      ));
     }
   }
 
@@ -87,7 +96,11 @@ class _CollectionState extends State<Collection> {
     preventionTileList.clear();
 
     for (int i = preventionArticleList.length - 1; i >= 0; --i) {
-      preventionTileList.add(ArticleTile(article: preventionArticleList[i]));
+      preventionTileList.add(ArticleTile(
+        article: preventionArticleList[i],
+        isPrevention: true,
+        updateCollection: fetchNShowDiseaseCollection,
+      ));
     }
   }
 
@@ -217,7 +230,15 @@ class _CollectionState extends State<Collection> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    fetchNShowMedicineCollection();
+    if (widget.selectedButton[0]) {
+      fetchNShowMedicineCollection();
+    } else if (widget.selectedButton[1]) {
+      fetchNShowFoodCollection();
+    } else if (widget.selectedButton[2]) {
+      fetchNShowDiseaseCollection();
+    } else {
+      fetchNShowScienceCollection();
+    }
   }
 
   @override
@@ -235,97 +256,113 @@ class _CollectionState extends State<Collection> {
     createScienceTileList();
     createPreventionTileList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "我的收藏",
-          style: TextStyle(
-              fontFamily: 'BalooBhai',
-              fontSize: 24,
-              color: Colors.black,
-              fontWeight: FontWeight.w900),
-        ),
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.black,
-              size: 30,
-            )),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-              gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 250, 209, 252),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )),
-        ),
-      ),
-
-      // 主体内容
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ToggleButtons(
-              fillColor: const Color.fromARGB(255, 250, 209, 252),
-              textStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-              color: Colors.black38,
-              selectedColor: Colors.black,
-              borderRadius: BorderRadius.circular(15),
-              constraints: BoxConstraints.expand(
-                  width: screenWidth * 0.85 * 0.25,
-                  height: screenHeight * 0.06),
-              isSelected: classSelected,
-              children: const [
-                AutoSizeText("用药指南"),
-                //Text("用药指南"),
-                Text("食物参数"),
-                Text("疾病预防"),
-                Text("科普文章"),
-              ],
-              onPressed: (index) {
-                if (index == 0) {
-                  fetchNShowMedicineCollection();
-                } else if (index == 1) {
-                  fetchNShowFoodCollection();
-                } else if (index == 2) {
-                  fetchNShowDiseaseCollection();
-                } else {
-                  fetchNShowScienceCollection();
-                }
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const MainPages(
+                      arguments: {"setToArticlePage": true},
+                    )));
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "我的收藏",
+            style: TextStyle(
+                fontFamily: 'BalooBhai',
+                fontSize: 24,
+                color: Colors.black,
+                fontWeight: FontWeight.w900),
+          ),
+          leading: IconButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const MainPages(
+                              arguments: {"setToArticlePage": true},
+                            )));
               },
-            ),
-            SizedBox(
-                height: screenHeight * 0.7,
-                width: screenWidth * 0.88,
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  controller: _scrollController,
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemCount: curItemCount,
-                  itemBuilder: (BuildContext context, index) {
-                    if (classSelected[0]) {
-                      return medicineTileList[index];
-                    } else if (classSelected[1]) {
-                      return foodTileList[index];
-                    } else if (classSelected[2]) {
-                      return preventionTileList[index];
-                    } else {
-                      return scienceTileList[index];
-                    }
-                  },
-                ))
-          ],
+              icon: const Icon(
+                Icons.arrow_back,
+                color: Colors.black,
+                size: 30,
+              )),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 250, 209, 252),
+                Color.fromARGB(255, 255, 255, 255),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            )),
+          ),
+        ),
+
+        // 主体内容
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ToggleButtons(
+                fillColor: const Color.fromARGB(255, 250, 209, 252),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                color: Colors.black38,
+                selectedColor: Colors.black,
+                borderRadius: BorderRadius.circular(15),
+                constraints: BoxConstraints.expand(
+                    width: screenWidth * 0.85 * 0.25,
+                    height: screenHeight * 0.06),
+                isSelected: classSelected,
+                children: const [
+                  AutoSizeText("用药指南"),
+                  //Text("用药指南"),
+                  Text("食物参数"),
+                  Text("疾病预防"),
+                  Text("科普文章"),
+                ],
+                onPressed: (index) {
+                  if (index == 0) {
+                    fetchNShowMedicineCollection();
+                  } else if (index == 1) {
+                    fetchNShowFoodCollection();
+                  } else if (index == 2) {
+                    fetchNShowDiseaseCollection();
+                  } else {
+                    fetchNShowScienceCollection();
+                  }
+                },
+              ),
+              SizedBox(
+                  height: screenHeight * 0.7,
+                  width: screenWidth * 0.88,
+                  child: ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    controller: _scrollController,
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemCount: curItemCount,
+                    itemBuilder: (BuildContext context, index) {
+                      if (classSelected[0]) {
+                        return medicineTileList[index];
+                      } else if (classSelected[1]) {
+                        return foodTileList[index];
+                      } else if (classSelected[2]) {
+                        return preventionTileList[index];
+                      } else {
+                        return scienceTileList[index];
+                      }
+                    },
+                  ))
+            ],
+          ),
         ),
       ),
     );
@@ -334,8 +371,14 @@ class _CollectionState extends State<Collection> {
 
 class ArticleTile extends StatelessWidget {
   final Map article;
+  final bool isPrevention;
+  final VoidCallback updateCollection;
 
-  const ArticleTile({super.key, required this.article});
+  const ArticleTile(
+      {super.key,
+      required this.article,
+      required this.isPrevention,
+      required this.updateCollection});
 
   @override
   Widget build(BuildContext context) {
@@ -346,11 +389,27 @@ class ArticleTile extends StatelessWidget {
       elevation: 6,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      SciencePage(title: "返回收藏列表", id: article["id"])));
+          if (isPrevention) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => SciencePage(
+                          title: "返回收藏列表",
+                          id: article["id"],
+                          isPrevention: isPrevention,
+                          updateCollection: updateCollection,
+                        )));
+          } else {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => SciencePage(
+                          title: "返回收藏列表",
+                          id: article["id"],
+                          isPrevention: isPrevention,
+                          updateCollection: updateCollection,
+                        )));
+          }
         },
         child: ListTile(
           minVerticalPadding: 15,
@@ -389,12 +448,14 @@ class NonArticleTile extends StatelessWidget {
   final Map articleInfo;
   final String linkpath;
   final bool isMed;
+  final VoidCallback updateCollection;
 
   const NonArticleTile(
       {super.key,
       required this.articleInfo,
       required this.linkpath,
-      required this.isMed});
+      required this.isMed,
+      required this.updateCollection});
 
   @override
   Widget build(BuildContext context) {
@@ -409,14 +470,20 @@ class NonArticleTile extends StatelessWidget {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        MedicinePage(title: "返回收藏列表", id: articleInfo["id"])));
+                    builder: (context) => MedicinePage(
+                          title: "返回收藏列表",
+                          id: articleInfo["id"],
+                          updateHistory: updateCollection,
+                        )));
           } else {
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => FoodsearchPage(
-                        title: "返回收藏列表", id: articleInfo["id"])));
+                          title: "返回收藏列表",
+                          id: articleInfo["id"],
+                          updateHistory: updateCollection,
+                        )));
           }
         },
         child: ListTile(

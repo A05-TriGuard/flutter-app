@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../account/token.dart';
 import '../component/icons.dart';
+import '../articles/foodsearch.dart';
+import '../articles/collection.dart';
 
 class FoodsearchPage extends StatefulWidget {
   final String title;
   final int id;
-  const FoodsearchPage({super.key, required this.title, required this.id});
+  final VoidCallback updateHistory;
+  const FoodsearchPage(
+      {super.key,
+      required this.title,
+      required this.id,
+      required this.updateHistory});
 
   @override
   State<FoodsearchPage> createState() => _FoodsearchPageState();
@@ -125,108 +132,155 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
+    return WillPopScope(
+      onWillPop: () async {
+        if (widget.title == "返回查询页面") {
+          Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const Foodsearch()))
+              .then((value) {
+            widget.updateHistory();
+          });
+        } else {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const Collection(
+                        selectedButton: [false, true, false, false],
+                      ))).then((value) {
+            widget.updateHistory();
+          });
+        }
+        return true;
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
 
-      appBar: AppBar(
-        title: Text(
-          widget.title,
-          style: const TextStyle(
-              fontFamily: 'BalooBhai',
-              fontSize: 24,
-              color: Colors.black,
-              fontWeight: FontWeight.w900),
-        ),
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.black,
-              size: 30,
-            )),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-              gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 250, 209, 252),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )),
-        ),
-      ),
-
-      // 主体内容
-      body: Center(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          const SizedBox(height: 10),
-          SizedBox(
-            width: screenWidth * 0.8,
-            child: Center(
-                child: Text(
-              foodInfo["name"] ?? "",
-              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )),
+        appBar: AppBar(
+          title: Text(
+            widget.title,
+            style: const TextStyle(
+                fontFamily: 'BalooBhai',
+                fontSize: 24,
+                color: Colors.black,
+                fontWeight: FontWeight.w900),
           ),
-          IconButton(
+          leading: IconButton(
               onPressed: () {
-                if (!addedCollection) {
-                  addFoodToCollection();
+                if (widget.title == "返回查询页面") {
+                  Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const Foodsearch()))
+                      .then((value) {
+                    widget.updateHistory();
+                  });
                 } else {
-                  removeFoodFromCollection();
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const Collection(
+                                selectedButton: [false, true, false, false],
+                              ))).then((value) {
+                    widget.updateHistory();
+                  });
                 }
               },
-              icon: addedCollection ? MyIcons().starr() : MyIcons().star()),
-          Container(
-              height: screenHeight * 0.6,
-              width: screenWidth * 0.85,
-              padding: const EdgeInsets.all(15),
-              child: Table(
-                border: TableBorder.all(color: Colors.black),
-                children: [
-                  TableRow(
-                      decoration: const BoxDecoration(color: Colors.black12),
-                      children: [
-                        Container(
-                            padding: const EdgeInsets.all(10),
-                            child: const Text(
-                              "营养素",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 2),
-                            )),
-                        Container(
-                            padding: const EdgeInsets.all(10),
-                            child: const Text(
-                              "含量",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 2),
-                            )),
-                      ]),
-                  createTableRow("卡路里", foodInfo["calories"] ?? "..."),
-                  createTableRow("碳水化合物", foodInfo["carbohydrates"] ?? "..."),
-                  createTableRow("脂肪", foodInfo["lipids"] ?? "..."),
-                  createTableRow("胆固醇", foodInfo["cholesterol"] ?? "..."),
-                  createTableRow("蛋白质", foodInfo["proteins"] ?? "..."),
-                  createTableRow("纤维素", foodInfo["fiber"] ?? "..."),
-                  createTableRow("钠", foodInfo["sodium"] ?? "...")
-                ],
+              icon: const Icon(
+                Icons.arrow_back,
+                color: Colors.black,
+                size: 30,
               )),
-          const SizedBox(height: 10),
-        ],
-      )),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 250, 209, 252),
+                Color.fromARGB(255, 255, 255, 255),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            )),
+          ),
+        ),
+
+        // 主体内容
+        body: SingleChildScrollView(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: screenWidth * 0.8,
+                  child: Center(
+                      child: Text(
+                    foodInfo["name"] ?? "",
+                    style: const TextStyle(
+                        fontSize: 30, fontWeight: FontWeight.w900),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )),
+                ),
+                const SizedBox(height: 10),
+                IconButton(
+                    onPressed: () {
+                      if (!addedCollection) {
+                        addFoodToCollection();
+                      } else {
+                        removeFoodFromCollection();
+                      }
+                    },
+                    icon:
+                        addedCollection ? MyIcons().starr() : MyIcons().star()),
+                const SizedBox(height: 20),
+                Container(
+                    height: screenHeight * 0.6,
+                    width: screenWidth * 0.85,
+                    padding: const EdgeInsets.all(15),
+                    child: Table(
+                      border: TableBorder.all(color: Colors.black),
+                      children: [
+                        TableRow(
+                            decoration:
+                                const BoxDecoration(color: Colors.black12),
+                            children: [
+                              Container(
+                                  padding: const EdgeInsets.all(10),
+                                  child: const Text(
+                                    "营养素",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 2),
+                                  )),
+                              Container(
+                                  padding: const EdgeInsets.all(10),
+                                  child: const Text(
+                                    "含量",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 2),
+                                  )),
+                            ]),
+                        createTableRow("卡路里", foodInfo["calories"] ?? "..."),
+                        createTableRow(
+                            "碳水化合物", foodInfo["carbohydrates"] ?? "..."),
+                        createTableRow("脂肪", foodInfo["lipids"] ?? "..."),
+                        createTableRow("胆固醇", foodInfo["cholesterol"] ?? "..."),
+                        createTableRow("蛋白质", foodInfo["proteins"] ?? "..."),
+                        createTableRow("纤维素", foodInfo["fiber"] ?? "..."),
+                        createTableRow("钠", foodInfo["sodium"] ?? "...")
+                      ],
+                    )),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
