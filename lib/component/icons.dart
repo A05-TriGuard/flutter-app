@@ -234,16 +234,16 @@ class MyIcons {
   }
 
   // ==================== 动态模块 ====================
-  Image bloodLipid() {
+  Image bloodLipidOutlined() {
     return Image.asset(
-      "assets/icons/bloodLipid.png",
+      "assets/icons/bloodLipidOutlined.png",
       height: 25,
     );
   }
 
   Image bloodLipidBig() {
     return Image.asset(
-      "assets/icons/bloodLipid.png",
+      "assets/icons/bloodLipidOutlined.png",
       height: 40,
     );
   }
