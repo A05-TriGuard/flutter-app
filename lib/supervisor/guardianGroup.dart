@@ -299,22 +299,6 @@ class _MemberWidgetState extends State<MemberWidget> {
 
   // 获取所有成员信息
   Future<void> getDataFromServer() async {
-    if (!refreshData) {
-      wardInfoWidgets.clear();
-      for (int i = 0; i < wardInfos.length; i++) {
-        wardInfoWidgets.add(getGroupMemberWidget(
-          wardInfos[i]["id"],
-          wardInfos[i]["username"],
-          wardInfos[i]["email"],
-          wardInfos[i]["nickname"],
-          wardInfos[i]["image"] ??
-              "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
-        ));
-
-        //isExpanded[wardInfos[i]["id"]] = false;
-      }
-      return;
-    }
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
     //print(value);
@@ -339,7 +323,7 @@ class _MemberWidgetState extends State<MemberWidget> {
       wardInfos = [];
     }
 
-    print("监护人成员列表：$wardInfos");
+    //print("监护人成员列表：$wardInfos");
 
     wardInfoWidgets.clear();
 
@@ -448,10 +432,11 @@ class _MemberWidgetState extends State<MemberWidget> {
             nickname.isEmpty ? username : nickname,
             textAlign: TextAlign.left,
             style: const TextStyle(
-                fontFamily: 'BalooBhai',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black),
+              fontFamily: 'BalooBhai',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
         ),
       ],
@@ -799,8 +784,8 @@ class _MemberWidgetState extends State<MemberWidget> {
                 if (status) {
                   isExpanded[accountId] = false;
                   List<bool> refresh = [true, true, true];
+                  //setState(() {});
                   widget.refreshCallback(refresh);
-                  setState(() {});
                 }
               },
               child: Container(
@@ -940,10 +925,51 @@ class _MemberWidgetState extends State<MemberWidget> {
     );
   }
 
+  // 没有成员
+  Widget noMemberWidget() {
+    return UnconstrainedBox(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.85,
+        height: 55,
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(255, 255, 255, 255),
+          borderRadius: BorderRadius.all(Radius.circular(15)),
+          border: Border(
+            //bottom
+            bottom: BorderSide(
+              color: Color.fromRGBO(0, 0, 0, 0.2),
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromARGB(120, 151, 151, 151),
+              offset: Offset(0, 5),
+              blurRadius: 5.0,
+              spreadRadius: 0.0,
+            ),
+          ],
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(15),
+          child: Text(
+            "暂无成员",
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontFamily: 'BalooBhai',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // 此模块
   @override
   Widget build(BuildContext context) {
-    print('成员rebuild: ---> refreshData: ${widget.refresh[1]}');
+    // print('成员rebuild: ---> refreshData: ${widget.refresh[1]}');
     if (!widget.refresh[1]) {
       wardInfoWidgets.clear();
       for (int i = 0; i < wardInfos.length; i++) {
@@ -957,12 +983,7 @@ class _MemberWidgetState extends State<MemberWidget> {
         ));
       }
       if (wardInfoWidgets.isEmpty) {
-        return Container(
-          height: 50,
-          child: const Center(
-            child: Text("暂无监护人"),
-          ),
-        );
+        return noMemberWidget();
       }
       return Column(
         children: wardInfoWidgets,
@@ -978,12 +999,7 @@ class _MemberWidgetState extends State<MemberWidget> {
 
             refreshData = false;
             if (wardInfoWidgets.isEmpty) {
-              return Container(
-                height: 100,
-                child: Center(
-                  child: Text("暂无监护人"),
-                ),
-              );
+              return noMemberWidget();
             }
             return Column(
               children: wardInfoWidgets,
@@ -1339,6 +1355,12 @@ class _GroupNameHeaderState extends State<GroupNameHeader> {
 
 // ===================此页面===========================
 
+class WardSelection {
+  final String? nickname;
+  final String? wardId;
+  WardSelection({this.nickname, this.wardId});
+}
+
 // ignore: must_be_immutable
 class GuardianGroupPage extends StatefulWidget {
   final int groupId;
@@ -1351,15 +1373,15 @@ class GuardianGroupPage extends StatefulWidget {
 }
 
 class _GuardianGroupPageState extends State<GuardianGroupPage> {
+  //
   List<User2> selectedUserList = [];
   String memberCount = "0";
   List<dynamic> wardInfos = [];
   List<dynamic> activities = [];
-  List<bool> refresh = [
-    true,
-    true,
-    true
-  ]; // [0] header, [1] member, [2] activity
+  // [0] header, [1] member, [2] activity
+  List<bool> refresh = [true, true, true];
+  List<WardSelection> wardSelectionList = [];
+  List<WardSelection> selectedWardSelectionList = [];
 
   // 回调函数
   void refreshView(List<bool> refreshData) {
@@ -1427,6 +1449,141 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     return false;
   }
 
+  // 获取能添加的成员
+  Future<void> getOtherWardForSelection() async {
+    // 所有被监护人
+    List<dynamic> allWardInfos = [];
+    // 当前群组的成员
+    List<dynamic> currentGroupWardInfos = [];
+
+    // 获取所有被监护人
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/ward/list",
+      );
+      if (response.data["code"] == 200) {
+        // print("获取监护人列表成功");
+        allWardInfos = response.data["data"]["wardList"];
+      } else {
+        print(response);
+        allWardInfos = [];
+      }
+    } catch (e) {
+      print(e);
+      allWardInfos = [];
+    }
+
+    //print("监护人成员列表：$allWardInfos");
+
+    // 获取当前群里的成员
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/guard-group/activity?groupId=${widget.groupId}",
+      );
+      if (response.data["code"] == 200) {
+        currentGroupWardInfos = response.data["data"]["wardInfos"];
+      } else {
+        print(response);
+        currentGroupWardInfos = [];
+      }
+    } catch (e) {
+      print(e);
+      currentGroupWardInfos = [];
+    }
+    //print("当前群组成员列表：$currentGroupWardInfos");
+
+    // 从allWardInfos中删除currentGroupWardInfos
+    /* for (int i = 0; i < currentGroupWardInfos.length; i++) {
+      for (int j = 0; j < allWardInfos.length; j++) {
+        if (currentGroupWardInfos[i]["id"] == allWardInfos[j]["accountId"]) {
+          allWardInfos.removeAt(j);
+          break;
+        }
+      }
+    }
+
+    wardSelectionList.clear();
+    for (int i = 0; i < allWardInfos.length; i++) {
+      wardSelectionList.add(
+        WardSelection(
+          nickname: allWardInfos[i]["nickname"],
+          wardId: (allWardInfos[i]["accountId"]).toString(),
+        ),
+      );
+    } */
+    Set<int> guardianIdsToRemove =
+        Set.from(currentGroupWardInfos.map((info) => info["id"]));
+
+    allWardInfos.removeWhere(
+        (wardInfo) => guardianIdsToRemove.contains(wardInfo["accountId"]));
+
+    // 构造wardSelectionList
+    wardSelectionList.clear();
+
+    wardSelectionList = allWardInfos.map((wardInfo) {
+      return WardSelection(
+        nickname: wardInfo["nickname"],
+        wardId: (wardInfo["accountId"]).toString(),
+      );
+    }).toList();
+  }
+
+  // 添加成员
+  Future<bool> addMember() async {
+    String accountId = "";
+
+    for (int i = 0; i < selectedWardSelectionList.length; i++) {
+      accountId += selectedWardSelectionList[i].wardId!;
+      if (i != selectedWardSelectionList.length - 1) {
+        accountId += ",";
+      }
+    }
+
+    print(accountId);
+
+    //return true;
+
+    final Dio dio = Dio();
+
+    //print("新昵称：${accountId} ${nicknameController.text}");
+
+    try {
+      var token = await storage.read(key: 'token');
+      dio.options.headers["Authorization"] = "Bearer $token";
+      Response response = await dio.post(
+        'http://43.138.75.58:8080/api/guard-group/member/add',
+        queryParameters: {
+          "wardId": accountId,
+          "groupId": widget.groupId,
+        },
+      );
+
+      if (response.data['code'] == 200) {
+        print("添加成员成功");
+        setState(() {});
+        return true;
+      } else {
+        print("添加成员失败");
+      }
+    } on DioException catch (error) {
+      final response = error.response;
+      if (response != null) {
+        print(response.data);
+        print("添加成员失败1");
+      } else {
+        print(error.requestOptions);
+        print(error.message);
+        print("添加成员失败2");
+      }
+    }
+    return false;
+  }
+
   // ------------------弹窗-----------------
 
   //
@@ -1437,6 +1594,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
       selectedListData: selectedUserList,
       //enableOnlySingleSelection: true,
       //applyButtonText: "??",
+
       theme: FilterListDelegateThemeData(
         listTileTheme: ListTileThemeData(
           shape: RoundedRectangleBorder(
@@ -1479,7 +1637,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     );
   }
 
-  // 选择要添加的成员
+  // 选择要添加的成员 no use
   void openFilterDialog() async {
     // await FilterListDelegate.show(context: context, list: userList, onItemSearch:  , onApplyButtonClick: );
 
@@ -1498,6 +1656,50 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
         });
         Navigator.pop(context);
       },
+    );
+  }
+
+  // 选择要添加的成员
+  void addMemberDialog() async {
+    selectedWardSelectionList.clear();
+
+    await FilterListDialog.display<WardSelection>(
+      context,
+      listData: wardSelectionList,
+      selectedListData: selectedWardSelectionList,
+      choiceChipLabel: (user) => user!.nickname,
+      validateSelectedItem: (list, val) => list!.contains(val),
+      onItemSearch: (user, query) {
+        return user.nickname!.toLowerCase().contains(query.toLowerCase());
+      },
+      onApplyButtonClick: (list) async {
+        selectedWardSelectionList = List.from(list!);
+        /* for (int i = 0; i < selectedWardSelectionList.length; i++) {
+          print(
+              "wardSelectionList: ${selectedWardSelectionList[i].nickname} ${selectedWardSelectionList[i].wardId}");
+        } */
+
+        //selectGroupNameWidget(context);
+        // 先pop再显示 填写群组名
+        //Navigator.pop(context);
+
+        // 必须至少一个成员才能创建群组
+        /* if (selectedWardSelectionList.isNotEmpty) {
+          selectGroupNameWidget(context);
+        } */
+
+        Navigator.pop(context);
+
+        if (selectedWardSelectionList.isNotEmpty) {
+          await addMember();
+        }
+      },
+      height: MediaQuery.of(context).size.height * 0.7,
+      headlineText: "添加成员",
+      applyButtonText: "确认",
+      resetButtonText: "重置",
+      allButtonText: "全选",
+      selectedItemsText: "人被选择",
     );
   }
 
@@ -1681,9 +1883,8 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
       },
     );
   }
-  // ###################组件#################
 
-  // 编辑群组名
+  // ###################组件#################
 
   // 此页面
   @override
@@ -1700,10 +1901,44 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
             (MediaQuery.of(context).size.height * 0.1 + 11)),
         actions: [
           GestureDetector(
-            onTap: () {
+            onTap: () async {
               print("添加成员");
               //showOverlay(context);
-              openFilterDelegate();
+              //openFilterDelegate();
+
+              await getOtherWardForSelection();
+              /*  print("allWardInfos: $allWardInfos ${allWardInfos.length}");
+              print(
+                  "currentGroupWardInfos: $currentGroupWardInfos ${currentGroupWardInfos.length}");
+              Set<int> guardianIdsToRemove =
+                  Set.from(currentGroupWardInfos.map((info) => info["id"]));
+
+              allWardInfos.removeWhere((wardInfo) =>
+                  guardianIdsToRemove.contains(wardInfo["accountId"]));
+
+              // 构造wardSelectionList
+              wardSelectionList.clear();
+
+              wardSelectionList = allWardInfos.map((wardInfo) {
+                return WardSelection(
+                  nickname: wardInfo["nickname"],
+                  wardId: wardInfo["accountId"],
+                );
+              }).toList();
+              /* wardSelectionList.clear();
+                for (int i = 0; i < 30; i++) {
+                  wardSelectionList.add(
+                    WardSelection(
+                      nickname: "haha",
+                      wardId: "1",
+                    ),
+                  );
+                } */ */
+              addMemberDialog();
+
+              /*  getOtherWardForSelection().then((_) {
+                addMemberDialog();
+              }); */
             },
             child: Container(
               width: 20,

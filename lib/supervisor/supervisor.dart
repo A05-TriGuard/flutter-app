@@ -15,6 +15,24 @@ typedef UpdateVisibleCreateGroupWidgetCallback = void Function(bool visible);
 typedef UpdateViewCallback = void Function(int id);
 PageController pageController = PageController(initialPage: 0);
 
+Widget getText(String content) {
+  return Column(
+    children: [
+      Text(
+        content,
+        textAlign: TextAlign.justify,
+        style: const TextStyle(
+          fontSize: 16,
+          fontFamily: "BalooBhai",
+        ),
+      ),
+      const SizedBox(
+        height: 8,
+      ),
+    ],
+  );
+}
+
 // ====================监护模式===============================
 
 // 监护页面
@@ -41,24 +59,6 @@ class _GuardianWidgetState extends State<GuardianWidget> {
   List<dynamic> groupList = [];
   List<Widget> wardedListWidget = [];
   bool refreshData = true;
-
-  Widget getText(String content) {
-    return Column(
-      children: [
-        Text(
-          content,
-          textAlign: TextAlign.justify,
-          style: const TextStyle(
-            fontSize: 16,
-            fontFamily: "BalooBhai",
-          ),
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-      ],
-    );
-  }
 
   // 什么是监护模式?
   void showInfo(BuildContext context) {
@@ -119,15 +119,9 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                         //height: 175,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
-                          /* child: Text(
-                            '''当你接受邀请成为监护人之后，你就有权限看到监护对象的所记录的所有数据。你也可以直接用你的账号直接帮监护对象记录数据，数据是同步的。此外，你也可以看到监护对象的记录活动，也可以导出监护对象的数据等等。 你也可以组建群组来方便查看成员的数据，支持编辑昵称，删除成员等。''',
-                            textAlign: TextAlign.justify,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontFamily: "BalooBhai",
-                            ),
-                          ), */
                           child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               getText(
                                   '1. 当你接受邀请成为监护人之后，你就有权限看到监护对象的所记录的所有数据，也有劝修改它们。'),
@@ -461,7 +455,7 @@ class _GuardianWidgetState extends State<GuardianWidget> {
     ); */
   }
 
-  // TODO 待改为新建群组
+  // 新建群组
   Widget getInviteGuardianWidget() {
     return Center(
       child: Container(
@@ -1291,6 +1285,109 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
     setState(() {});
   }
 
+  // 什么是关爱模式
+  void showInfo(BuildContext context) {
+    OverlayEntry? overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 0,
+        left: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            //olor: Color.fromRGBO(255, 255, 255, 0.8),
+            //color: Colors.white,
+            child: Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                //height: 300,
+                height: MediaQuery.of(context).size.height * 0.6,
+                // color: Colors.white,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 2),
+                      blurRadius: 10.0,
+                      spreadRadius: 2.0,
+                    ),
+                  ],
+                ),
+
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // 标题
+                      const Text(
+                        "什么是关爱模式？",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontFamily: "BalooBhai",
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+
+                      //内容
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.35,
+                        //height: 175,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              getText(
+                                  '1. 点击右上角的+号，你可以通过邮箱来向你的想添加的监护人发起邀请。当对方收到邀请后，有权拒绝或接受。'),
+                              getText(
+                                  '2. 当对方接受之后，他就能直接用他的账号直接查看你的血压，血糖，血脂，运动，饮食记录数据，你们的数据是同步的。但是你的监护人无法看到你收藏的文章，动态等等。'),
+                              getText(
+                                  '3. 如果邀请错人，而对方也接受了，没关系，你可以删除他，之后他就无法看到你的数据记录了。'),
+                              getText('4. 你可以编辑编辑监护人的备注。'),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // 取消，确定
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              overlayEntry?.remove();
+                            },
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.greenAccent),
+                            ),
+                            child: const Text('确定'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlayEntry);
+  }
+
   // 获取监护人列表
   Future<void> getGuardianListFromServer() async {
     if (pageController.page! != 1.0) {
@@ -1966,6 +2063,7 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
                   GestureDetector(
                     onTap: () {
                       print("关爱模式是什么？");
+                      showInfo(context);
                     },
                     child: Container(
                       decoration: const BoxDecoration(
@@ -2043,6 +2141,7 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
                         GestureDetector(
                           onTap: () {
                             print("关爱模式是什么？");
+                            showInfo(context);
                           },
                           child: Container(
                             decoration: const BoxDecoration(
@@ -3022,10 +3121,10 @@ class _SupervisorState extends State<Supervisor> {
       },
       onApplyButtonClick: (list) {
         selectedWardSelectionList = List.from(list!);
-        for (int i = 0; i < selectedWardSelectionList.length; i++) {
+        /* for (int i = 0; i < selectedWardSelectionList.length; i++) {
           print(
               "wardSelectionList: ${selectedWardSelectionList[i].nickname} ${selectedWardSelectionList[i].wardId}");
-        }
+        } */
         groupNameController.text = "";
 
         setState(() {});
@@ -3033,7 +3132,11 @@ class _SupervisorState extends State<Supervisor> {
         //selectGroupNameWidget(context);
         // 先pop再显示 填写群组名
         //Navigator.pop(context);
-        selectGroupNameWidget(context);
+
+        // 必须至少一个成员才能创建群组
+        if (selectedWardSelectionList.isNotEmpty) {
+          selectGroupNameWidget(context);
+        }
       },
       height: MediaQuery.of(context).size.height * 0.7,
       headlineText: "创建群组，选择成员",
