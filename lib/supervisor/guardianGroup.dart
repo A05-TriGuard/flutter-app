@@ -3,13 +3,28 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:filter_list/filter_list.dart';
+import 'package:dio/dio.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
 import './homePageSupervisor.dart';
+import '../account/token.dart';
 
+typedef RefreshDataCallback = void Function(List<bool> refreshData);
+//typedef RefreshCallback = Future<void> Function(List<bool> refreshData);
+
+// -------------------今日活动记录--------------------
 class TodayActivities extends StatefulWidget {
-  const TodayActivities({super.key});
+  final int groupId;
+  final List<bool> refresh;
+  final RefreshDataCallback refreshCallback;
+  const TodayActivities({
+    Key? key,
+    required this.groupId,
+    required this.refresh,
+    required this.refreshCallback,
+  }) : super(key: key);
 
   @override
   State<TodayActivities> createState() => _TodayActivitiesState();
@@ -28,12 +43,59 @@ class _TodayActivitiesState extends State<TodayActivities> {
     Color.fromARGB(255, 221, 183, 255),
     Color.fromARGB(255, 255, 195, 227),
   ];
+  List<dynamic> activities = [];
+  List<Widget> activitiesWidget = [];
+  List<String> activitiesType = ["测量血压", "测量血糖", "测量血脂", "记录运动", "记录饮食"];
 
-  // TODO: 从服务器获取数据
-  Future<void> getDataFromServer() async {}
+  // 从服务器获取数据
+  Future<void> getDataFromServer() async {
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/guard-group/activity?groupId=${widget.groupId}",
+      );
+      if (response.data["code"] == 200) {
+        // print("获取监护人列表成功");
+        activities = response.data["data"]["activities"];
+      } else {
+        print(response);
+        activities = [];
+      }
+    } catch (e) {
+      print(e);
+      activities = [];
+    }
+    await provideActivitiesWidget();
+  }
+
+  // 生成组件
+  Future<void> provideActivitiesWidget() async {
+    activitiesWidget.clear();
+    for (int i = 0; i < activities.length; i++) {
+      activitiesWidget.add(getActivity(
+          activities[i]["time"],
+          activities[i]["nickname"],
+          activitiesType[activities[i]["type"]],
+          i == 0 ? true : false,
+          i == activities.length - 1 ? true : false));
+    }
+
+    if (activities.isEmpty) {
+      activitiesWidget.add(
+        getActivity("00:00", "-", "今天没有记录", true, true),
+      );
+    }
+  }
 
   // 每个人的单条记录
-  Widget getActivity(String time, String username, String activity,
+  Widget getActivity(String time, String nickname, String activity,
       bool isFirst, bool isLast) {
     return TimelineTile(
       alignment: TimelineAlign.manual,
@@ -60,7 +122,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
             decoration: BoxDecoration(
               //color: Color.fromARGB(255, 151, 239, 255),
               //color: Colors.lightGreenAccent,
-              color: colors[username.hashCode % colors.length],
+              color: colors[nickname.hashCode % colors.length],
               borderRadius: BorderRadius.circular(15),
               border: Border.all(
                 color: const Color.fromRGBO(0, 0, 0, 0.2),
@@ -73,7 +135,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    username,
+                    nickname,
                     textAlign: TextAlign.left,
                     style: const TextStyle(
                       fontFamily: 'BalooBhai',
@@ -117,101 +179,260 @@ class _TodayActivitiesState extends State<TodayActivities> {
     );
   }
 
-  Widget getActivityWidget() {
-    return Column(
-      children: [
-        getActivity("08:00", "爸爸", "血压测量", true, false),
-        getActivity("08:30", "妈妈", "血糖测量", false, false),
-        getActivity("09:00", "爷爷", "血脂测量", false, false),
-        getActivity("09:30", "奶奶", "血压测量", false, false),
-        getActivity("10:00", "弟弟", "血糖测量", false, false),
-        getActivity("10:30", "妈妈", "血脂测量", false, false),
-        getActivity("11:00", "爷爷", "血压测量", false, false),
-        getActivity("11:30", "弟弟", "血糖测量", false, false),
-        getActivity("12:00", "爸爸", "血脂测量", false, false),
-        getActivity("12:30", "妈妈", "血压测量", false, false),
-        getActivity("13:00", "爷爷", "血糖测量", false, false),
-        getActivity("13:30", "奶奶", "血脂测量", false, false),
-        getActivity("14:00", "爸爸", "血压测量", false, false),
-        getActivity("14:30", "姐姐", "血糖测量", false, false),
-        getActivity("15:00", "爷爷", "血脂测量", false, false),
-        getActivity("15:30", "奶奶", "血压测量", false, false),
-        getActivity("16:00", "弟弟", "血糖测量", false, false),
-        getActivity("16:30", "妈妈", "血脂测量", false, false),
-        getActivity("17:00", "爷爷", "血压测量", false, true),
-      ],
-    );
-  }
-
+  // 此模块
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          MediaQuery.of(context).size.width * 0.15 * 0.5,
-          0,
-          MediaQuery.of(context).size.width * 0.15 * 0.5,
-          0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // 标题
-          const PageTitle(
-            title: "今日日记",
-            icons: "assets/icons/notebook.png",
-            fontSize: 20,
-          ),
-          const SizedBox(height: 10),
-          // 活动
-          getActivityWidget(), const SizedBox(height: 20),
-        ],
-      ),
-    );
+    //print('今日活动rebuild: ---> refreshData: ${widget.refresh[2]}');
+    if (!widget.refresh[2]) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(
+            MediaQuery.of(context).size.width * 0.15 * 0.5,
+            0,
+            MediaQuery.of(context).size.width * 0.15 * 0.5,
+            0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // 标题
+            const PageTitle(
+              title: "今日记录",
+              icons: "assets/icons/notebook.png",
+              fontSize: 20,
+            ),
+            const SizedBox(height: 10),
+            // 活动
+            //getActivityWidget(),
+            Column(children: activitiesWidget),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      );
+    }
+
+    return FutureBuilder(
+        future: getDataFromServer(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                  MediaQuery.of(context).size.width * 0.15 * 0.5,
+                  0,
+                  MediaQuery.of(context).size.width * 0.15 * 0.5,
+                  0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 标题
+                  const PageTitle(
+                    title: "今日记录",
+                    icons: "assets/icons/notebook.png",
+                    fontSize: 20,
+                  ),
+                  const SizedBox(height: 10),
+                  // 活动
+                  //getActivityWidget(),
+                  Column(children: activitiesWidget),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          } else {
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                  MediaQuery.of(context).size.width * 0.15 * 0.5,
+                  0,
+                  MediaQuery.of(context).size.width * 0.15 * 0.5,
+                  0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 标题
+                  const PageTitle(
+                    title: "今日记录",
+                    icons: "assets/icons/notebook.png",
+                    fontSize: 20,
+                  ),
+                  const SizedBox(height: 10),
+
+                  const SizedBox(height: 20),
+
+                  Center(
+                    child: LoadingAnimationWidget.staggeredDotsWave(
+                        color: Colors.pink, size: 25),
+                  )
+                ],
+              ),
+            );
+          }
+        });
   }
 }
 
-class User2 {
-  final String? name;
-  final String? avatar;
-  User2({this.name, this.avatar});
-}
-
-List<User2> userList = [
-  User2(name: "Jon", avatar: ""),
-  User2(name: "Lindsey ", avatar: ""),
-  User2(name: "Valarie ", avatar: ""),
-  User2(name: "Elyse ", avatar: ""),
-  User2(name: "Ethel ", avatar: ""),
-  User2(name: "Emelyan ", avatar: ""),
-  User2(name: "Catherine ", avatar: ""),
-  User2(name: "Stepanida  ", avatar: ""),
-  User2(name: "Carolina ", avatar: ""),
-  User2(name: "Nail  ", avatar: ""),
-  User2(name: "Kamil ", avatar: ""),
-  User2(name: "Mariana ", avatar: ""),
-  User2(name: "Katerina ", avatar: ""),
-];
-
-// ==============================================
-// 此页面
-class GuardianGroupPage extends StatefulWidget {
-  const GuardianGroupPage({super.key});
+// ---------------------成员列表信息------------------------
+class MemberWidget extends StatefulWidget {
+  final int groupId;
+  final List<bool> refresh;
+  final RefreshDataCallback refreshCallback;
+  const MemberWidget({
+    Key? key,
+    required this.groupId,
+    required this.refresh,
+    required this.refreshCallback,
+  }) : super(key: key);
 
   @override
-  State<GuardianGroupPage> createState() => _GuardianGroupPageState();
+  State<MemberWidget> createState() => _MemberWidgetState();
 }
 
-class _GuardianGroupPageState extends State<GuardianGroupPage> {
-  TextEditingController groupNameController = TextEditingController();
+class _MemberWidgetState extends State<MemberWidget> {
+  //
   TextEditingController nicknameController = TextEditingController();
-  List<bool> isExpandedList = [false, false, false, false, false];
-  List<User2> selectedUserList = [];
+  Map<int, bool> isExpanded = <int, bool>{};
   bool isEditingNickname = false;
-  bool isEditingGroupName = false;
-  String groupName = "我们一家人";
-  int memberCount = 5;
+  List<dynamic> wardInfos = [];
+  List<Widget> wardInfoWidgets = [];
+  bool refreshData = true;
 
-  Widget getGroupMemberWidgetLess(
-      int userId, String username, String email, String nickname) {
+  // +++++++++++++++++后端API++++++++++++++++++++
+
+  // 获取所有成员信息
+  Future<void> getDataFromServer() async {
+    if (!refreshData) {
+      wardInfoWidgets.clear();
+      for (int i = 0; i < wardInfos.length; i++) {
+        wardInfoWidgets.add(getGroupMemberWidget(
+          wardInfos[i]["id"],
+          wardInfos[i]["username"],
+          wardInfos[i]["email"],
+          wardInfos[i]["nickname"],
+          wardInfos[i]["image"] ??
+              "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+        ));
+
+        //isExpanded[wardInfos[i]["id"]] = false;
+      }
+      return;
+    }
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+    //print(value);
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+          "http://43.138.75.58:8080/api/guard-group/activity?groupId=${widget.groupId}");
+      if (response.data["code"] == 200) {
+        // print("获取监护人列表成功");
+        wardInfos = response.data["data"]["wardInfos"];
+      } else {
+        print(response);
+        wardInfos = [];
+      }
+    } catch (e) {
+      print(e);
+      wardInfos = [];
+    }
+
+    print("监护人成员列表：$wardInfos");
+
+    wardInfoWidgets.clear();
+
+    // 生成监护人列表
+    for (int i = 0; i < wardInfos.length; i++) {
+      isExpanded[wardInfos[i]["id"]] = false;
+      wardInfoWidgets.add(getGroupMemberWidget(
+        wardInfos[i]["id"],
+        wardInfos[i]["username"],
+        wardInfos[i]["email"],
+        wardInfos[i]["nickname"],
+        wardInfos[i]["image"] ??
+            "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+      ));
+    }
+
+    // print(wardInfoWidgets.length);
+  }
+
+  // 修改成员昵称
+  Future<bool> setNickname(int accountId) async {
+    final Dio dio = Dio();
+
+    print("新昵称：${accountId} ${nicknameController.text}");
+
+    try {
+      var token = await storage.read(key: 'token');
+      dio.options.headers["Authorization"] = "Bearer $token";
+      Response response = await dio.post(
+        'http://43.138.75.58:8080/api/ward/set-nickname',
+        queryParameters: {
+          "wardId": accountId,
+          "nickname": nicknameController.text,
+        },
+      );
+
+      if (response.data['code'] == 200) {
+        print("修改昵称成功");
+        return true;
+      } else {
+        print("修改昵称失败");
+      }
+    } on DioException catch (error) {
+      final response = error.response;
+      if (response != null) {
+        print(response.data);
+        print("修改昵称失败1");
+      } else {
+        print(error.requestOptions);
+        print(error.message);
+        print("修改昵称失败2");
+      }
+    }
+    return false;
+  }
+
+  // 将成员移出群组
+  Future<bool> removeMember(int wardId) async {
+    print('踢出去 群组： ${widget.groupId} 成员：$wardId');
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/guard-group/member/delete?groupId=${widget.groupId}&wardId=$wardId",
+      );
+      print(response);
+      if (response.data["code"] == 200) {
+        print("踢出成员成功");
+        return true;
+      } else {
+        print(response);
+        wardInfos = [];
+      }
+    } catch (e) {
+      print(e);
+      wardInfos = [];
+    }
+
+    print("踢出成员失败");
+    return false;
+  }
+
+  // ------------------组件--------------------
+
+  // 显示一个成员信息（收起）
+  Widget getGroupMemberWidgetLess(int accountId, String username, String email,
+      String nickname, String image) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -237,8 +458,9 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     );
   }
 
+  // 显示一个成员信息（展开）
   Widget getGroupMemberWidgetMore(
-      int userId, String username, String email, String nickname) {
+      int accountId, String username, String email, String nickname) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,9 +534,11 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                         onTap: () {
                           print("修改昵称?");
                           // Navigator.pushNamed(context, '/edit');
-                          setState(() {
-                            isEditingNickname = !isEditingNickname;
-                          });
+                          nicknameController.text = nickname;
+                          isEditingNickname = !isEditingNickname;
+                          //setState(() {});
+                          List<bool> refresh = [false, false, false];
+                          widget.refreshCallback(refresh);
                         },
                         /*  child: Image.asset("assets/icons/pencil.png",
                             width: 10, height: 10), */
@@ -396,16 +620,13 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                     height: 30,
                     child: Row(
                       children: [
+                        //取消
                         GestureDetector(
                           onTap: () {
                             print("编辑监护人昵称");
-                            setState(() {
-                              isEditingNickname = !isEditingNickname;
-                              nicknameController.text = "";
-                              /*  nicknameController.text =
-                                                  nickname;
-                                              editNickname = !editNickname; */
-                            });
+                            refreshData = false;
+                            isEditingNickname = !isEditingNickname;
+                            setState(() {});
                           },
                           child: Container(
                             decoration: const BoxDecoration(
@@ -419,18 +640,36 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
                           width: 5,
                         ),
                         GestureDetector(
-                          onTap: () {
+                          onTap: () async {
                             print("编辑监护人昵称");
-                            setState(() {
+
+                            if (nicknameController.text.isEmpty) {
+                              refreshData = false;
                               isEditingNickname = !isEditingNickname;
-                              print("新昵称：${nicknameController.text}");
-                              nickname = nicknameController.text;
-                              nicknameController.text = "";
-                              /* nickname =
-                                                  nicknameController.text;
-                                              print("新昵称：$nickname");
-                                              editNickname = !editNickname; */
-                            });
+                              setState(() {});
+                              return;
+                            }
+
+                            bool status = await setNickname(accountId);
+
+                            if (!status) {
+                              refreshData = false;
+                              isEditingNickname = !isEditingNickname;
+                              setState(() {});
+                              return;
+                            }
+
+                            refreshData = true;
+                            // 活动也要刷新
+                            List<bool> refresh = [
+                              //widget.refresh[0], //false ####
+                              false,
+                              true,
+                              true
+                            ];
+                            isEditingNickname = !isEditingNickname;
+                            //setState(() {});
+                            widget.refreshCallback(refresh);
                           },
                           child: Container(
                             decoration: const BoxDecoration(
@@ -553,9 +792,16 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           children: [
             //删除
             GestureDetector(
-              onTap: () {
-                print("移出群组$userId");
+              onTap: () async {
+                //print("移出群组$accountId");
                 // Navigator.pushNamed(context, '/edit');
+                bool status = await removeMember(accountId);
+                if (status) {
+                  isExpanded[accountId] = false;
+                  List<bool> refresh = [true, true, true];
+                  widget.refreshCallback(refresh);
+                  setState(() {});
+                }
               },
               child: Container(
                 width: 80,
@@ -583,7 +829,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
             //查看数据详情
             GestureDetector(
               onTap: () {
-                print("查看数据详情$userId");
+                print("查看数据详情$accountId");
                 // Navigator.pushNamed(context, '/edit');
                 Navigator.push(
                   context,
@@ -630,24 +876,32 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     );
   }
 
-  Widget getGroupMemberWidget(
-      int userId, String username, String email, String nickname) {
+  // 显示一个成员信息（统一接口）
+  Widget getGroupMemberWidget(int accountId, String username, String email,
+      String nickname, String image) {
     return UnconstrainedBox(
       child: GestureDetector(
         onTap: () {
-          print("点击");
-          isExpandedList[userId] = !isExpandedList[userId];
-          for (int i = 0; i < isExpandedList.length; i++) {
-            if (i != userId) {
-              isExpandedList[i] = false;
-            }
+          isEditingNickname = false;
+          refreshData = false;
+
+          bool? isExpand = isExpanded[accountId];
+          isExpanded.forEach((key, value) {
+            isExpanded[key] = false;
+          });
+          if (isExpand == true) {
+            isExpanded[accountId] = false;
+          } else {
+            isExpanded[accountId] = true;
           }
-          setState(() {});
+          List<bool> refresh = [false, false, false];
+          //setState(() {});
+          widget.refreshCallback(refresh);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: MediaQuery.of(context).size.width * 0.85,
-          height: isExpandedList[userId] == false ? 55 : 160,
+          height: isExpanded[accountId] == false ? 55 : 160,
           decoration: const BoxDecoration(
             color: Color.fromARGB(255, 255, 255, 255),
             borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -668,12 +922,13 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(15),
-            child: isExpandedList[userId] == false
-                ? getGroupMemberWidgetLess(userId, username, email, nickname)
+            child: isExpanded[accountId] == false
+                ? getGroupMemberWidgetLess(
+                    accountId, username, email, nickname, image)
                 : SingleChildScrollView(
                     scrollDirection: Axis.vertical,
                     child: getGroupMemberWidgetMore(
-                      userId,
+                      accountId,
                       username,
                       email,
                       nickname,
@@ -685,6 +940,496 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     );
   }
 
+  // 此模块
+  @override
+  Widget build(BuildContext context) {
+    print('成员rebuild: ---> refreshData: ${widget.refresh[1]}');
+    if (!widget.refresh[1]) {
+      wardInfoWidgets.clear();
+      for (int i = 0; i < wardInfos.length; i++) {
+        wardInfoWidgets.add(getGroupMemberWidget(
+          wardInfos[i]["id"],
+          wardInfos[i]["username"],
+          wardInfos[i]["email"],
+          wardInfos[i]["nickname"],
+          wardInfos[i]["image"] ??
+              "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+        ));
+      }
+      if (wardInfoWidgets.isEmpty) {
+        return Container(
+          height: 50,
+          child: const Center(
+            child: Text("暂无监护人"),
+          ),
+        );
+      }
+      return Column(
+        children: wardInfoWidgets,
+      );
+    }
+    return FutureBuilder(
+        future: getDataFromServer(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            /*  return Column(
+              children: wardInfoWidgets,
+            ); */
+
+            refreshData = false;
+            if (wardInfoWidgets.isEmpty) {
+              return Container(
+                height: 100,
+                child: Center(
+                  child: Text("暂无监护人"),
+                ),
+              );
+            }
+            return Column(
+              children: wardInfoWidgets,
+            );
+            //return wardInfoWidgets[0];
+          } else {
+            return Center(
+              child: LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.pink, size: 25),
+            );
+          }
+        });
+  }
+}
+
+// -------------------选择要添加的成员类--------------------
+class User2 {
+  final String? name;
+  final String? avatar;
+  User2({this.name, this.avatar});
+}
+
+List<User2> userList = [
+  User2(name: "Jon", avatar: ""),
+  User2(name: "Lindsey ", avatar: ""),
+  User2(name: "Valarie ", avatar: ""),
+  User2(name: "Elyse ", avatar: ""),
+  User2(name: "Ethel ", avatar: ""),
+  User2(name: "Emelyan ", avatar: ""),
+  User2(name: "Catherine ", avatar: ""),
+  User2(name: "Stepanida  ", avatar: ""),
+  User2(name: "Carolina ", avatar: ""),
+  User2(name: "Nail  ", avatar: ""),
+  User2(name: "Kamil ", avatar: ""),
+  User2(name: "Mariana ", avatar: ""),
+  User2(name: "Katerina ", avatar: ""),
+];
+
+// ------------------------群名标题------------------------
+class GroupNameHeader extends StatefulWidget {
+  final int groupId;
+  final List<bool> refresh;
+  final RefreshDataCallback refreshCallback;
+  const GroupNameHeader({
+    Key? key,
+    required this.groupId,
+    required this.refresh,
+    required this.refreshCallback,
+  }) : super(key: key);
+
+  @override
+  State<GroupNameHeader> createState() => _GroupNameHeaderState();
+}
+
+class _GroupNameHeaderState extends State<GroupNameHeader> {
+  TextEditingController groupNameController = TextEditingController();
+  bool isEditingGroupName = false;
+  int memberCount = 0;
+  List<dynamic> wardInfos = [];
+  List<dynamic> groupList = [];
+  //bool refreshData = true;
+  String groupName = "";
+
+  // ++++++++++++++++后端API+++++++++++++++++
+
+  // 获取统计人数与群名
+  Future<void> getDataFromServer() async {
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/guard-group/activity?groupId=${widget.groupId}",
+      );
+      if (response.data["code"] == 200) {
+        // print("获取监护人列表成功");
+        wardInfos = response.data["data"]["wardInfos"];
+      } else {
+        print(response);
+        wardInfos = [];
+      }
+    } catch (e) {
+      print(e);
+      wardInfos = [];
+    }
+    memberCount = wardInfos.length;
+    // print("memberCount: $memberCount");
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/ward/list",
+      );
+      if (response.data["code"] == 200) {
+        // print("获取监护人列表成功");
+        groupList = response.data["data"]["groupList"];
+      } else {
+        print(response);
+        groupList = [];
+      }
+    } catch (e) {
+      print(e);
+      groupList = [];
+    }
+
+    // find where groupId == widget.groupId
+    for (int i = 0; i < groupList.length; i++) {
+      if (groupList[i]["groupId"] == widget.groupId) {
+        groupName = groupList[i]["groupName"];
+        break;
+      }
+    }
+  }
+
+  // 修改群名
+  Future<bool> changeGroupName() async {
+    final Dio dio = Dio();
+
+    //print("新群名字：${widget.groupId} ${groupNameController.text}");
+
+    try {
+      var token = await storage.read(key: 'token');
+      dio.options.headers["Authorization"] = "Bearer $token";
+      //dio.options.requestEncoder
+      Response response = await dio.post(
+        'http://43.138.75.58:8080/api/guard-group/set-name',
+        queryParameters: {
+          "groupId": widget.groupId,
+          "groupName": groupNameController.text,
+        },
+      );
+
+      if (response.data['code'] == 200) {
+        //print("修改群名成功");
+        return true;
+      } else {
+        print("修改群名失败");
+      }
+    } on DioException catch (error) {
+      final response = error.response;
+      if (response != null) {
+        print(response.data);
+        print("修改群名失败1");
+      } else {
+        print(error.requestOptions);
+        print(error.message);
+        print("修改群名失败2");
+      }
+    }
+    return false;
+  }
+
+  // ==================组件=============
+  // 群组名（编辑时）
+  Widget editingGroupNameWidget() {
+    groupNameController.text = groupName;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          constraints: BoxConstraints(
+            minHeight: 30,
+            maxWidth: MediaQuery.of(context).size.width * 0.65,
+          ),
+          child: SizedBox(
+            //color: Colors.greenAccent,
+            width: MediaQuery.of(context).size.width * 0.35,
+            height: 40,
+            child: Center(
+              child: TextFormField(
+                controller: groupNameController,
+                maxLength: 15,
+                style: const TextStyle(
+                  fontFamily: 'BalooBhai',
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+                decoration: InputDecoration(
+                  isCollapsed: true,
+                  border: const UnderlineInputBorder(),
+                  counterText: "",
+                  hintText: groupName,
+                  hintStyle: const TextStyle(
+                    fontFamily: 'BalooBhai',
+                    fontSize: 18,
+                    //fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 116, 116, 116),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 5,
+        ),
+        Container(
+          alignment: Alignment.center,
+          height: 40,
+          child: Row(
+            children: [
+              // 取消
+              GestureDetector(
+                onTap: () {
+                  //print("取消编辑群名");
+                  //refreshData = false;
+                  List<bool> refresh = [false, false, false];
+                  isEditingGroupName = !isEditingGroupName;
+                  groupNameController.text = groupName;
+                  /*  setState(() {
+                    
+                  }); */
+                  widget.refreshCallback(refresh);
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset("assets/icons/cancel.png",
+                      width: 27, height: 27),
+                ),
+              ),
+              const SizedBox(
+                width: 5,
+              ),
+
+              // 确定
+              GestureDetector(
+                onTap: () async {
+                  // print("编辑监护人昵称");
+                  List<bool> refresh = [false, false, false];
+
+                  // 不能为空
+                  if (groupNameController.text.isEmpty) {
+                    // refreshData = false;
+                    isEditingGroupName = !isEditingGroupName;
+                    //setState(() {});
+                    widget.refreshCallback(refresh);
+                    return;
+                  }
+
+                  bool status = await changeGroupName();
+
+                  // 更改失败
+                  if (!status) {
+                    //refreshData = false;
+                    isEditingGroupName = !isEditingGroupName;
+                    //setState(() {});
+                    widget.refreshCallback(refresh);
+                    return;
+                  }
+
+                  refresh[0] = true;
+                  isEditingGroupName = !isEditingGroupName;
+
+                  //widget.groupName = groupNameController.text;
+                  print("新群名：${groupNameController.text}");
+                  // groupNameController.text = widget.groupName;
+                  //setState(() {});
+                  widget.refreshCallback(refresh);
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset("assets/icons/confirm.png",
+                      width: 30, height: 30),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 群组名
+  Widget groupNameHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          constraints: BoxConstraints(
+            minHeight: 30,
+            maxWidth: MediaQuery.of(context).size.width * 0.65,
+          ),
+          child: Text(
+            "$groupName ($memberCount)",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'BalooBhai',
+              fontSize: 22,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 5,
+        ),
+        GestureDetector(
+          onTap: () {
+            // 不用刷新
+            List<bool> refresh = [false, false, false];
+            isEditingGroupName = !isEditingGroupName;
+            //setState(() {});
+            widget.refreshCallback(refresh);
+          },
+          child: Container(
+            width: 20,
+            height: 20,
+            child: Image.asset("assets/icons/pencil.png"),
+          ),
+        ),
+        const SizedBox(
+          width: 20,
+        ),
+      ],
+    );
+  }
+
+  // 此模块
+  @override
+  Widget build(BuildContext context) {
+    //print('群名标题rebuild: ---> refreshData: ${widget.refresh[0]}');
+    if (!widget.refresh[0]) {
+      return isEditingGroupName == false
+          ? groupNameHeader()
+          : editingGroupNameWidget();
+    }
+
+    return FutureBuilder(
+        future: getDataFromServer(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return isEditingGroupName == false
+                ? groupNameHeader()
+                : editingGroupNameWidget();
+          } else {
+            return Center(
+              child: LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.pink, size: 25),
+            );
+          }
+        });
+  }
+}
+
+// ===================此页面===========================
+
+// ignore: must_be_immutable
+class GuardianGroupPage extends StatefulWidget {
+  final int groupId;
+  String groupName;
+  GuardianGroupPage({Key? key, required this.groupId, required this.groupName})
+      : super(key: key);
+
+  @override
+  State<GuardianGroupPage> createState() => _GuardianGroupPageState();
+}
+
+class _GuardianGroupPageState extends State<GuardianGroupPage> {
+  List<User2> selectedUserList = [];
+  String memberCount = "0";
+  List<dynamic> wardInfos = [];
+  List<dynamic> activities = [];
+  List<bool> refresh = [
+    true,
+    true,
+    true
+  ]; // [0] header, [1] member, [2] activity
+
+  // 回调函数
+  void refreshView(List<bool> refreshData) {
+    refresh = refreshData;
+    setState(() {});
+  }
+  // ++++++++++++++++后端API+++++++++++++++++
+
+  //
+  Future<void> getDataFromServer() async {
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+    //print(value);
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/guardian/list",
+      );
+      if (response.data["code"] == 200) {
+        // print("获取监护人列表成功");
+        wardInfos = response.data["data"]["wardInfos"];
+        activities = response.data["data"]["activities"];
+      } else {
+        print(response);
+        wardInfos = [];
+        activities = [];
+      }
+    } catch (e) {
+      print(e);
+      wardInfos = [];
+      activities = [];
+    }
+    memberCount = (wardInfos.length).toString();
+
+    //print("监护人成员列表：$wardInfos");
+    //print("活动列表：$activities");
+  }
+
+  // 解散群组
+  Future<bool> deleteGroup() async {
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/guard-group/disband?groupId=${widget.groupId}",
+      );
+      if (response.data["code"] == 200) {
+        print("解散成功");
+        return true;
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+    print("解散失败");
+    return false;
+  }
+
+  // ------------------弹窗-----------------
+
+  //
   Future<void> openFilterDelegate() async {
     await FilterListDelegate.show<User2>(
       context: context,
@@ -877,146 +1622,73 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     Overlay.of(context).insert(overlayEntry);
   }
 
-  Widget editingGroupNameWidget() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          constraints: BoxConstraints(
-            minHeight: 30,
-            maxWidth: MediaQuery.of(context).size.width * 0.65,
+  // 确定解散群组的dialog
+  void showDismissDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            "确定要解散群组吗？",
+            style: TextStyle(
+              fontFamily: "BalooBhai",
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          child: SizedBox(
-            //color: Colors.greenAccent,
-            width: MediaQuery.of(context).size.width * 0.35,
-            height: 40,
-            child: Center(
-              child: TextFormField(
-                controller: groupNameController,
-                maxLength: 15,
-                style: const TextStyle(
-                  fontFamily: 'BalooBhai',
-                  fontSize: 18,
-                  color: Colors.black,
-                ),
-                decoration: InputDecoration(
-                  isCollapsed: true,
-                  border: UnderlineInputBorder(),
-                  counterText: "",
-                  hintText: groupName,
-                  hintStyle: const TextStyle(
-                    fontFamily: 'BalooBhai',
-                    fontSize: 18,
-                    //fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 116, 116, 116),
-                  ),
+          content: const Text(
+            "解散群组后，群组内的所有成员将不再是该群组的成员，且无法恢复。",
+            style: TextStyle(
+              fontFamily: "BalooBhai",
+              fontSize: 16,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          actions: [
+            TextButton(
+              onPressed: () {
+                print("取消解散群组");
+                Navigator.pop(context);
+              },
+              child: const Text(
+                "取消",
+                style: TextStyle(
+                  fontFamily: "BalooBhai",
+                  fontSize: 16,
                 ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(
-          width: 5,
-        ),
-        Container(
-          alignment: Alignment.center,
-          height: 40,
-          child: Row(
-            children: [
-              // 取消
-              GestureDetector(
-                onTap: () {
-                  print("取消编辑群名");
-                  setState(() {
-                    isEditingGroupName = !isEditingGroupName;
-                    groupNameController.text = groupName;
-                  });
-                },
-                child: Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: Image.asset("assets/icons/cancel.png",
-                      width: 27, height: 27),
+            TextButton(
+              onPressed: () async {
+                bool status = await deleteGroup();
+                print("确定解散群组");
+                Navigator.pop(context);
+
+                if (status) {
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text(
+                "确定",
+                style: TextStyle(
+                  fontFamily: "BalooBhai",
+                  fontSize: 16,
                 ),
               ),
-              const SizedBox(
-                width: 5,
-              ),
-
-              // 确定
-              GestureDetector(
-                onTap: () {
-                  print("编辑监护人昵称");
-                  setState(() {
-                    isEditingGroupName = !isEditingGroupName;
-                    print("新群名：${groupNameController.text}");
-                    groupName = groupNameController.text;
-                    groupNameController.text = groupName;
-                  });
-                },
-                child: Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: Image.asset("assets/icons/confirm.png",
-                      width: 30, height: 30),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget groupNameHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          constraints: BoxConstraints(
-            minHeight: 30,
-            maxWidth: MediaQuery.of(context).size.width * 0.65,
-          ),
-          child: Text(
-            "$groupName ($memberCount)",
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'BalooBhai',
-              fontSize: 22,
-              color: Colors.black,
             ),
-          ),
-        ),
-        const SizedBox(
-          width: 5,
-        ),
-        GestureDetector(
-          onTap: () {
-            print("修改群组名");
-            setState(() {
-              isEditingGroupName = !isEditingGroupName;
-            });
-          },
-          child: Container(
-            width: 20,
-            height: 20,
-            child: Image.asset("assets/icons/pencil.png"),
-          ),
-        ),
-        const SizedBox(
-          width: 20,
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
+  // ###################组件#################
 
+  // 编辑群组名
+
+  // 此页面
   @override
   Widget build(BuildContext context) {
-    //print("rebuild");
+    //print("群组rebuild");
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -1044,7 +1716,8 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           ),
           GestureDetector(
             onTap: () {
-              print("删除成员");
+              print("解散群组");
+              showDismissDialog(context);
             },
             child: Container(
               width: 20,
@@ -1061,36 +1734,36 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
       //
       body: Container(
         color: Colors.white,
+        constraints:
+            BoxConstraints(minHeight: MediaQuery.of(context).size.height),
         child: ListView(shrinkWrap: true, children: [
           //
           const SizedBox(height: 20),
 
-          //editingGroupNameWidget(),
-          //群组名
-          isEditingGroupName == false
-              ? groupNameHeader()
-              : editingGroupNameWidget(),
+          GroupNameHeader(
+            groupId: widget.groupId,
+            refresh: refresh,
+            refreshCallback: refreshView,
+          ),
 
           const SizedBox(
             height: 10,
           ),
 
-          getGroupMemberWidget(
-              0,
-              "无敌暴龙兽卫计委来加了及4零2加来及4来4殴342",
-              "haha@qq.com34543广东人当日哥哥哥热管424让他给",
-              "爸爸fdssssssssssadasd啊是多久啊扣税的23很健康会发生卡"),
-          getGroupMemberWidget(1, "哈哈哈哈哈哈哈", "wjd124@hotmail.com.cn", "妈妈"),
-          getGroupMemberWidget(2, "admin124", "wjd124@hotmail.com.cn", "爷爷"),
-
-          getGroupMemberWidget(3, "19429393239", "no@gmail.com", "奶奶"),
-          getGroupMemberWidget(4, "testuser",
-              "helloworld123@gmail.comoooooooooooooooooooo", "弟弟"),
+          MemberWidget(
+            groupId: widget.groupId,
+            refresh: refresh,
+            refreshCallback: refreshView,
+          ),
           const SizedBox(
             height: 20,
           ),
 
-          TodayActivities(),
+          TodayActivities(
+            groupId: widget.groupId,
+            refresh: refresh,
+            refreshCallback: refreshView,
+          ),
         ]),
       ),
     );

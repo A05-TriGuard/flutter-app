@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import 'package:dio/dio.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
 import './homePageSupervisor.dart';
+import '../account/token.dart';
 
+// -------------今日记录模块--------------------
 class TodayActivities extends StatefulWidget {
-  const TodayActivities({super.key});
+  final int accountId;
+  bool refreshActivitiesData;
+  TodayActivities({
+    Key? key,
+    required this.accountId,
+    required this.refreshActivitiesData,
+  }) : super(key: key);
 
   @override
   State<TodayActivities> createState() => _TodayActivitiesState();
 }
 
 class _TodayActivitiesState extends State<TodayActivities> {
+  List<dynamic> activities = [];
   List<Color> colors = const [
     Color.fromARGB(255, 185, 253, 107),
     Color.fromARGB(255, 151, 239, 255),
@@ -24,13 +36,41 @@ class _TodayActivitiesState extends State<TodayActivities> {
     Color.fromARGB(255, 221, 183, 255),
     Color.fromARGB(255, 255, 195, 227),
   ];
+  List<String> activitiesType = ["测量血压", "测量血糖", "测量血脂", "记录运动", "记录饮食"];
+  List<Widget> activitiesWidget = [];
 
   // TODO: 从服务器获取数据
-  Future<void> getDataFromServer() async {}
+  Future<void> getDataFromServer() async {
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+    //print(value);
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/ward/activity?wardId=${widget.accountId}",
+      );
+      if (response.data["code"] == 200) {
+        activities = response.data["data"]["activities"];
+        //print('response ${response.data}');
+      } else {
+        print(response);
+        activities = [];
+      }
+    } catch (e) {
+      print(e);
+      activities = [];
+    }
+
+    await provideActivitiesWidget();
+  }
 
   // 每个人的单条记录
-  Widget getActivity(String time, String username, String activity,
-      bool isFirst, bool isLast) {
+  Widget getActivity(String time, String activity, bool isFirst, bool isLast) {
     return TimelineTile(
       alignment: TimelineAlign.manual,
       lineXY: 0.3,
@@ -102,52 +142,134 @@ class _TodayActivitiesState extends State<TodayActivities> {
     );
   }
 
-  Widget getActivityWidget() {
-    return Column(
-      children: [
-        //
-        getActivity("17:00", "爷爷", "血压测量", true, false),
-        getActivity("16:30", "妈妈", "血脂测量", false, false),
-        getActivity("16:00", "弟弟", "血糖测量", false, false),
-        getActivity("15:30", "奶奶", "血压测量", false, false),
-        getActivity("15:00", "爷爷", "血脂测量", false, false),
-        getActivity("14:30", "姐姐", "血糖测量", false, false),
-        getActivity("14:00", "爸爸", "血压测量", false, false),
-        getActivity("13:30", "奶奶", "血脂测量", false, false),
-        getActivity("13:00", "爷爷", "血糖测量", false, true),
-      ],
-    );
+  Future<void> provideActivitiesWidget() async {
+    activitiesWidget.clear();
+    for (int i = 0; i < activities.length; i++) {
+      activitiesWidget.add(
+        getActivity(
+            activities[i]["time"],
+            activitiesType[activities[i]["type"]],
+            i == 0 ? true : false,
+            i == activities.length - 1 ? true : false),
+      );
+    }
+
+    if (activities.isEmpty) {
+      activitiesWidget.add(
+        getActivity("00:00", "今天没有记录", true, true),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          MediaQuery.of(context).size.width * 0.15 * 0.5,
-          0,
-          MediaQuery.of(context).size.width * 0.15 * 0.5,
-          0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // 标题
-          const PageTitle(
-            title: "今日记录",
-            icons: "assets/icons/notebook.png",
-            fontSize: 20,
-          ),
-          const SizedBox(height: 10),
-          // 活动
-          getActivityWidget(), const SizedBox(height: 20),
-        ],
-      ),
+    if (!widget.refreshActivitiesData) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(
+            MediaQuery.of(context).size.width * 0.15 * 0.5,
+            0,
+            MediaQuery.of(context).size.width * 0.15 * 0.5,
+            0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // 标题
+            const PageTitle(
+              title: "今日记录",
+              icons: "assets/icons/notebook.png",
+              fontSize: 20,
+            ),
+            const SizedBox(height: 10),
+            // 活动
+            // getActivityWidget(),
+            Column(
+              children: activitiesWidget,
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      );
+    }
+
+    return FutureBuilder(
+      future: getDataFromServer(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Padding(
+            padding: EdgeInsets.fromLTRB(
+                MediaQuery.of(context).size.width * 0.15 * 0.5,
+                0,
+                MediaQuery.of(context).size.width * 0.15 * 0.5,
+                0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 标题
+                const PageTitle(
+                  title: "今日记录",
+                  icons: "assets/icons/notebook.png",
+                  fontSize: 20,
+                ),
+                const SizedBox(height: 10),
+                // 活动
+                // getActivityWidget(),
+                Column(
+                  children: activitiesWidget,
+                ),
+
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        } else {
+          return Padding(
+            padding: EdgeInsets.fromLTRB(
+                MediaQuery.of(context).size.width * 0.15 * 0.5,
+                0,
+                MediaQuery.of(context).size.width * 0.15 * 0.5,
+                0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 标题
+                const PageTitle(
+                  title: "今日记录",
+                  icons: "assets/icons/notebook.png",
+                  fontSize: 20,
+                ),
+                const SizedBox(height: 10),
+                // 活动
+                Center(
+                  child: LoadingAnimationWidget.staggeredDotsWave(
+                      color: Colors.pink, size: 25),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        }
+      },
     );
   }
 }
 
+// ================此页面======================
+// ignore: must_be_immutable
 class GuardianPersonPage extends StatefulWidget {
-  String nickname = "测试人员";
-  GuardianPersonPage({super.key});
+  final int accountId;
+  final String email;
+  final String username;
+  String nickname;
+  final String image;
+  GuardianPersonPage({
+    Key? key,
+    required this.accountId,
+    required this.email,
+    required this.username,
+    required this.nickname,
+    required this.image,
+  }) : super(key: key);
 
   @override
   State<GuardianPersonPage> createState() => _GuardianPersonPageState();
@@ -156,30 +278,107 @@ class GuardianPersonPage extends StatefulWidget {
 class _GuardianPersonPageState extends State<GuardianPersonPage> {
   bool isEditingNickname = false;
   TextEditingController nicknameController = TextEditingController();
+  bool refreshActivitiesData = true;
 
+  // 删除监护对象
+  Future<bool> deleteWard(int accountId) async {
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api}/ward/delete?wardId=${widget.accountId}",
+      );
+      if (response.data["code"] == 200) {
+        print("删除成功");
+        return true;
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+    print("删除失败");
+    return false;
+  }
+
+  // 修改成员昵称
+  Future<bool> setNickname(int accountId) async {
+    final Dio dio = Dio();
+
+    print("新昵称：${accountId} ${nicknameController.text}");
+
+    try {
+      var token = await storage.read(key: 'token');
+      dio.options.headers["Authorization"] = "Bearer $token";
+      Response response = await dio.post(
+        'http://43.138.75.58:8080/api/ward/set-nickname',
+        queryParameters: {
+          "wardId": accountId,
+          "nickname": nicknameController.text,
+        },
+      );
+
+      if (response.data['code'] == 200) {
+        print("修改昵称成功");
+        return true;
+      } else {
+        print("修改昵称失败");
+      }
+    } on DioException catch (error) {
+      final response = error.response;
+      if (response != null) {
+        print(response.data);
+        print("修改昵称失败1");
+      } else {
+        print(error.requestOptions);
+        print(error.message);
+        print("修改昵称失败2");
+      }
+    }
+    return false;
+  }
+
+  // 获取监护对象标题
   Widget getNicknameTitle() {
     return UnconstrainedBox(
-      child: Container(
-        constraints: const BoxConstraints(
-          minHeight: 30,
-        ),
-        width: MediaQuery.of(context).size.width * 0.85,
-        //color: Colors.greenAccent,
-        child: Center(
-          child: Text(
-            widget.nickname,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 个人头像
+          CircleAvatar(
+            radius: 18,
+            backgroundImage: NetworkImage(widget.image),
+          ),
+          //
+          SizedBox(width: 10),
+
+          // 昵称
+          Container(
+            constraints: BoxConstraints(
+              minHeight: 30,
+              maxWidth: MediaQuery.of(context).size.width * 0.7,
+            ),
+            child: Text(
+              widget.nickname,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
                 fontFamily: 'BalooBhai',
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.black),
+                color: Colors.black,
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
+  // 显示更多
   Widget getGroupMemberWidgetMore(
       int userId, String username, String email, String nickname) {
     return UnconstrainedBox(
@@ -262,17 +461,17 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                               ),
                             ),
                           ),
+                          // 编辑昵称按钮
                           Container(
                             constraints: const BoxConstraints(
                                 minHeight: 30, minWidth: 20),
                             // color: Colors.red,
                             child: GestureDetector(
                               onTap: () {
-                                print("修改昵称");
-                                // Navigator.pushNamed(context, '/edit');
-                                setState(() {
-                                  isEditingNickname = !isEditingNickname;
-                                });
+                                refreshActivitiesData = false;
+                                isEditingNickname = !isEditingNickname;
+                                nicknameController.text = widget.nickname;
+                                setState(() {});
                               },
                               child: const Icon(
                                 Icons.edit,
@@ -325,7 +524,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                   ),
                                   decoration: InputDecoration(
                                     isCollapsed: true,
-                                    border: UnderlineInputBorder(),
+                                    border: const UnderlineInputBorder(),
                                     counterText: "",
                                     hintText: nickname,
                                     hintStyle: const TextStyle(
@@ -334,13 +533,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                       //fontWeight: FontWeight.bold,
                                       color: Color.fromARGB(255, 116, 116, 116),
                                     ),
-
-                                    /* labelStyle: const TextStyle(
-                                fontFamily: 'BalooBhai',
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ), */
                                   ),
                                 ),
                               ),
@@ -360,8 +552,9 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                   print("编辑监护人昵称");
                                   setState(() {
                                     isEditingNickname = !isEditingNickname;
+                                    refreshActivitiesData = false;
 
-                                    nicknameController.text = "";
+                                    //nicknameController.text = "";
                                     /*  nicknameController.text =
                                                   nickname;
                                               editNickname = !editNickname; */
@@ -380,19 +573,31 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                               ),
                               //确认
                               GestureDetector(
-                                onTap: () {
-                                  print("编辑监护人昵称");
-                                  setState(() {
+                                onTap: () async {
+                                  // 昵称不能为空
+                                  if (nicknameController.text == "") {
+                                    refreshActivitiesData = false;
                                     isEditingNickname = !isEditingNickname;
-                                    print("新昵称：${nicknameController.text}");
+                                    setState(() {});
+                                    return;
+                                  }
 
-                                    widget.nickname = nicknameController.text;
-                                    nicknameController.text = "";
-                                    /* nickname =
-                                                  nicknameController.text;
-                                              print("新昵称：$nickname");
-                                              editNickname = !editNickname; */
-                                  });
+                                  bool status =
+                                      await setNickname(widget.accountId);
+
+                                  // 修改失败
+                                  if (!status) {
+                                    refreshActivitiesData = false;
+                                    isEditingNickname = !isEditingNickname;
+                                    setState(() {});
+                                    return;
+                                  }
+
+                                  // 修改成功
+                                  refreshActivitiesData = false;
+                                  isEditingNickname = !isEditingNickname;
+                                  widget.nickname = nicknameController.text;
+                                  setState(() {});
                                 },
                                 child: Container(
                                   decoration: const BoxDecoration(
@@ -444,7 +649,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       width: MediaQuery.of(context).size.width * 0.55,
                       //color: Colors.yellow,
                       child: Text(
-                        username,
+                        widget.username,
                         textAlign: TextAlign.left,
                         style: const TextStyle(
                           fontFamily: 'BalooBhai',
@@ -492,7 +697,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       alignment: Alignment.centerLeft,
                       width: MediaQuery.of(context).size.width * 0.6,
                       child: Text(
-                        email,
+                        widget.email,
                         textAlign: TextAlign.left,
                         style: const TextStyle(
                           fontFamily: 'BalooBhai',
@@ -516,7 +721,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                   //删除
                   GestureDetector(
                     onTap: () {
-                      print("删除$userId");
+                      print("删除${widget.accountId}");
                       // Navigator.pushNamed(context, '/edit');
                     },
                     child: Container(
@@ -597,6 +802,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
 
   @override
   Widget build(BuildContext context) {
+    print("rebuild");
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -611,6 +817,9 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
       ),
       body: Container(
         color: Colors.white,
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height,
+        ),
         child: ListView(shrinkWrap: true, children: [
           //
           const SizedBox(height: 20),
@@ -621,7 +830,10 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
           getGroupMemberWidgetMore(1, "admin使得房价快速了解2就进了进了2金额开零就2零",
               "beyzhex@gmail.com额废物废物废物34234323", widget.nickname),
           const SizedBox(height: 10),
-          TodayActivities(),
+          TodayActivities(
+            accountId: widget.accountId,
+            refreshActivitiesData: refreshActivitiesData,
+          ),
         ]),
       ),
     );

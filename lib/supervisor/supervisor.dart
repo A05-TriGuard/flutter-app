@@ -222,9 +222,25 @@ class _GuardianWidgetState extends State<GuardianWidget> {
           0),
       child: GestureDetector(
         onTap: () {
-          print(wardId);
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => GuardianPersonPage()));
+          //print(wardId);
+          var result =
+              wardList.where((element) => element["accountId"] == wardId);
+          if (result.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GuardianPersonPage(
+                  accountId: wardId,
+                  email: result.first["email"],
+                  username: result.first["username"],
+                  nickname: result.first["nickname"],
+                  image: result.first["image"] ??
+                      "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+                ),
+              ),
+            ).then((value) => setState(() {}));
+          }
+
           //updateView(id);
         },
         child: Container(
@@ -287,16 +303,30 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                           ),
                         ],
                       ),
-                      //删除
+                      // 跳转
                       IconButton(
                         icon: Image.asset("assets/icons/right-arrow.png",
                             width: 15, height: 15),
                         onPressed: () {
-                          //print("删除监护人");
+                          var result = wardList.where(
+                              (element) => element["accountId"] == wardId);
+                          if (result.isNotEmpty) {
+                            print("Found: ${result.first}");
+                          } else {
+                            print("Not found");
+                          }
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => GuardianPersonPage()));
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GuardianPersonPage(
+                                  accountId: wardId,
+                                  email: result.first["email"],
+                                  username: result.first["username"],
+                                  nickname: result.first["nickname"],
+                                  image: result.first["image"] ??
+                                      "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png"),
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -319,9 +349,15 @@ class _GuardianWidgetState extends State<GuardianWidget> {
           0),
       child: GestureDetector(
         onTap: () {
-          print(wardId);
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => GuardianGroupPage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GuardianGroupPage(
+                groupId: wardId,
+                groupName: name,
+              ),
+            ),
+          ).then((value) => setState(() {}));
           //updateView(id);
         },
         child: Container(
@@ -393,7 +429,8 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => GuardianGroupPage()));
+                                  builder: (context) => GuardianGroupPage(
+                                      groupId: wardId, groupName: name)));
                         },
                       ),
                     ],
@@ -614,7 +651,6 @@ class _GuardianWidgetState extends State<GuardianWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print("监护模式build");
     return FutureBuilder(
         future: getWardedListFromServer(),
         builder: (context, snapshot) {
@@ -1289,7 +1325,7 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
       guardianList = [];
     }
 
-    print("监护人：$guardianList");
+    //print("监护人：$guardianList");
   }
 
   // 修改昵称
