@@ -16,7 +16,7 @@ class MainPages extends StatefulWidget {
 
 class _MainPagesState extends State<MainPages> {
   int _currentIndex = 0;
-  final List<Widget> _pages = const [
+  final List<Widget> _pages = [
     HomePage(),
     Article(),
     Supervisor(),
@@ -27,6 +27,11 @@ class _MainPagesState extends State<MainPages> {
   @override
   void initState() {
     super.initState();
+    if (widget.arguments.containsKey('setToArticlePage')) {
+      setState(() {
+        _currentIndex = 1;
+      });
+    }
     print(widget.arguments);
   }
 

@@ -84,11 +84,18 @@ class _MomentState extends State<Moment> {
       date: "2023-10-25",
       content: "最近才了解到高血糖要少吃四种蔬菜耶 土豆、南瓜、酸菜和芋头 以后都要少吃啦~",
       images: [
+        /*
         "https://38jiejie.com/wp-content/uploads/2019/10/Netizens-Criticize-Karry-Wang-Junkais-Style-and-Body-in-Non-Photoshopped-Pictures-Weibo_10.13.19.jpg",
         "https://www.cpophome.com/wp-content/uploads/2021/01/Karry-Wang3.jpg",
         "https://kingchoice.me/media/CACHE/images/4b7b853875653f368e9b0876beb4c176_kXZLhcG/9b9b24e321536feddc7d7b84a11b6dc7.jpg",
         "https://i.mydramalist.com/2qXE2f.jpg",
-        "https://overseasidol.com/wp-content/uploads/2022/05/karry-wang-junkai.jpg",
+        "https://overseasidol.com/wp-content/uploads/2022/05/karry-wang-junkai.jpg",*/
+        "https://images.nintendolife.com/3e199ccf1141f/doraemon-nobitars-little-star-wars-2021.large.jpg",
+        "https://i.guim.co.uk/img/media/d13a335be378fd1d5360d34a88faefe2b6e38ca9/0_156_3500_2100/master/3500.jpg?width=700&quality=85&auto=format&fit=max&s=092c5fc37ff9a1f56faae91550b1d035",
+        "https://news.cgtn.com/news/3049544e7751544f776b7a4e3249444f776b7a4e31457a6333566d54/img/dbc2bed8083940c4a70ca53dc7e784a2/dbc2bed8083940c4a70ca53dc7e784a2.jpg",
+        "https://wollens.co.uk/wp-content/uploads/2019/10/Halloween--e1668260910131.jpg",
+        "https://www.billboard.com/wp-content/uploads/2023/06/Oreo-x-Nintendo-billboard-1548.jpg?w=942&h=623&crop=1",
+        "https://images.unsplash.com/photo-1576622085773-4eb399076362?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8bWVycnklMjBnbyUyMHJvdW5kfGVufDB8fDB8fHww",
       ],
       video: "",
       addfriend: false,
@@ -145,9 +152,9 @@ class _MomentState extends State<Moment> {
       body: SingleChildScrollView(
         child: Center(
           child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                const SizedBox(height: 15),
+                const SizedBox(height: 20),
                 // 主题按钮
                 SizedBox(
                   width: screenWidth * 0.85,
@@ -160,7 +167,7 @@ class _MomentState extends State<Moment> {
                           },
                           child: ClassButton(
                             title: className[0],
-                            icon: MyIcons().bloodLipid(),
+                            icon: MyIcons().bloodLipidOutlined(),
                             selected: classSelected[0],
                             buttonWidth: screenWidth * 0.85 * 0.31,
                           )),
@@ -193,7 +200,7 @@ class _MomentState extends State<Moment> {
                   children: [
                     // 主要内容
                     SizedBox(
-                      height: screenHeight * 0.7,
+                      height: screenHeight * 0.75,
                       child: Column(children: [
                         Visibility(
                             visible: showHeader,
@@ -829,7 +836,7 @@ class _PostTileState extends State<PostTile> {
             const SizedBox(height: 10),
             // 照片栏 media = image
             Visibility(
-              visible: widget.curPost.video == "",
+              visible: widget.curPost.images.isNotEmpty,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: imageContainerList,

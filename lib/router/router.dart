@@ -79,7 +79,9 @@ Map routes = {
   '/articles/foodsearch': (context) => const Foodsearch(),
   '/articles/medicine': (context) => const Medicine(),
   '/articles/prevention': (context) => const Prevention(),
-  '/articles/collection': (context) => const Collection(),
+  '/articles/collection': (context) => const Collection(
+        selectedButton: [true, false, false, false],
+      ),
 };
 
 var onGenerateRoute = (RouteSettings settings) {

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../account/token.dart';
-import '../articles/sciencepage.dart';
+import 'sciencepage.dart';
+import '../component/mainPagesBar/mainPagesBar.dart';
 
 class Science extends StatefulWidget {
   const Science({super.key});
@@ -12,7 +13,8 @@ class Science extends StatefulWidget {
 
 class _ScienceState extends State<Science> {
   int pageCount = 1;
-  int batchCount = 9;
+  int batchCount = 10;
+  int increaseNum = 5;
   var articleList = [];
   var articleTileList = <ArticleTile>[];
   final ScrollController _scrollController = ScrollController();
@@ -22,7 +24,9 @@ class _ScienceState extends State<Science> {
     articleTileList.clear();
 
     for (int i = 0; i < articleList.length; ++i) {
-      articleTileList.add(ArticleTile(article: articleList[i]));
+      articleTileList.add(ArticleTile(
+        article: articleList[i],
+      ));
     }
   }
 
@@ -32,7 +36,7 @@ class _ScienceState extends State<Science> {
       if (!_isLoading) {
         setState(() {
           _isLoading = true;
-          batchCount += 5;
+          batchCount += increaseNum;
           fetchNShowArticles();
         });
       }
@@ -83,50 +87,66 @@ class _ScienceState extends State<Science> {
   Widget build(BuildContext context) {
     createArticleList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "科普文章",
-          style: TextStyle(
-              fontFamily: 'BalooBhai',
-              fontSize: 24,
-              color: Colors.black,
-              fontWeight: FontWeight.w900),
-        ),
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.black,
-              size: 30,
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const MainPages(
+                      arguments: {"setToArticlePage": true},
+                    )));
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "科普文章",
+            style: TextStyle(
+                fontFamily: 'BalooBhai',
+                fontSize: 24,
+                color: Colors.black,
+                fontWeight: FontWeight.w900),
+          ),
+          leading: IconButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const MainPages(
+                              arguments: {"setToArticlePage": true},
+                            )));
+              },
+              icon: const Icon(
+                Icons.arrow_back,
+                color: Colors.black,
+                size: 30,
+              )),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 250, 209, 252),
+                Color.fromARGB(255, 255, 255, 255),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             )),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-              gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 250, 209, 252),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )),
+          ),
         ),
-      ),
 
-      // 主体内容
-      body: Container(
-          padding: const EdgeInsets.all(20),
-          child: ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            controller: _scrollController,
-            scrollDirection: Axis.vertical,
-            itemCount: articleTileList.length,
-            itemBuilder: (context, index) {
-              return articleTileList[index];
-            },
-          )),
+        // 主体内容
+        body: Container(
+            padding: const EdgeInsets.all(20),
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              controller: _scrollController,
+              scrollDirection: Axis.vertical,
+              itemCount: articleTileList.length,
+              itemBuilder: (context, index) {
+                return articleTileList[index];
+              },
+            )),
+      ),
     );
   }
 }
@@ -149,8 +169,12 @@ class ArticleTile extends StatelessWidget {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      SciencePage(title: "返回文章列表", id: article["id"])));
+                  builder: (context) => SciencePage(
+                        title: "返回文章列表",
+                        id: article["id"],
+                        isPrevention: false,
+                        updateCollection: () {},
+                      )));
         },
         child: ListTile(
           title: Text(
