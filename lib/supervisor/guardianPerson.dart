@@ -289,7 +289,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
 
     try {
       response = await dio.get(
-        "http://43.138.75.58:8080/api}/ward/delete?wardId=${widget.accountId}",
+        "http://43.138.75.58:8080/api/ward/delete?wardId=${widget.accountId}",
       );
       if (response.data["code"] == 200) {
         print("删除成功");
@@ -380,7 +380,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
 
   // 显示更多
   Widget getGroupMemberWidgetMore(
-      int userId, String username, String email, String nickname) {
+      int accountID, String username, String email, String nickname) {
     return UnconstrainedBox(
       alignment: Alignment.center,
       child: Container(
@@ -720,9 +720,13 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                 children: [
                   //删除
                   GestureDetector(
-                    onTap: () {
+                    onTap: () async {
                       print("删除${widget.accountId}");
-                      // Navigator.pushNamed(context, '/edit');
+                      // Navigator.pushNamed(context, '/edit'); ____
+                      bool status = await deleteWard(widget.accountId);
+                      if (status) {
+                        Navigator.pop(context);
+                      }
                     },
                     child: Container(
                       width: 80,
@@ -750,18 +754,17 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                   //查看数据详情
                   GestureDetector(
                     onTap: () {
-                      print("查看数据详情$userId");
+                      print("查看数据详情$accountID");
                       // Navigator.pushNamed(context, '/edit');
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => HomePage(
-                              /* arguments: {
-                        "bpDataId": 1,
-                        "date": DateTime.now(),
-                        "prevPage": 1,
-                      }, */
-                              ),
+                            accountId: accountID,
+                            groupId: -1,
+                            nickname: widget.nickname,
+                            groupName: "",
+                          ),
                         ),
                       ).then((_) {
                         print("哈哈哈");

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-//import '../component/mainPagesBar/mainPagesBar.dart';
-import '../component/header/header.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
-//import '../other/gradientBorder/gradient_borders.dart';
-import '../component/titleDate/titleDate.dart';
+import 'package:dio/dio.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+
+import '../component/header/header.dart';
+import '../other/other.dart';
+import '../account/token.dart';
 
 class MyTitle extends StatefulWidget {
   final String title;
@@ -84,171 +86,330 @@ class _MyTitleState extends State<MyTitle> {
 }
 
 class MyBloodPressure extends StatefulWidget {
+  final int accountId;
+  final DateTime date;
+
   final String value;
-  int accountId = 0;
-  MyBloodPressure({Key? key, required this.value, required this.accountId})
-      : super(key: key);
+  const MyBloodPressure({
+    Key? key,
+    required this.accountId,
+    required this.value,
+    required this.date,
+  }) : super(key: key);
 
   @override
   State<MyBloodPressure> createState() => _MyBloodPressureState();
 }
 
 class _MyBloodPressureState extends State<MyBloodPressure> {
+  // 从后端请求得到的原始数据
+  List<dynamic> data = [];
+
+  // 显示的数据
+  List<int> dayData = [];
+  List<int> monthData = [];
+  List<int> sbpData = [];
+  List<int> dbpData = [];
+  List<int> heartRateData = [];
+
+  int todaySBP = -1;
+  int todayDBP = -1;
+
+  // 从后端请求数据
+  Future<void> getDataFromServer() async {
+    String requestDate = getFormattedDate(widget.date);
+    // print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+    //print(value);
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
+        queryParameters: {
+          "startDate": requestDate,
+          "endDate": requestDate,
+          "accountId": widget.accountId,
+        },
+      );
+      if (response.data["code"] == 200) {
+        //print("获取血压数据成功");
+        data = response.data["data"];
+      } else {
+        print(response);
+        data = [];
+      }
+    } catch (e) {
+      print(e);
+      data = [];
+    }
+
+    //print("血压数据： $data");
+
+    dayData = [];
+    monthData = [];
+    sbpData = [];
+    dbpData = [];
+    heartRateData = [];
+
+    for (int i = data.length - 1; i >= 0; i--) {
+      String date_ = data[i]["date"];
+      int month_ = int.parse(date_.split("-")[1]);
+      int day_ = int.parse(date_.split("-")[2]);
+      int sbp_ = data[i]["sbp"];
+      int dbp_ = data[i]["dbp"];
+      int heartRate_ = data[i]["heartRate"];
+
+      dayData.add(day_);
+      monthData.add(month_);
+      sbpData.add(sbp_);
+      dbpData.add(dbp_);
+      heartRateData.add(heartRate_);
+    }
+
+    if (data.isNotEmpty) {
+      todaySBP = data[0]["sbp"];
+      todayDBP = data[0]["dbp"];
+    }
+
+    if (data.isEmpty) {
+      dayData.add(widget.date.day);
+      monthData.add(widget.date.month);
+      sbpData.add(0);
+      dbpData.add(0);
+      heartRateData.add(0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    print("血压rebuild 值：${widget.value}");
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        MyTitle(
-            title: "今日血压",
-            icon: "assets/icons/bloodPressure.png",
-            value: widget.value,
-            unit: "mmHg",
-            route: "/homePage/BloodPressure/Edit"),
+    todaySBP = -1;
+    todayDBP = -1;
+    //print("血压 ${widget.date}");
+    //getDataFromServer();
+    return FutureBuilder(
+      // Replace getDataFromServer with the Future you want to wait for
+      future: getDataFromServer(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          //获取数据后
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              MyTitle(
+                  title: "今日血压",
+                  icon: "assets/icons/bloodPressure.png",
+                  value:
+                      "${todaySBP < 0 ? '-' : todaySBP}/${todayDBP < 0 ? '-' : todayDBP}",
+                  unit: "mmHg",
+                  route: "/homePage/BloodPressure/Edit"),
 
-        const SizedBox(
-          height: 5,
-        ),
+              const SizedBox(
+                height: 5,
+              ),
 
-        // 血压图表
-        Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            UnconstrainedBox(
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: MediaQuery.of(context).size.height * 0.25,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 255, 255),
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  /* border: GradientBoxBorder(
-                    gradient: LinearGradient(colors: [
-                      Color.fromARGB(146, 253, 69, 69),
-                      Color.fromARGB(157, 255, 199, 223)
-                    ]),
-                    width: 1,
-                  ), */
-                  border: Border.all(
-                    color: const Color.fromRGBO(0, 0, 0, 0.2),
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromARGB(120, 151, 151, 151),
-                      offset: Offset(0, 5),
-                      blurRadius: 5.0,
-                      spreadRadius: 0.0,
-                    ),
-                  ],
-                ),
+              // 血压图表
+              Stack(
                 alignment: Alignment.centerRight,
-                child: Echarts(
-                  option: '''
+                children: [
+                  UnconstrainedBox(
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.85,
+                      height: MediaQuery.of(context).size.height * 0.30,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15)),
+                        border: Border.all(
+                          color: const Color.fromRGBO(0, 0, 0, 0.2),
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color.fromARGB(120, 151, 151, 151),
+                            offset: Offset(0, 5),
+                            blurRadius: 5.0,
+                            spreadRadius: 0.0,
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        // width: MediaQuery.of(context).size.width * 1.5,
+                        //width: dayData.length <= 5 ? 325 : dayData.length * 65,
+                        width: MediaQuery.of(context).size.width * 0.85, //345
+                        height: MediaQuery.of(context).size.height * 0.30,
+                        child: Echarts(
+                          extraScript: '''
+                          var month = $monthData;
+                          var day = $dayData;
+                        ''',
+                          option: '''
               {
                 animation:false,
 
                 title: {
-                text: '血压',
-                top:'5%',
-                left:'2%',
-              },
-                            legend: {
-                data: ['收缩压', '舒张压', '心率'],
-                top:'5%',
-                left:'20%',
-              },
-            
-                grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '5%',
-                containLabel: true
-              },
-              tooltip: {
-                trigger: 'axis'
-              },
+                  text: '血压',
+                  top:'5%',
+                  left:'10',
+                },
+
+                legend: {
+                  data: ['收缩压', '舒张压', '心率'],
+                  top:'6%',
+                  left:'70',
+                },
+
+                  grid: {
+                  left: '10', // 3%
+                  right: '20', // 4%
+                  //top: '45',
+                  bottom: '5%',
+                  containLabel: true,
+                },
+                tooltip: {
+                  trigger: 'axis'
+                },
+
                 xAxis: {
-                  
                   type: 'category',
                   boundaryGap: true,
-                  data: ['8/11', '9/11', '10/11','11/11']
+                  axisLabel: {
+                   interval: 0,
+                   textStyle: {
+                      color: '#000000'
+                  },
+                   formatter: function(index) {
+                        // 自定义显示格式
+                         return day[index] + '/' + month[index]; // 取日期的第一部分
+                   }
+                  },
+
                 },
+
                 yAxis: {
                   type: 'value',
-                  min: 70,
-                  max: 130,
+                  //min: 80,
+                  //max: 130,
+                  ${data.isEmpty ? "min: 0, max: 120," : ""}
+                  axisLabel:{
+                    textStyle: {
+                        color: '#000000'
+                    },
+                  },
                 },
                 series: [{
                   name: '收缩压',
-                  data: [102, 120, 112,123],
+                  data: $sbpData,
                   type: 'line',
-                  smooth: true,
-                  // itemStyle: {
-                  //     normal: {
-                  //         color: "#FD3F61",
-                  //         lineStyle: {
-                  //             color: "#FF8C4B"
-                  //         }
-                  //     }
-                  // },
+                  smooth: true
                 },
                 {
                   name: '舒张压',
-                  data: [86, 82, 95,80],
+                  data: $dbpData,
                   type: 'line',
                   smooth: true
                 },
 
                  {
                   name: '心率',
-                  data: [97, 93, 92,97],
+                  data: $heartRateData,
                   type: 'line',
                   smooth: true
                 }
                 ]
               }
             ''',
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, "/homePage/BloodPressure/Details");
-              },
-              child: Container(
-                height: 30,
-                width: 30,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 225, 225),
-                  borderRadius: BorderRadius.circular(5),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromARGB(120, 151, 151, 151),
-                      offset: Offset(0, 5),
-                      blurRadius: 5.0,
-                      spreadRadius: 0.0,
+                        ),
+                      ),
                     ),
-                  ],
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, "/homePage/BloodPressure/Details");
+                    },
+                    child: Container(
+                      height: 30,
+                      width: 30,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 225, 225),
+                        borderRadius: BorderRadius.circular(5),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color.fromARGB(120, 151, 151, 151),
+                            offset: Offset(0, 5),
+                            blurRadius: 5.0,
+                            spreadRadius: 0.0,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+
+              /* Container(
+          height: 30,
+          width: 80,
+          alignment: Alignment.center,
+          color: const Color.fromARGB(255, 255, 225, 225),
+          //child: TextButton(child: Text("查看更多"), onPressed: () {}),
+          child: Text(
+            "查看更多",
+            style: TextStyle(),
+            textAlign: TextAlign.center,
+          ),
+        ), */
+              //FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add)),
+            ],
+          );
+        } else {
+          // 未获取到数据时显示的内容
+          return Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const MyTitle(
+                    title: "今日血压",
+                    icon: "assets/icons/bloodPressure.png",
+                    value: "-/-",
+                    unit: "mmHg",
+                    route: "/homePage/BloodPressure/Edit"),
+                const SizedBox(
+                  height: 5,
                 ),
-                child: const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
+                Center(
+                  child: LoadingAnimationWidget.staggeredDotsWave(
+                      color: Colors.pink, size: 25),
+                )
+              ]);
+        }
+      },
     );
   }
 }
 
 class MyBloodSugar extends StatefulWidget {
+  final int accountId;
   final String value;
-  int accountId = 0;
-  MyBloodSugar({Key? key, required this.value, required this.accountId})
+  final DateTime date;
+  const MyBloodSugar(
+      {Key? key,
+      required this.accountId,
+      required this.value,
+      required this.date})
       : super(key: key);
 
   @override
@@ -256,80 +417,177 @@ class MyBloodSugar extends StatefulWidget {
 }
 
 class _MyBloodSugarState extends State<MyBloodSugar> {
+  // 从后端请求得到的原始数据
+  List<dynamic> data = [];
+
+  // 显示的数据
+  List<int> dayData = [];
+  List<int> monthData = [];
+  List<double> bloodSugarData = [];
+  double todayBS = -1;
+
+  // 从后端请求数据
+  Future<void> getDataFromServer() async {
+    String requestDate = getFormattedDate(widget.date);
+    //print('请求日期：$requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate&accountId=${widget.accountId}",
+      );
+      if (response.data["code"] == 200) {
+        //print("获取血糖数据成功");
+        data = response.data["data"];
+      } else {
+        print(response);
+        data = [];
+      }
+    } catch (e) {
+      print(e);
+      data = [];
+    }
+
+    dayData = [];
+    monthData = [];
+    bloodSugarData = [];
+
+    for (int i = data.length - 1; i >= 0; i--) {
+      String date_ = data[i]["date"];
+      int month_ = int.parse(date_.split("-")[1]);
+      int day_ = int.parse(date_.split("-")[2]);
+      double bs_ = data[i]["bs"];
+
+      dayData.add(day_);
+      monthData.add(month_);
+      bloodSugarData.add(bs_);
+    }
+
+    if (data.isNotEmpty) {
+      todayBS = data[0]["bs"];
+    }
+
+    if (data.isEmpty) {
+      dayData.add(widget.date.day);
+      monthData.add(widget.date.month);
+      bloodSugarData.add(0);
+    }
+
+    //print("bloodSugarData: $bloodSugarData");
+  }
+
   @override
   Widget build(BuildContext context) {
-    print("血糖rebuild");
-    return Column(
-      children: [
-        MyTitle(
-            title: "今日血糖",
-            icon: "assets/icons/bloodSugar.png",
-            value: widget.value,
-            unit: "mmol/L",
-            route: "/homePage/BloodSugar/Edit"), //TODO
+    todayBS = -1;
+    return FutureBuilder(
+      future: getDataFromServer(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Column(
+            children: [
+              MyTitle(
+                  title: "今日血糖",
+                  icon: "assets/icons/bloodSugar.png",
+                  value: todayBS < 0 ? '-' : todayBS.toStringAsFixed(1),
+                  unit: "mmol/L",
+                  route: "/homePage/BloodSugar/Edit"), //TODO
 
-        const SizedBox(
-          height: 5,
-        ),
-
-        // 血糖图表
-        Stack(alignment: Alignment.centerRight, children: [
-          UnconstrainedBox(
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.85,
-              height: MediaQuery.of(context).size.height * 0.25,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 255, 255, 255),
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-                border: Border.all(
-                  color: const Color.fromRGBO(0, 0, 0, 0.2),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromARGB(120, 151, 151, 151),
-                    offset: Offset(0, 5),
-                    blurRadius: 5.0,
-                    spreadRadius: 0.0,
-                  ),
-                ],
+              const SizedBox(
+                height: 5,
               ),
-              alignment: Alignment.centerRight,
-              child: Echarts(
-                option: '''
+
+              // 血糖图表
+              Stack(alignment: Alignment.centerRight, children: [
+                UnconstrainedBox(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    height: MediaQuery.of(context).size.height * 0.30,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                      borderRadius: const BorderRadius.all(Radius.circular(15)),
+                      border: Border.all(
+                        color: const Color.fromRGBO(0, 0, 0, 0.2),
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(120, 151, 151, 151),
+                          offset: Offset(0, 5),
+                          blurRadius: 5.0,
+                          spreadRadius: 0.0,
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.85,
+                      height: MediaQuery.of(context).size.height * 0.30,
+                      child: Echarts(
+                        extraScript: '''
+                  var month = $monthData;
+                  var day = $dayData;
+                  
+                  ''',
+                        option: '''
               {
                 animation:false,
+
                 title: {
-    text: '血糖',
-    top:'5%',
-    left:'2%',
-  },
-                legend: {
-    data: ['血糖'],
-    top:'5%',
-    //left:'20%',
-  },
- 
-    grid: {
-    left: '3%',
-    right: '4%',
-    bottom: '5%',
-    containLabel: true
-  },
-  tooltip: {
-    trigger: 'axis'
-  },
-                xAxis: {
-                  
-                  type: 'category',
-                  //boundaryGap: false,
-                  data: ['8/11', '9/11', '10/11','11/11']
+                  text: '血糖',
+                  top:'5%',
+                  left:'10',
                 },
+
+                legend: {
+                  data: ['血糖'],
+                  top:'6%',
+                  left:'70',
+                },
+
+                  grid: {
+                  left: '3%',
+                  right: '4%',
+                  bottom: '5%',
+                  containLabel: true,
+                },
+                tooltip: {
+                  trigger: 'axis'
+                },
+
+                xAxis: {
+                  type: 'category',
+                  boundaryGap: true,
+                  axisLabel: {
+                   interval: 0,
+                   textStyle: {
+                      color: '#000000'
+                  },
+                   formatter: function(index) {
+                        // 自定义显示格式
+                         return day[index] + '/' + month[index]; // 取日期的第一部分
+                   }
+                  },
+
+                },
+
                 yAxis: {
                   type: 'value',
+                  axisLabel:{
+                    textStyle: {
+                        color: '#000000'
+                    },
+                  },
+                  ${data.isEmpty ? "min: 0, max: 120," : ""}
                 },
                 series: [{
                   name: '血糖',
-                  data: [5.3, 6.8, 5.9,8.8],
+                  data: $bloodSugarData,
                   type: 'line',
                   smooth: true,
                   itemStyle: {
@@ -342,47 +600,77 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
                   },
                 },
                 ]
-              }
+                }
             ''',
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, "/homePage/BloodSugar/Details");
-            },
-            child: Container(
-              height: 30,
-              width: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 255, 225, 225),
-                borderRadius: BorderRadius.circular(5),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromARGB(120, 151, 151, 151),
-                    offset: Offset(0, 5),
-                    blurRadius: 5.0,
-                    spreadRadius: 0.0,
+                      ),
+                    ),
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 20,
-              ),
-            ),
-          ),
-        ]),
-      ],
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, "/homePage/BloodSugar/Details");
+                  },
+                  child: Container(
+                    height: 30,
+                    width: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 225, 225),
+                      borderRadius: BorderRadius.circular(5),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(120, 151, 151, 151),
+                          offset: Offset(0, 5),
+                          blurRadius: 5.0,
+                          spreadRadius: 0.0,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ]),
+            ],
+          );
+        } else {
+          // 未获取到数据时显示的内容
+          return Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const MyTitle(
+                    title: "今日血糖",
+                    icon: "assets/icons/bloodSugar.png",
+                    value: "-",
+                    unit: "mmol/L",
+                    route: "/homePage/BloodSugar/Edit"),
+                const SizedBox(
+                  height: 5,
+                ),
+                Center(
+                  child: LoadingAnimationWidget.staggeredDotsWave(
+                      color: Colors.pink, size: 25),
+                )
+              ]);
+        }
+      },
     );
   }
 }
 
 class MyBloodFat extends StatefulWidget {
+  final int accountId;
   final String value;
-  int accountId = 0;
-  MyBloodFat({Key? key, required this.value, required this.accountId})
+  final DateTime date;
+  const MyBloodFat(
+      {Key? key,
+      required this.accountId,
+      required this.value,
+      required this.date})
       : super(key: key);
 
   @override
@@ -390,138 +678,282 @@ class MyBloodFat extends StatefulWidget {
 }
 
 class _MyBloodFatState extends State<MyBloodFat> {
+  // 从后端请求得到的原始数据
+  List<dynamic> data = [];
+
+  // 显示的数据
+  List<int> dayData = [];
+  List<int> monthData = [];
+  List<double> tcData = [];
+  List<double> tgData = [];
+  List<double> ldlData = [];
+  List<double> hdlData = [];
+  double todayTC = -1;
+
+  // 从后端请求数据
+  Future<void> getDataFromServer() async {
+    String requestDate = getFormattedDate(widget.date);
+    //print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate&accountId=${widget.accountId}",
+      );
+      if (response.data["code"] == 200) {
+        //print("获取血脂数据成功");
+        data = response.data["data"];
+      } else {
+        print(response);
+        data = [];
+      }
+    } catch (e) {
+      print(e);
+      data = [];
+    }
+
+    dayData = [];
+    monthData = [];
+    tcData = [];
+    tgData = [];
+    ldlData = [];
+    hdlData = [];
+
+    for (int i = data.length - 1; i >= 0; i--) {
+      String date_ = data[i]["date"];
+      int month_ = int.parse(date_.split("-")[1]);
+      int day_ = int.parse(date_.split("-")[2]);
+      double tc = data[i]["tc"];
+      double tg = data[i]["tg"];
+      double ldl = data[i]["ldl"];
+      double hdl = data[i]["hdl"];
+
+      dayData.add(day_);
+      monthData.add(month_);
+
+      tcData.add(tc);
+      tgData.add(tg);
+      ldlData.add(ldl);
+      hdlData.add(hdl);
+    }
+
+    if (data.isNotEmpty) {
+      todayTC = data[0]["tc"];
+    }
+
+    if (data.isEmpty) {
+      dayData.add(0);
+      monthData.add(0);
+      tcData.add(0);
+      tgData.add(0);
+      ldlData.add(0);
+      hdlData.add(0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    print("血脂rebuild");
-    return Column(children: [
-      MyTitle(
-          title: "今日血脂",
-          icon: "assets/icons/bloodFat.png",
-          value: widget.value,
-          unit: "mmol/L",
-          route: "/homePage/BloodFat/Edit"),
-      const SizedBox(
-        height: 5,
-      ),
-      Stack(alignment: Alignment.centerRight, children: [
-        UnconstrainedBox(
-          child: Container(
-            alignment: Alignment.centerRight,
-            width: MediaQuery.of(context).size.width * 0.85,
-            height: MediaQuery.of(context).size.height * 0.25,
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              borderRadius: const BorderRadius.all(Radius.circular(15)),
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.2),
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
-                ),
-              ],
+    todayTC = -1;
+    return FutureBuilder(
+      future: getDataFromServer(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Column(children: [
+            MyTitle(
+                title: "今日血脂",
+                icon: "assets/icons/bloodFat.png",
+                value: todayTC < 0 ? '-' : todayTC.toStringAsFixed(1),
+                unit: "mmol/L",
+                route: "/homePage/BloodFat/Edit"),
+            const SizedBox(
+              height: 5,
             ),
-            child: Echarts(
-              option: '''
-              {
-                title: {
-                text: '血脂',
-                top:'5%',
-                left:'2%',
-              },
-                            legend: {
-                data: ['总胆固醇' , '高密度脂蛋白脂','甘油三酯','低密度脂蛋白脂'],
-                top:'5%',
-                left:'20%',
-              },
-            
-                grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '5%',
-                containLabel: true
-              },
-              tooltip: {
-                trigger: 'axis'
-              },
-                xAxis: {
+            Stack(alignment: Alignment.centerRight, children: [
+              UnconstrainedBox(
+                child: Container(
+                  alignment: Alignment.centerRight,
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  height: MediaQuery.of(context).size.height * 0.3,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 255, 255, 255),
+                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                    border: Border.all(
+                      color: const Color.fromRGBO(0, 0, 0, 0.2),
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromARGB(120, 151, 151, 151),
+                        offset: Offset(0, 5),
+                        blurRadius: 5.0,
+                        spreadRadius: 0.0,
+                      ),
+                    ],
+                  ),
+                  child: ListView(scrollDirection: Axis.horizontal, children: [
+                    Container(
+                      // width: MediaQuery.of(context).size.width * 1.5,
+                      width: dayData.length * 65 <= 550
+                          ? 550
+                          : dayData.length * 65,
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: Echarts(
+                        extraScript: '''
+                  var month = $monthData;
+                  var day = $dayData;
                   
+''',
+                        option: '''
+              {
+                animation:false,
+
+                title: {
+                  text: '血脂',
+                  top:'5%',
+                  left:'10',
+                },
+
+                legend: {
+                  data: ['总胆固醇', '甘油三酯', '低密度脂蛋白胆固醇', '高密度脂蛋白胆固醇'],
+                  top:'6%',
+                  left:'70',
+                },
+
+                  grid: {
+                  left: '3%',
+                  right: '4%',
+                  bottom: '5%',
+                  containLabel: true,
+                },
+                tooltip: {
+                  trigger: 'axis'
+                },
+
+                xAxis: {
                   type: 'category',
                   boundaryGap: true,
-                  data: ['8/11', '9/11', '10/11','11/11']
+                  axisLabel: {
+                   interval: 0,
+                   textStyle: {
+                      color: '#000000'
+                  },
+                   formatter: function(index) {
+                        // 自定义显示格式
+                         return day[index] + '/' + month[index]; // 取日期的第一部分
+                   }
+                  },
+
                 },
+
                 yAxis: {
                   type: 'value',
+                  axisLabel:{
+                    textStyle: {
+                        color: '#000000'
+                    },
+                  },
+                  ${data.isEmpty ? "min: 0, max: 5," : ""}
                 },
                 series: [{
                   name: '总胆固醇',
-                  data: [3.1,4.2,5.2,4.6],
+                  data: $tcData,
                   type: 'line',
                   smooth: true
                 },
                 {
                   name: '甘油三酯',
-                  data: [4.6,2.6,5.6,2.7],
+                  data: $tgData,
                   type: 'line',
                   smooth: true
                 },
 
                  {
-                  name: '高密度脂蛋白脂',
-                  data: [3.0,6.3,5.3,5.6],
+                  name: '低密度脂蛋白胆固醇',
+                  data: $ldlData,
                   type: 'line',
                   smooth: true
                 },
-                 {
-                  name: '低密度脂蛋白脂',
-                  data: [4.7,4.98,4.3,3.4],
+
+                {
+                  name: '高密度脂蛋白胆固醇',
+                  data: $hdlData,
                   type: 'line',
                   smooth: true
-                },
+                }
                 ]
               }
             ''',
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(context, "/homePage/BloodFat/Details");
-          },
-          child: Container(
-            height: 30,
-            width: 30,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 255, 225, 225),
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
+                      ),
+                    ),
+                  ]),
                 ),
-              ],
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, "/homePage/BloodFat/Details");
+                },
+                child: Container(
+                  height: 30,
+                  width: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 255, 225, 225),
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromARGB(120, 151, 151, 151),
+                        offset: Offset(0, 5),
+                        blurRadius: 5.0,
+                        spreadRadius: 0.0,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ]),
+          ]);
+        } else {
+          //return CircularProgressIndicator();
+          return Column(children: [
+            const MyTitle(
+                title: "今日血脂",
+                icon: "assets/icons/bloodFat.png",
+                value: "-",
+                unit: "mmol/L",
+                route: "/homePage/BloodFat/Edit"),
+            const SizedBox(
+              height: 5,
             ),
-            child: const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 20,
+            Center(
+              child: LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.pink, size: 25),
             ),
-          ),
-        ),
-      ]),
-    ]);
+          ]);
+        }
+      },
+    );
   }
 }
 
 class MyActivities extends StatefulWidget {
+  final DateTime date;
+  final int accountId;
   final String value;
-  int accountId = 0;
-  MyActivities({Key? key, required this.value, required this.accountId})
+  const MyActivities(
+      {Key? key,
+      required this.accountId,
+      required this.value,
+      required this.date})
       : super(key: key);
 
   @override
@@ -531,7 +963,6 @@ class MyActivities extends StatefulWidget {
 class _MyActivitiesState extends State<MyActivities> {
   @override
   Widget build(BuildContext context) {
-    print("活动rebuild");
     return Column(children: [
       MyTitle(
           title: "今日活动",
@@ -690,9 +1121,14 @@ class _MyActivitiesState extends State<MyActivities> {
 }
 
 class MyDiet extends StatefulWidget {
+  final DateTime date;
+  final int accountId;
   final String value;
-  int accountId = 0;
-  MyDiet({Key? key, required this.value, required this.accountId})
+  const MyDiet(
+      {Key? key,
+      required this.accountId,
+      required this.value,
+      required this.date})
       : super(key: key);
 
   @override
@@ -702,7 +1138,6 @@ class MyDiet extends StatefulWidget {
 class _MyDietState extends State<MyDiet> {
   @override
   Widget build(BuildContext context) {
-    print("饮食rebuild");
     return Column(children: [
       MyTitle(
           title: "今日饮食",
@@ -870,7 +1305,7 @@ chart.on('updateAxisPointer', function (event) {
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushNamed(context, "/homePage/BloodPressure/Details");
+            Navigator.pushNamed(context, "/homePage/fooddiary/Details");
           },
           child: Container(
             height: 30,
@@ -899,17 +1334,84 @@ chart.on('updateAxisPointer', function (event) {
   }
 }
 
+//
+class WardInfo {
+  final int accountId;
+  final String nickname;
+  final String image;
+
+  WardInfo(
+      {required this.accountId, required this.nickname, required this.image});
+}
+
+// ==============此页面=====================
+// ignore: must_be_immutable
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  int accountId;
+  final int groupId; // -1表示不是群组
+  String nickname;
+  final String groupName;
+  HomePage({
+    Key? key,
+    required this.accountId,
+    required this.groupId,
+    required this.nickname,
+    required this.groupName,
+  }) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  DateTime? selectedDate;
-  String guardian = "妈妈";
-  int accountId = 0;
+  DateTime selectedDate = DateTime.now();
+  List<WardInfo> allWardInfo = [];
+  List<Widget> allWardInfoWidgets = [];
+  bool refreshWardList = true;
+
+  // 获取群内成员列表
+  Future<void> getGroupMemberListFromServer() async {
+    if (!refreshWardList) {
+      return;
+    }
+    List<dynamic> wardInfos = [];
+
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+          "http://43.138.75.58:8080/api/guard-group/activity?groupId=${widget.groupId}");
+      if (response.data["code"] == 200) {
+        wardInfos = response.data["data"]["wardInfos"];
+      } else {
+        print(response);
+        wardInfos = [];
+      }
+    } catch (e) {
+      print(e);
+      wardInfos = [];
+    }
+
+    //print("监护人成员列表：$wardInfos");
+
+    allWardInfo.clear();
+
+    // 生成监护人列表
+    for (int i = 0; i < wardInfos.length; i++) {
+      allWardInfo.add(WardInfo(
+          accountId: wardInfos[i]["id"],
+          nickname: wardInfos[i]["nickname"],
+          image: wardInfos[i]["image"] ??
+              "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png"));
+      //print("监护人列表：${allWardInfo[i].nickname} ${allWardInfo[i].accountId}");
+    }
+
+    getWardInfoWidgets();
+    refreshWardList = false;
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -947,84 +1449,83 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // 切换监护对象的抽屉
+  void getWardInfoWidgets() {
+    // 清空
+    allWardInfoWidgets.clear();
+    //
+    allWardInfoWidgets.add(
+      const SizedBox(
+        height: 10,
+      ),
+    );
+    // 群名
+    allWardInfoWidgets.add(
+      Text(
+        widget.groupName,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+            fontFamily: 'BalooBhai',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black),
+      ),
+    );
+
+    // 群内成员
+    for (int i = 0; i < allWardInfo.length; i++) {
+      allWardInfoWidgets.add(ListTile(
+        leading: Container(
+          constraints: const BoxConstraints(
+            maxHeight: 30,
+            maxWidth: 40,
+          ),
+          decoration: BoxDecoration(
+            //borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: const Color.fromRGBO(0, 0, 0, 0.2),
+            ),
+          ),
+          child: Image.network(
+            allWardInfo[i].image,
+            //width: 40,
+            //height: 30,
+            fit: BoxFit.cover,
+          ),
+        ),
+        title: Text(allWardInfo[i].nickname),
+        onTap: () {
+          print("切换成员：${allWardInfo[i].nickname} ${allWardInfo[i].accountId}");
+          Navigator.pop(context);
+          setState(() {
+            widget.nickname = allWardInfo[i].nickname;
+            widget.accountId = allWardInfo[i].accountId;
+          });
+        },
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.groupId >= 0) {
+      getGroupMemberListFromServer();
+    }
     print("监护的首页rebuild");
-    final formattedDate = selectedDate != null
-        ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日 ${getWeekDay(selectedDate!)}"
-        : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日 ${getWeekDay(DateTime.now())}";
 
     return PopScope(
       canPop: true,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "TriGuard",
-            style: TextStyle(
-                fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-          ),
-          flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-              (MediaQuery.of(context).size.height * 0.1 + 11),
-              color: 1),
+        // appbar
+        appBar: getAppBar(1, true,
+            widget.groupName.isEmpty ? widget.nickname : widget.groupName),
 
-          automaticallyImplyLeading: true, //toolbarHeight: 45, 不显示 ← 按钮
-          actions: [
-            //back button
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios_rounded),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-        drawer: Drawer(
-            child: ListView(children: [
-          // 监护对象列表：妈妈，爸爸，爷爷，奶奶，外公，外婆
-          const SizedBox(
-            height: 10,
-          ),
-          const Text("监护对象",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontFamily: 'BalooBhai',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black)),
-          const SizedBox(
-            height: 10,
-          ),
-          ListTile(
-            title: const Text("妈妈"),
-            onTap: () {
-              Navigator.pop(context);
-              setState(() {
-                guardian = "妈妈";
-                accountId = 0;
-              });
-            },
-          ),
-          ListTile(
-            title: const Text("爸爸"),
-            onTap: () {
-              Navigator.pop(context);
-              setState(() {
-                guardian = "爸爸";
-                accountId = 1;
-              });
-            },
-          ),
-          ListTile(
-            title: const Text("爷爷"),
-            onTap: () {
-              Navigator.pop(context);
-              setState(() {
-                guardian = "爷爷";
-                accountId = 2;
-              });
-            },
-          ),
-        ])),
+        // 切换监护对象
+        endDrawer: widget.groupId >= 0
+            ? Drawer(child: ListView(children: allWardInfoWidgets))
+            : null,
+
+        // 此页面
         body: Container(
           // white background
           color: Colors.white,
@@ -1036,7 +1537,7 @@ class _HomePageState extends State<HomePage> {
               ),
 
               // 监护对象
-              Text(guardian,
+              Text(widget.nickname,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontFamily: 'BalooBhai',
@@ -1053,7 +1554,7 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          formattedDate,
+                          getFormattedDate(selectedDate),
                           style: const TextStyle(
                               fontSize: 20, fontFamily: "BalooBhai"),
                         ),
@@ -1072,39 +1573,48 @@ class _HomePageState extends State<HomePage> {
               ),
 
               // 今日血压
-              MyBloodPressure(accountId: accountId, value: "112/95"),
+              MyBloodPressure(
+                  accountId: widget.accountId,
+                  date: selectedDate,
+                  value: "112/95"),
 
               const SizedBox(
                 height: 15,
               ),
 
               // 今日血糖
-              MyBloodSugar(accountId: accountId, value: "8.8"),
+              MyBloodSugar(
+                  accountId: widget.accountId,
+                  date: selectedDate,
+                  value: "8.8"),
 
               const SizedBox(
                 height: 15,
               ),
 
               // 今日血脂
-              MyBloodFat(accountId: accountId, value: "3.4"),
+              MyBloodFat(
+                  accountId: widget.accountId,
+                  date: selectedDate,
+                  value: "3.4"),
 
               const SizedBox(
                 height: 15,
               ),
 
-              MyActivities(accountId: accountId, value: "45"),
-
               // 运动
+              MyActivities(
+                  accountId: widget.accountId, date: selectedDate, value: "45"),
+
               const SizedBox(
                 height: 15,
               ),
 
               // 饮食
-              const SizedBox(
-                height: 15,
-              ),
-
-              MyDiet(accountId: accountId, value: "1723"),
+              MyDiet(
+                  accountId: widget.accountId,
+                  date: selectedDate,
+                  value: "1723"),
 
               const SizedBox(
                 height: 15,

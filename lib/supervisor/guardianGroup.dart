@@ -12,6 +12,7 @@ import './homePageSupervisor.dart';
 import '../account/token.dart';
 
 typedef RefreshDataCallback = void Function(List<bool> refreshData);
+String groupname = "";
 //typedef RefreshCallback = Future<void> Function(List<bool> refreshData);
 
 // -------------------今日活动记录--------------------
@@ -421,8 +422,28 @@ class _MemberWidgetState extends State<MemberWidget> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Image.asset("assets/icons/exercising.png", width: 20, height: 20),
+        //Image.asset("assets/icons/exercising.png", width: 20, height: 20),
+        // 头像
+        Container(
+          constraints: const BoxConstraints(
+            minHeight: 30,
+            minWidth: 30,
+          ),
+          decoration: BoxDecoration(
+            //borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: const Color.fromRGBO(0, 0, 0, 0.2),
+            ),
+          ),
+          child: Image.network(
+            image,
+            //width: 30,
+            //height: 30,
+            fit: BoxFit.cover,
+          ),
+        ),
         const SizedBox(width: 10),
+        // 昵称
         Container(
           constraints: BoxConstraints(
             minHeight: 30,
@@ -820,12 +841,11 @@ class _MemberWidgetState extends State<MemberWidget> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => HomePage(
-                        /* arguments: {
-                        "bpDataId": 1,
-                        "date": DateTime.now(),
-                        "prevPage": 1,
-                      }, */
-                        ),
+                      accountId: accountId,
+                      groupId: widget.groupId,
+                      nickname: nickname,
+                      groupName: groupname,
+                    ),
                   ),
                 ).then((_) {
                   print("哈哈哈");
@@ -1113,6 +1133,7 @@ class _GroupNameHeaderState extends State<GroupNameHeader> {
     for (int i = 0; i < groupList.length; i++) {
       if (groupList[i]["groupId"] == widget.groupId) {
         groupName = groupList[i]["groupName"];
+        groupname = groupName;
         break;
       }
     }

@@ -57,25 +57,31 @@ Widget getHeader(double width, double height, {int? color = 0}) {
   );
 }
 
-PreferredSizeWidget getAppBar() {
+PreferredSizeWidget getAppBar(int color, bool backButton, String title,
+    {List<Widget>? actions}) {
+  List<Color> colors = const [
+    Color.fromARGB(255, 250, 209, 252),
+    Color.fromARGB(255, 182, 234, 255)
+  ];
+
   return AppBar(
-    automaticallyImplyLeading: false,
-    title: const Text(
-      "TriGuard",
-      style:
-          TextStyle(fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
+    automaticallyImplyLeading: backButton,
+    title: Text(
+      title,
+      style: const TextStyle(
+          fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
     ),
     flexibleSpace: Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color.fromARGB(255, 250, 209, 252),
-            Color.fromARGB(255, 255, 255, 255),
+            colors[color],
+            const Color.fromARGB(255, 255, 255, 255),
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        border: Border(
+        border: const Border(
           bottom: BorderSide(
             color: Color.fromRGBO(169, 171, 179, 1),
             width: 1,
@@ -83,5 +89,6 @@ PreferredSizeWidget getAppBar() {
         ),
       ),
     ),
+    actions: actions,
   );
 }
