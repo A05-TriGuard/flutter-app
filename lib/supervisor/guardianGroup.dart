@@ -8,7 +8,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
-import './homePageSupervisor.dart';
+//import './homePageSupervisor.dart';
 import '../account/token.dart';
 
 typedef RefreshDataCallback = void Function(List<bool> refreshData);
@@ -330,15 +330,17 @@ class _MemberWidgetState extends State<MemberWidget> {
 
     // 生成监护人列表
     for (int i = 0; i < wardInfos.length; i++) {
-      isExpanded[wardInfos[i]["id"]] = false;
-      wardInfoWidgets.add(getGroupMemberWidget(
-        wardInfos[i]["id"],
-        wardInfos[i]["username"],
-        wardInfos[i]["email"],
-        wardInfos[i]["nickname"],
-        wardInfos[i]["image"] ??
-            "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
-      ));
+      if (wardInfos[i] != null) {
+        isExpanded[wardInfos[i]["id"]] = false;
+        wardInfoWidgets.add(getGroupMemberWidget(
+          wardInfos[i]["id"],
+          wardInfos[i]["username"],
+          wardInfos[i]["email"],
+          wardInfos[i]["nickname"],
+          wardInfos[i]["image"] ??
+              "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+        ));
+      }
     }
 
     // print(wardInfoWidgets.length);
@@ -426,8 +428,8 @@ class _MemberWidgetState extends State<MemberWidget> {
         // 头像
         Container(
           constraints: const BoxConstraints(
-            minHeight: 30,
-            minWidth: 30,
+            maxHeight: 30,
+            maxWidth: 40,
           ),
           decoration: BoxDecoration(
             //borderRadius: BorderRadius.circular(15),
@@ -835,9 +837,9 @@ class _MemberWidgetState extends State<MemberWidget> {
             //查看数据详情
             GestureDetector(
               onTap: () {
-                print("查看数据详情$accountId");
+                //print("查看群组数据详情$accountId");
                 // Navigator.pushNamed(context, '/edit');
-                Navigator.push(
+                /* Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => HomePage(
@@ -850,7 +852,14 @@ class _MemberWidgetState extends State<MemberWidget> {
                 ).then((_) {
                   print("哈哈哈");
                   //widget.updateData();
-                });
+                }); */
+                var args = {
+                  "accountId": accountId,
+                  "groupId": widget.groupId,
+                  "nickname": nickname,
+                  "groupName": groupname,
+                };
+                Navigator.pushNamed(context, '/homePage', arguments: args);
               },
               child: Container(
                 width: 120,
@@ -990,17 +999,20 @@ class _MemberWidgetState extends State<MemberWidget> {
   @override
   Widget build(BuildContext context) {
     // print('成员rebuild: ---> refreshData: ${widget.refresh[1]}');
+    //print('成员rebuild: ---> 群组id: ${widget.groupId}');
     if (!widget.refresh[1]) {
       wardInfoWidgets.clear();
       for (int i = 0; i < wardInfos.length; i++) {
-        wardInfoWidgets.add(getGroupMemberWidget(
-          wardInfos[i]["id"],
-          wardInfos[i]["username"],
-          wardInfos[i]["email"],
-          wardInfos[i]["nickname"],
-          wardInfos[i]["image"] ??
-              "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
-        ));
+        if (wardInfos[i] != null) {
+          wardInfoWidgets.add(getGroupMemberWidget(
+            wardInfos[i]["id"],
+            wardInfos[i]["username"],
+            wardInfos[i]["email"],
+            wardInfos[i]["nickname"],
+            wardInfos[i]["image"] ??
+                "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+          ));
+        }
       }
       if (wardInfoWidgets.isEmpty) {
         return noMemberWidget();
@@ -1024,7 +1036,27 @@ class _MemberWidgetState extends State<MemberWidget> {
             return Column(
               children: wardInfoWidgets,
             );
-            //return wardInfoWidgets[0];
+
+            /*  return Container(
+              constraints: BoxConstraints(
+                minHeight: 55,
+                maxHeight: MediaQuery.of(context).size.height * 0.6,
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  children: wardInfoWidgets,
+                ),
+              ),
+            ); */
+            /* return ListView.builder(
+              shrinkWrap: true,
+              //physics: const NeverScrollableScrollPhysics(),
+              itemCount: wardInfoWidgets.length,
+              itemBuilder: (BuildContext context, int index) {
+                return wardInfoWidgets[index];
+              },
+            ); */
           } else {
             return Center(
               child: LoadingAnimationWidget.staggeredDotsWave(
@@ -1110,8 +1142,15 @@ class _GroupNameHeaderState extends State<GroupNameHeader> {
       print(e);
       wardInfos = [];
     }
-    memberCount = wardInfos.length;
+    //memberCount = wardInfos.length;
+    int count = 0;
     // print("memberCount: $memberCount");
+    for (int i = 0; i < wardInfos.length; i++) {
+      if (wardInfos[i] != null) {
+        count++;
+      }
+    }
+    memberCount = count;
 
     try {
       response = await dio.get(
@@ -1384,10 +1423,14 @@ class WardSelection {
 
 // ignore: must_be_immutable
 class GuardianGroupPage extends StatefulWidget {
-  final int groupId;
-  String groupName;
-  GuardianGroupPage({Key? key, required this.groupId, required this.groupName})
-      : super(key: key);
+/*   final int groupId;
+  String groupName; */
+  final Map arguments;
+  GuardianGroupPage({
+    Key? key,
+    /* required this.groupId, required this.groupName */
+    required this.arguments,
+  }) : super(key: key);
 
   @override
   State<GuardianGroupPage> createState() => _GuardianGroupPageState();
@@ -1455,7 +1498,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
 
     try {
       response = await dio.get(
-        "http://43.138.75.58:8080/api/guard-group/disband?groupId=${widget.groupId}",
+        "http://43.138.75.58:8080/api/guard-group/disband?groupId=${widget.arguments["groupId"]}",
       );
       if (response.data["code"] == 200) {
         print("解散成功");
@@ -1504,7 +1547,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
     // 获取当前群里的成员
     try {
       response = await dio.get(
-        "http://43.138.75.58:8080/api/guard-group/activity?groupId=${widget.groupId}",
+        "http://43.138.75.58:8080/api/guard-group/activity?groupId=${widget.arguments["groupId"]}",
       );
       if (response.data["code"] == 200) {
         currentGroupWardInfos = response.data["data"]["wardInfos"];
@@ -1537,6 +1580,11 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
         ),
       );
     } */
+
+    // allWardInfos [{...},{...},null] ，可能有null，先去掉
+    allWardInfos.removeWhere((element) => element == null);
+    currentGroupWardInfos.removeWhere((element) => element == null);
+
     Set<int> guardianIdsToRemove =
         Set.from(currentGroupWardInfos.map((info) => info["id"]));
 
@@ -1579,8 +1627,8 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
       Response response = await dio.post(
         'http://43.138.75.58:8080/api/guard-group/member/add',
         queryParameters: {
-          "wardId": accountId,
-          "groupId": widget.groupId,
+          "wardIds": accountId,
+          "groupId": widget.arguments["groupId"],
         },
       );
 
@@ -1911,6 +1959,9 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
   @override
   Widget build(BuildContext context) {
     //print("群组rebuild");
+    print(widget.arguments);
+    print(
+        '群组ID: ${widget.arguments["groupId"]} 群组名: ${widget.arguments["groupName"]}');
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -1997,7 +2048,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           const SizedBox(height: 20),
 
           GroupNameHeader(
-            groupId: widget.groupId,
+            groupId: widget.arguments["groupId"],
             refresh: refresh,
             refreshCallback: refreshView,
           ),
@@ -2007,7 +2058,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           ),
 
           MemberWidget(
-            groupId: widget.groupId,
+            groupId: widget.arguments["groupId"],
             refresh: refresh,
             refreshCallback: refreshView,
           ),
@@ -2016,7 +2067,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
           ),
 
           TodayActivities(
-            groupId: widget.groupId,
+            groupId: widget.arguments["groupId"],
             refresh: refresh,
             refreshCallback: refreshView,
           ),

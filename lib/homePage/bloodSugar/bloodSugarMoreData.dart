@@ -176,11 +176,13 @@ class BloodSugarFilterParam {
 // 血压表格记录
 // ignore: must_be_immutable
 class BloodPressureRecordWidget extends StatefulWidget {
+  final int accountId;
   BloodSugarFilterParam filterParam;
   bool oldParam = false;
   final VoidCallback updateGraph;
   BloodPressureRecordWidget(
       {Key? key,
+      required this.accountId,
       required this.filterParam,
       required this.oldParam,
       required this.updateGraph})
@@ -433,8 +435,9 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       filterParam["remark"] = remark;
     }
 
-    print(filterParam);
-    //return;
+    if (widget.accountId >= 0) {
+      filterParam["accountId"] = widget.accountId.toString();
+    }
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
@@ -2060,7 +2063,9 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
 // 血压数据详情页面
 class BloodSugarMoreData extends StatefulWidget {
-  const BloodSugarMoreData({super.key});
+  final Map arguments;
+  const BloodSugarMoreData({Key? key, required this.arguments})
+      : super(key: key);
 
   @override
   State<BloodSugarMoreData> createState() => _BloodSugarMoreDataState();
@@ -2099,7 +2104,7 @@ class _BloodSugarMoreDataState extends State<BloodSugarMoreData> {
   void updateStartDate(DateTime newDate) {
     setState(() {
       filterParam.startDate = newDate;
-      print('设置新起始日期：${filterParam.startDate}');
+      //print('设置新起始日期：${filterParam.startDate}');
     });
   }
 
@@ -2135,11 +2140,11 @@ class _BloodSugarMoreDataState extends State<BloodSugarMoreData> {
 
   @override
   Widget build(BuildContext context) {
-    print("血sugar数据页面rebuild===========================");
+    //print("血sugar数据页面rebuild===========================");
     return PopScope(
       //canPop: false,
       child: Scaffold(
-        appBar: AppBar(
+        /* appBar: AppBar(
           title: const Text(
             "TriGuard",
             style: TextStyle(
@@ -2147,7 +2152,10 @@ class _BloodSugarMoreDataState extends State<BloodSugarMoreData> {
           ),
           flexibleSpace: getHeader(MediaQuery.of(context).size.width,
               (MediaQuery.of(context).size.height * 0.1 + 11)),
-        ),
+        ), */
+        appBar: widget.arguments["accountId"] < 0
+            ? getAppBar(0, true, "TriGuard")
+            : getAppBar(1, true, widget.arguments["nickname"]),
         body: Container(
           color: Colors.white,
           child: ListView(shrinkWrap: true, children: [
@@ -2207,6 +2215,7 @@ class _BloodSugarMoreDataState extends State<BloodSugarMoreData> {
 
             // table数据表格
             BloodPressureRecordWidget(
+              accountId: widget.arguments["accountId"],
               filterParam: filterParam,
               oldParam: isOldParam,
               updateGraph: updateGraph,

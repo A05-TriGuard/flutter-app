@@ -19,6 +19,10 @@ import '../homePage/bloodSugar/bloodSugarMoreData.dart';
 import '../homePage/bloodFat/bloodFatMoreData.dart';
 import '../homePage/activity/activityDetails.dart';
 
+// 监护模块
+import '../supervisor/guardianGroup.dart';
+import '../supervisor/guardianPerson.dart';
+
 // 科普模块
 import '../articles/foodsearch.dart';
 import '../articles/articles.dart';
@@ -36,36 +40,53 @@ Map routes = {
   '/': (context) => const LoginPage(),
   '/resetPassword': (context) => const ResetPassword(),
 
-  '/homePage': (context) => const HomePage(),
+  '/homePage': (context, {arguments}) => HomePage(arguments: arguments),
+
+  // 血压，血糖，血脂，活动，饮食 （带参数的写法）
+  '/mainPages': (context, {arguments}) => MainPages(arguments: arguments),
 
   //血压
-  '/homePage/BloodPressure/Edit': (context) => BloodPressureEdit(
-      arguments: {"bpDataId": -1, "date": DateTime.now(), "prevPage": 0}),
-  '/homePage/BloodPressure/Details': (context) =>
-      BloodPressureDetails(arguments: {"userId": 1, "date": DateTime.now()}),
-  'homePage/BloodPressure/MoreData': (context) => const BloodPressureMoreData(),
+
+  // 血压编辑
+  '/homePage/BloodPressure/Edit': (context, {arguments}) =>
+      BloodPressureEdit(arguments: arguments),
+  // 血压详情
+  '/homePage/BloodPressure/Details': (context, {arguments}) =>
+      BloodPressureDetails(arguments: arguments),
+  // 血压更多数据
+  'homePage/BloodPressure/MoreData': (context, {arguments}) =>
+      BloodPressureMoreData(arguments: arguments),
 
   // 血糖
-  '/homePage/BloodSugar/Edit': (context) => BloodSugarEdit(
-      arguments: {"bsDataId": -1, "date": DateTime.now(), "prevPage": 0}),
-  '/homePage/BloodSugar/Details': (context) =>
-      BloodSugarDetails(arguments: {"userId": 1, "date": DateTime.now()}),
-  'homePage/BloodSugar/MoreData': (context) => const BloodSugarMoreData(),
+
+  '/homePage/BloodSugar/Edit': (context, {arguments}) =>
+      BloodSugarEdit(arguments: arguments),
+  '/homePage/BloodSugar/Details': (context, {arguments}) =>
+      BloodSugarDetails(arguments: arguments),
+  'homePage/BloodSugar/MoreData': (context, {arguments}) =>
+      BloodSugarMoreData(arguments: arguments),
 
   //血脂
-  '/homePage/BloodFat/Edit': (context) => BloodFatEdit(
-      arguments: {"bfDataId": -1, "date": DateTime.now(), "prevPage": 0}),
-  '/homePage/BloodFat/Details': (context) =>
-      BloodFatDetails(arguments: {"userId": 1, "date": DateTime.now()}),
-  'homePage/BloodFat/MoreData': (context) => const BloodFatMoreData(),
+  '/homePage/BloodFat/Edit': (context, {arguments}) =>
+      BloodFatEdit(arguments: arguments),
+  '/homePage/BloodFat/Details': (context, {arguments}) =>
+      BloodFatDetails(arguments: arguments),
+  'homePage/BloodFat/MoreData': (context, {arguments}) =>
+      BloodFatMoreData(arguments: arguments),
 
   //活动
   '/homePage/Activity/Details': (context) =>
       ActivityDetails(arguments: {"userId": 1, "date": DateTime.now()}),
 
+  // 监护模块
   '/supervisor': (context) => const Supervisor(),
+  '/supervisor/person': (context, {arguments}) =>
+      GuardianPersonPage(arguments: arguments),
+  '/supervisor/group': (context, {arguments}) =>
+      GuardianGroupPage(arguments: arguments),
+
   '/user': (context) => const User(),
-  '/mainPages': (context, {arguments}) => MainPages(arguments: arguments),
+
   '/account/register': (context) => const RegisterAccount(),
 
   //'/': (context) => const Moment(),
@@ -87,6 +108,7 @@ Map routes = {
 var onGenerateRoute = (RouteSettings settings) {
   final String? name = settings.name;
   final Function pageContentBuilder = routes[name] as Function;
+
   // ignore: unnecessary_null_comparison
   if (pageContentBuilder != null) {
     if (settings.arguments != null) {

@@ -242,12 +242,14 @@ class BloodFatFilterParam {
 // 血脂表格数据与统计记录
 // ignore: must_be_immutable
 class BloodFatRecordWidget extends StatefulWidget {
+  final int accountId;
   BloodFatFilterParam filterParam;
   bool oldParam = false;
   final VoidCallback updateGraph;
   BloodFatRecordWidget(
       {Key? key,
       required this.filterParam,
+      required this.accountId,
       required this.oldParam,
       required this.updateGraph})
       : super(key: key);
@@ -527,18 +529,9 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
       filterParam["remark"] = remark;
     }
 
-    print(filterParam);
-
-    /* print("开始日期：$startDate");
-    print("结束日期：$endDate");
-    print("开始时间：$startTime");
-    print("结束时间：$endTime");
-    print("收缩压：$minSBP ~ $maxSBP");
-    print("舒张压：$minDBP ~ $maxDBP");
-    print("心率：$minHeartRate ~ $maxHeartRate");
-    print("手臂：$armBool ,$arm");
-    print("感觉：$feelingBool ,$feeling");
-    print("备注：$remarkBool ,$remark"); */
+    if (widget.accountId >= 0) {
+      filterParam["accountId"] = widget.accountId;
+    }
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
@@ -555,7 +548,7 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
         data: filterParam,
       );
       if (response.data["code"] == 200) {
-        print("获取血压数据成功 按条件筛选");
+        //print("获取血压数据成功 按条件筛选");
         recordData = response.data["data"]["bloodLipidsList"];
         statisticData = response.data["data"]["countedDataList"];
       } else {
@@ -1911,7 +1904,6 @@ class ExportExcelWiget extends StatefulWidget {
 }
 
 class _ExportExcelWigetState extends State<ExportExcelWiget> {
-
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
     var status1 = await Permission.storage.request().isGranted;
@@ -2018,7 +2010,9 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
 // 血脂数据详情页面
 class BloodFatMoreData extends StatefulWidget {
-  const BloodFatMoreData({super.key});
+  final Map arguments;
+  //需要 accountId, nickname
+  const BloodFatMoreData({Key? key, required this.arguments}) : super(key: key);
 
   @override
   State<BloodFatMoreData> createState() => _BloodFatMoreDataState();
@@ -2068,7 +2062,7 @@ class _BloodFatMoreDataState extends State<BloodFatMoreData> {
   void updateStartDate(DateTime newDate) {
     setState(() {
       filterParam.startDate = newDate;
-      print('设置新起始日期：${filterParam.startDate}');
+      // print('设置新起始日期：${filterParam.startDate}');
     });
   }
 
@@ -2104,11 +2098,11 @@ class _BloodFatMoreDataState extends State<BloodFatMoreData> {
 
   @override
   Widget build(BuildContext context) {
-    print("血压数据页面rebuild===========================");
+    //print("血压数据页面rebuild===========================");
     return PopScope(
       //canPop: false,
       child: Scaffold(
-        appBar: AppBar(
+        /*  appBar: AppBar(
           title: const Text(
             "TriGuard",
             style: TextStyle(
@@ -2116,7 +2110,10 @@ class _BloodFatMoreDataState extends State<BloodFatMoreData> {
           ),
           flexibleSpace: getHeader(MediaQuery.of(context).size.width,
               (MediaQuery.of(context).size.height * 0.1 + 11)),
-        ),
+        ), */
+        appBar: widget.arguments["accountId"] < 0
+            ? getAppBar(0, true, "TriGuard")
+            : getAppBar(1, true, widget.arguments["nickname"]),
         body: Container(
           color: Colors.white,
           child: ListView(shrinkWrap: true, children: [
@@ -2171,6 +2168,7 @@ class _BloodFatMoreDataState extends State<BloodFatMoreData> {
 
             // table数据表格
             BloodFatRecordWidget(
+              accountId: widget.arguments["accountId"],
               filterParam: filterParam,
               oldParam: isOldParam,
               updateGraph: updateGraph,

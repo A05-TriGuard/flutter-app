@@ -4,9 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../component/header/header.dart';
-import '../component/titleDate/titleDate.dart';
-import '../account/token.dart';
 import '../other/other.dart';
+import '../account/token.dart';
+import '../component/titleDate/titleDate.dart';
 
 class MyTitle extends StatefulWidget {
   final String title;
@@ -14,15 +14,19 @@ class MyTitle extends StatefulWidget {
   final String value;
   final String unit;
   final String route;
+  final Object? arguments;
+  final VoidCallback refreshData;
 
-  const MyTitle(
-      {Key? key,
-      required this.title,
-      required this.icon,
-      required this.value,
-      required this.unit,
-      required this.route})
-      : super(key: key);
+  const MyTitle({
+    Key? key,
+    required this.title,
+    required this.icon,
+    required this.value,
+    required this.unit,
+    required this.route,
+    this.arguments,
+    required this.refreshData,
+  }) : super(key: key);
 
   @override
   State<MyTitle> createState() => _MyTitleState();
@@ -43,8 +47,8 @@ class _MyTitleState extends State<MyTitle> {
                   children: [
                     Text(
                       widget.title,
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 5),
                     Image.asset(widget.icon, width: 25, height: 25),
@@ -61,19 +65,36 @@ class _MyTitleState extends State<MyTitle> {
                           fontWeight: FontWeight.bold,
                           color: Color.fromRGBO(165, 51, 51, 1)),
                     ),
-                    SizedBox(width: 5),
+                    const SizedBox(width: 5),
                     Text(widget.unit,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 14, fontWeight: FontWeight.bold)),
                     SizedBox(
                       width: 20,
                       height: 20,
                       child: IconButton(
-                        padding: EdgeInsets.all(0),
-                        icon: Icon(Icons.edit),
+                        padding: const EdgeInsets.all(0),
+                        icon: const Icon(Icons.edit),
                         iconSize: 25,
                         onPressed: () {
-                          Navigator.pushNamed(context, widget.route);
+                          // print(widget.arguments);
+                          /*  if (widget.arguments != null) {
+                            Navigator.pushNamed(context, widget.route,
+                                arguments: widget.arguments);
+                          } else {
+                            Navigator.pushNamed(context, widget.route);
+                          } */
+
+                          if (widget.arguments != null) {
+                            Navigator.pushNamed(context, widget.route,
+                                    arguments: widget.arguments)
+                                .then((value) => widget.refreshData());
+                            setState(() {});
+                          } else {
+                            Navigator.pushNamed(context, widget.route)
+                                .then((value) => widget.refreshData());
+                            setState(() {});
+                          }
                         },
                       ),
                     )
@@ -87,10 +108,17 @@ class _MyTitleState extends State<MyTitle> {
 }
 
 class MyBloodPressure extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   final DateTime date;
   final String value;
-  const MyBloodPressure({Key? key, required this.value, required this.date})
-      : super(key: key);
+  const MyBloodPressure({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.value,
+    required this.date,
+  }) : super(key: key);
 
   @override
   State<MyBloodPressure> createState() => _MyBloodPressureState();
@@ -107,8 +135,8 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
   List<int> dbpData = [];
   List<int> heartRateData = [];
 
-  int todaySBP = 0;
-  int todayDBP = 0;
+  int todaySBP = -1;
+  int todayDBP = -1;
 
   // 从后端请求数据
   Future<void> getDataFromServer() async {
@@ -126,12 +154,15 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
 
     try {
       response = await dio.get(
-        "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
+          /* "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
         queryParameters: {
           "startDate": requestDate,
           "endDate": requestDate,
-        },
-      );
+          "accountId": widget.accountId,
+        }, */
+          widget.accountId >= 0
+              ? "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate&accountId=${widget.accountId}"
+              : "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate");
       if (response.data["code"] == 200) {
         //print("获取血压数据成功");
         data = response.data["data"];
@@ -181,8 +212,14 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
     }
   }
 
+  void refreshData() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    todaySBP = -1;
+    todayDBP = -1;
     //print("血压 ${widget.date}");
     //getDataFromServer();
     return FutureBuilder(
@@ -196,11 +233,21 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               MyTitle(
-                  title: "今日血压",
-                  icon: "assets/icons/bloodPressure.png",
-                  value: "$todaySBP/$todayDBP",
-                  unit: "mmHg",
-                  route: "/homePage/BloodPressure/Edit"),
+                title: "今日血压",
+                icon: "assets/icons/bloodPressure.png",
+                value:
+                    "${todaySBP < 0 ? '-' : todaySBP}/${todayDBP < 0 ? '-' : todayDBP}",
+                unit: "mmHg",
+                route: "/homePage/BloodPressure/Edit",
+                arguments: {
+                  "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                  "nickname":
+                      widget.accountId >= 0 ? widget.nickname : "TriGuard",
+                  "date": widget.date,
+                  "bpDataId": -1,
+                },
+                refreshData: refreshData,
+              ),
 
               const SizedBox(
                 height: 5,
@@ -323,8 +370,15 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
                   ),
                   GestureDetector(
                     onTap: () {
+                      var arguments = {
+                        "accountId": widget.accountId,
+                        "date": widget.date,
+                        "nickname": widget.nickname,
+                      };
                       Navigator.pushNamed(
-                          context, "/homePage/BloodPressure/Details");
+                              context, "/homePage/BloodPressure/Details",
+                              arguments: arguments)
+                          .then((value) => refreshData());
                     },
                     child: Container(
                       height: 30,
@@ -350,20 +404,6 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
                   ),
                 ],
               )
-
-              /* Container(
-          height: 30,
-          width: 80,
-          alignment: Alignment.center,
-          color: const Color.fromARGB(255, 255, 225, 225),
-          //child: TextButton(child: Text("查看更多"), onPressed: () {}),
-          child: Text(
-            "查看更多",
-            style: TextStyle(),
-            textAlign: TextAlign.center,
-          ),
-        ), */
-              //FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add)),
             ],
           );
         } else {
@@ -373,11 +413,20 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 MyTitle(
-                    title: "今日血压",
-                    icon: "assets/icons/bloodPressure.png",
-                    value: widget.value,
-                    unit: "mmHg",
-                    route: "/homePage/BloodPressure/Edit"),
+                  title: "今日血压",
+                  icon: "assets/icons/bloodPressure.png",
+                  value: "-/-",
+                  unit: "mmHg",
+                  route: "/homePage/BloodPressure/Edit",
+                  arguments: {
+                    "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                    "nickname":
+                        widget.accountId >= 0 ? widget.nickname : "TriGuard",
+                    "date": widget.date,
+                    "bpDataId": -1,
+                  },
+                  refreshData: refreshData,
+                ),
                 const SizedBox(
                   height: 5,
                 ),
@@ -393,9 +442,16 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
 }
 
 class MyBloodSugar extends StatefulWidget {
+  final int accountId;
   final String value;
+  final String nickname;
   final DateTime date;
-  const MyBloodSugar({Key? key, required this.value, required this.date})
+  const MyBloodSugar(
+      {Key? key,
+      required this.accountId,
+      required this.nickname,
+      required this.value,
+      required this.date})
       : super(key: key);
 
   @override
@@ -410,7 +466,7 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
   List<int> dayData = [];
   List<int> monthData = [];
   List<double> bloodSugarData = [];
-  double todayBS = 0;
+  double todayBS = -1;
 
   // 从后端请求数据
   Future<void> getDataFromServer() async {
@@ -426,9 +482,9 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
     dio.options.headers["Authorization"] = "Bearer $token";
 
     try {
-      response = await dio.get(
-        "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate",
-      );
+      response = await dio.get(widget.accountId >= 0
+          ? "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate&accountId=${widget.accountId}"
+          : "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate");
       if (response.data["code"] == 200) {
         //print("获取血糖数据成功");
         data = response.data["data"];
@@ -469,21 +525,34 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
     //print("bloodSugarData: $bloodSugarData");
   }
 
+  void refreshData() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    todayBS = -1;
     return FutureBuilder(
-      // Replace getDataFromServer with the Future you want to wait for
       future: getDataFromServer(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return Column(
             children: [
               MyTitle(
-                  title: "今日血糖",
-                  icon: "assets/icons/bloodSugar.png",
-                  value: todayBS.toStringAsFixed(1),
-                  unit: "mmol/L",
-                  route: "/homePage/BloodSugar/Edit"), //TODO
+                title: "今日血糖",
+                icon: "assets/icons/bloodSugar.png",
+                value: todayBS < 0 ? '-' : todayBS.toStringAsFixed(1),
+                unit: "mmol/L",
+                route: "/homePage/BloodSugar/Edit",
+                arguments: {
+                  "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                  "nickname":
+                      widget.accountId >= 0 ? widget.nickname : "TriGuard",
+                  "date": widget.date,
+                  "bsDataId": -1,
+                },
+                refreshData: refreshData,
+              ),
 
               const SizedBox(
                 height: 5,
@@ -594,8 +663,17 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(
-                        context, "/homePage/BloodSugar/Details");
+                    /* Navigator.pushNamed(
+                        context, "/homePage/BloodSugar/Details"); */
+
+                    var arguments = {
+                      "accountId": widget.accountId,
+                      "date": widget.date,
+                      "nickname": widget.nickname,
+                    };
+                    Navigator.pushNamed(context, "/homePage/BloodSugar/Details",
+                            arguments: arguments)
+                        .then((value) => refreshData());
                   },
                   child: Container(
                     height: 30,
@@ -629,11 +707,20 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 MyTitle(
-                    title: "今日血糖",
-                    icon: "assets/icons/bloodSugar.png",
-                    value: widget.value,
-                    unit: "mmol/L",
-                    route: "/homePage/BloodSugar/Edit"),
+                  title: "今日血糖",
+                  icon: "assets/icons/bloodSugar.png",
+                  value: "-",
+                  unit: "mmol/L",
+                  route: "/homePage/BloodSugar/Edit",
+                  arguments: {
+                    "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                    "nickname":
+                        widget.accountId >= 0 ? widget.nickname : "TriGuard",
+                    "date": widget.date,
+                    "bpDataId": -1,
+                  },
+                  refreshData: refreshData,
+                ),
                 const SizedBox(
                   height: 5,
                 ),
@@ -649,9 +736,16 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
 }
 
 class MyBloodFat extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   final String value;
   final DateTime date;
-  const MyBloodFat({Key? key, required this.value, required this.date})
+  const MyBloodFat(
+      {Key? key,
+      required this.accountId,
+      required this.nickname,
+      required this.value,
+      required this.date})
       : super(key: key);
 
   @override
@@ -669,7 +763,7 @@ class _MyBloodFatState extends State<MyBloodFat> {
   List<double> tgData = [];
   List<double> ldlData = [];
   List<double> hdlData = [];
-  double todayTC = 0;
+  double todayTC = -1;
 
   // 从后端请求数据
   Future<void> getDataFromServer() async {
@@ -686,7 +780,9 @@ class _MyBloodFatState extends State<MyBloodFat> {
 
     try {
       response = await dio.get(
-        "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate",
+        widget.accountId >= 0
+            ? "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate&accountId=${widget.accountId}"
+            : "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate",
       );
       if (response.data["code"] == 200) {
         //print("获取血脂数据成功");
@@ -739,19 +835,33 @@ class _MyBloodFatState extends State<MyBloodFat> {
     }
   }
 
+  void refreshData() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    todayTC = -1;
     return FutureBuilder(
       future: getDataFromServer(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return Column(children: [
             MyTitle(
-                title: "今日血脂",
-                icon: "assets/icons/bloodFat.png",
-                value: todayTC.toStringAsFixed(1),
-                unit: "mmol/L",
-                route: "/homePage/BloodFat/Edit"),
+              title: "今日血脂",
+              icon: "assets/icons/bloodFat.png",
+              value: todayTC < 0 ? '-' : todayTC.toStringAsFixed(1),
+              unit: "mmol/L",
+              route: "/homePage/BloodFat/Edit",
+              arguments: {
+                "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                "nickname":
+                    widget.accountId >= 0 ? widget.nickname : "TriGuard",
+                "date": widget.date,
+                "bfDataId": -1,
+              },
+              refreshData: refreshData,
+            ),
             const SizedBox(
               height: 5,
             ),
@@ -876,7 +986,15 @@ class _MyBloodFatState extends State<MyBloodFat> {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, "/homePage/BloodFat/Details");
+                  //Navigator.pushNamed(context, "/homePage/BloodFat/Details");
+                  var args = {
+                    "accountId": widget.accountId,
+                    "nickname": widget.nickname,
+                    "date": widget.date,
+                  };
+                  Navigator.pushNamed(context, "/homePage/BloodFat/Details",
+                          arguments: args)
+                      .then((value) => refreshData());
                 },
                 child: Container(
                   height: 30,
@@ -905,12 +1023,21 @@ class _MyBloodFatState extends State<MyBloodFat> {
         } else {
           //return CircularProgressIndicator();
           return Column(children: [
-            const MyTitle(
-                title: "今日血脂",
-                icon: "assets/icons/bloodFat.png",
-                value: "-",
-                unit: "mmol/L",
-                route: "/homePage/BloodFat/Edit"),
+            MyTitle(
+              title: "今日血脂",
+              icon: "assets/icons/bloodFat.png",
+              value: "-",
+              unit: "mmol/L",
+              route: "/homePage/BloodFat/Edit",
+              arguments: {
+                "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                "nickname":
+                    widget.accountId >= 0 ? widget.nickname : "TriGuard",
+                "date": widget.date,
+                "bfDataId": -1,
+              },
+              refreshData: refreshData,
+            ),
             const SizedBox(
               height: 5,
             ),
@@ -926,23 +1053,36 @@ class _MyBloodFatState extends State<MyBloodFat> {
 }
 
 class MyActivities extends StatefulWidget {
+  final DateTime date;
+  final int accountId;
   final String value;
-  const MyActivities({Key? key, required this.value}) : super(key: key);
+  const MyActivities(
+      {Key? key,
+      required this.accountId,
+      required this.value,
+      required this.date})
+      : super(key: key);
 
   @override
   State<MyActivities> createState() => _MyActivitiesState();
 }
 
 class _MyActivitiesState extends State<MyActivities> {
+  void refreshData() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(children: [
       MyTitle(
-          title: "今日活动",
-          icon: "assets/icons/exercising.png",
-          value: widget.value,
-          unit: "分钟",
-          route: "/homePage/BloodPressure/Edit"), //TODO
+        title: "今日活动",
+        icon: "assets/icons/exercising.png",
+        value: widget.value,
+        unit: "分钟",
+        route: "/homePage/BloodPressure/Edit",
+        refreshData: refreshData,
+      ), //TODO
 
       const SizedBox(
         height: 5,
@@ -1094,23 +1234,36 @@ class _MyActivitiesState extends State<MyActivities> {
 }
 
 class MyDiet extends StatefulWidget {
+  final DateTime date;
+  final int accountId;
   final String value;
-  const MyDiet({Key? key, required this.value}) : super(key: key);
+  const MyDiet(
+      {Key? key,
+      required this.accountId,
+      required this.value,
+      required this.date})
+      : super(key: key);
 
   @override
   State<MyDiet> createState() => _MyDietState();
 }
 
 class _MyDietState extends State<MyDiet> {
+  void refreshData() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(children: [
       MyTitle(
-          title: "今日饮食",
-          icon: "assets/icons/meal.png",
-          value: widget.value,
-          unit: "千卡",
-          route: "/homePage/BloodPressure/Edit"), //TODO
+        title: "今日饮食",
+        icon: "assets/icons/meal.png",
+        value: widget.value,
+        unit: "千卡",
+        route: "/homePage/BloodPressure/Edit",
+        refreshData: refreshData,
+      ), //TODO
 
       const SizedBox(
         height: 5,
@@ -1300,8 +1453,29 @@ chart.on('updateAxisPointer', function (event) {
   }
 }
 
+//
+class WardInfo {
+  final int accountId;
+  final String nickname;
+  final String image;
+
+  WardInfo(
+      {required this.accountId, required this.nickname, required this.image});
+}
+
+// ==============此页面=====================
+// ignore: must_be_immutable
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  /*  int accountId;
+  final int groupId; // -1表示不是群组
+  String nickname;
+  final String groupName;
+ */
+  final Map arguments;
+  const HomePage({
+    Key? key,
+    required this.arguments,
+  }) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -1309,7 +1483,55 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime selectedDate = DateTime.now();
+  List<WardInfo> allWardInfo = [];
+  List<Widget> allWardInfoWidgets = [];
+  bool refreshWardList = true;
 
+  // 获取群内成员列表
+  Future<void> getGroupMemberListFromServer() async {
+    if (!refreshWardList) {
+      return;
+    }
+    List<dynamic> wardInfos = [];
+
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+          "http://43.138.75.58:8080/api/guard-group/activity?groupId=${widget.arguments["groupId"]}");
+      if (response.data["code"] == 200) {
+        wardInfos = response.data["data"]["wardInfos"];
+      } else {
+        print(response);
+        wardInfos = [];
+      }
+    } catch (e) {
+      print(e);
+      wardInfos = [];
+    }
+
+    //print("监护人成员列表：$wardInfos");
+
+    allWardInfo.clear();
+
+    // 生成监护人列表
+    for (int i = 0; i < wardInfos.length; i++) {
+      allWardInfo.add(WardInfo(
+          accountId: wardInfos[i]["id"],
+          nickname: wardInfos[i]["nickname"],
+          image: wardInfos[i]["image"] ??
+              "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png"));
+      //print("监护人列表：${allWardInfo[i].nickname} ${allWardInfo[i].accountId}");
+    }
+
+    getWardInfoWidgets();
+    refreshWardList = false;
+  }
+
+  // 选择日期弹窗
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -1347,74 +1569,128 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // 切换监护对象的抽屉
+  void getWardInfoWidgets() {
+    // 清空
+    allWardInfoWidgets.clear();
+    //
+    allWardInfoWidgets.add(
+      const SizedBox(
+        height: 10,
+      ),
+    );
+    // 群名
+    allWardInfoWidgets.add(
+      Text(
+        widget.arguments["groupName"],
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+            fontFamily: 'BalooBhai',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black),
+      ),
+    );
+
+    // 群内成员
+    for (int i = 0; i < allWardInfo.length; i++) {
+      allWardInfoWidgets.add(ListTile(
+        leading: Container(
+          constraints: const BoxConstraints(
+            maxHeight: 30,
+            maxWidth: 40,
+          ),
+          decoration: BoxDecoration(
+            //borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: const Color.fromRGBO(0, 0, 0, 0.2),
+            ),
+          ),
+          child: Image.network(
+            allWardInfo[i].image,
+            //width: 40,
+            //height: 30,
+            fit: BoxFit.cover,
+          ),
+        ),
+        title: Text(allWardInfo[i].nickname),
+        onTap: () {
+          print("切换成员：${allWardInfo[i].nickname} ${allWardInfo[i].accountId}");
+          Navigator.pop(context);
+          setState(() {
+            widget.arguments["nickname"] = allWardInfo[i].nickname;
+            widget.arguments["accountId"] = allWardInfo[i].accountId;
+          });
+        },
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final formattedDate = selectedDate != null
-        ? "${selectedDate!.year}年${selectedDate!.month}月${selectedDate!.day}日 ${getWeekDay(selectedDate!)}"
-        : "${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日 ${getWeekDay(DateTime.now())}";
-    print(formattedDate);
+    final formattedDate =
+        "${selectedDate.year}年${selectedDate.month}月${selectedDate.day}日 ${getWeekDay(selectedDate)}";
+
+    if (widget.arguments["groupId"] >= 0) {
+      getGroupMemberListFromServer();
+    }
+    // print(
+    //    "监护的首页rebuild: 个人：${widget.arguments["accountId"]} 群组：${widget.arguments["groupId"]}");
+
     return PopScope(
-      canPop: false,
+      canPop: widget.arguments["accountId"] == -1 ? false : true,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "TriGuard",
-            style: TextStyle(
-                fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-          ),
-          /* actions: [
-            IconButton(
-              icon: Icon(
-                Icons.search,
-              ),
-              onPressed: () {
-                print("搜索");
-              },
-              color: Colors.black,
-            )
-          ], */
-          //flexibleSpace: header,
-          //toolbarHeight: 45,
-          //toolbarHeight: MediaQuery.of(context).size.height * 0.1,
-          flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-              (MediaQuery.of(context).size.height * 0.1 + 11)),
+        // appbar
+        appBar: getAppBar(
+            widget.arguments["accountId"] == -1 ? 0 : 1,
+            widget.arguments["accountId"] == -1 ? false : true,
+            widget.arguments["groupName"].isEmpty
+                ? widget.arguments["nickname"]
+                : widget.arguments["groupName"]),
 
-          automaticallyImplyLeading: false, //toolbarHeight: 45, 不显示 ← 按钮
-        ),
-        /* body: const Center(
-        child: Text("首页"),
-      ), */
+        // 切换监护对象
+        endDrawer: widget.arguments["groupId"] >= 0
+            ? Drawer(child: ListView(children: allWardInfoWidgets))
+            : null,
 
+        // 此页面
         body: Container(
           // white background
           color: Colors.white,
           child: ListView(
             shrinkWrap: true,
             children: [
-              /* Container(
-            height: 1,
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 169, 171, 179),
-            ),
-          ), */
+              const SizedBox(
+                height: 10,
+              ),
+
+              // 监护对象
+              widget.arguments["accountId"] >= 0
+                  ? Text(
+                      widget.arguments["nickname"],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontFamily: 'BalooBhai',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
+                    )
+                  : const SizedBox(),
+
               // 日期选择
               Container(
                 child: Container(
                   alignment: Alignment.center,
-                  //width: 300,
-                  //color: const Color.fromARGB(255, 255, 255, 255),
                   color: Colors.transparent,
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
+                          //getFormattedDate(selectedDate),
                           formattedDate,
                           style: const TextStyle(
                               fontSize: 20, fontFamily: "BalooBhai"),
                         ),
-                        //const SizedBox(height: 5),
-                        //ElevatedButton(
                         SizedBox(
                           width: 40,
                           child: TextButton(
@@ -1428,44 +1704,55 @@ class _HomePageState extends State<HomePage> {
                       ]),
                 ),
               ),
-              /*    const SizedBox(
-            height: 5,
-          ), */
 
               // 今日血压
-              MyBloodPressure(value: "112/95", date: selectedDate),
+              MyBloodPressure(
+                  accountId: widget.arguments["accountId"],
+                  nickname: widget.arguments["nickname"],
+                  date: selectedDate,
+                  value: "112/95"),
 
               const SizedBox(
                 height: 15,
               ),
 
               // 今日血糖
-              MyBloodSugar(value: "8.8", date: selectedDate),
+              MyBloodSugar(
+                  accountId: widget.arguments["accountId"],
+                  nickname: widget.arguments["nickname"],
+                  date: selectedDate,
+                  value: "8.8"),
 
               const SizedBox(
                 height: 15,
               ),
 
               // 今日血脂
-              MyBloodFat(value: "3.4", date: selectedDate),
+              MyBloodFat(
+                  accountId: widget.arguments["accountId"],
+                  nickname: widget.arguments["nickname"],
+                  date: selectedDate,
+                  value: "3.4"),
 
               const SizedBox(
                 height: 15,
               ),
 
-              MyActivities(value: "45"),
-
               // 运动
+              MyActivities(
+                  accountId: widget.arguments["accountId"],
+                  date: selectedDate,
+                  value: "45"),
+
               const SizedBox(
                 height: 15,
               ),
 
               // 饮食
-              const SizedBox(
-                height: 15,
-              ),
-
-              MyDiet(value: "1723"),
+              MyDiet(
+                  accountId: widget.arguments["accountId"],
+                  date: selectedDate,
+                  value: "1723"),
 
               const SizedBox(
                 height: 15,

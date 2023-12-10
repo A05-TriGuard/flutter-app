@@ -179,12 +179,14 @@ class _addDataButtonState extends State<addDataButton> {
 // 添加数据的 填写框
 // ignore: must_be_immutable
 class addDataWidget extends StatefulWidget {
+  final int accountId;
   DateTime date;
   final VoidCallback updateData;
   DateTime time = DateTime.now();
 
   addDataWidget(
       {Key? key,
+      required this.accountId,
       required this.updateData,
       required this.time,
       required this.date})
@@ -229,8 +231,11 @@ class _addDataWidgetState extends State<addDataWidget> {
       newVal["remark"] = remarkController.text;
     }
 
-    print(newVal);
-    //return;
+    if (widget.accountId >= 0) {
+      newVal["accountId"] = widget.accountId.toString();
+    }
+
+    //print(newVal);
 
     final Dio dio = Dio();
 
@@ -245,7 +250,7 @@ class _addDataWidgetState extends State<addDataWidget> {
         data: newVal,
       );
 
-      print(response.data);
+      //print(response.data);
 
       if (response.data['code'] == 200) {
         print("添加数据成功");
@@ -314,6 +319,9 @@ class _addDataWidgetState extends State<addDataWidget> {
               decoration: InputDecoration(
                   counterText: "",
                   hintText: hintText,
+                  hintStyle: const TextStyle(
+                    color: Color.fromARGB(255, 167, 166, 166),
+                  ),
                   contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
               textAlign: TextAlign.right,
               textAlignVertical: TextAlignVertical.bottom,
@@ -352,6 +360,9 @@ class _addDataWidgetState extends State<addDataWidget> {
               decoration: InputDecoration(
                   counterText: "",
                   hintText: hintText_,
+                  hintStyle: const TextStyle(
+                    color: Color.fromARGB(255, 167, 166, 166),
+                  ),
                   contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.bottom,
@@ -512,6 +523,10 @@ class _addDataWidgetState extends State<addDataWidget> {
                                   decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "-",
+                                      hintStyle: TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 167, 166, 166),
+                                      ),
                                       contentPadding:
                                           EdgeInsets.fromLTRB(0, 0, 0, 6)),
                                   textAlign: TextAlign.center,
@@ -557,7 +572,7 @@ class _addDataWidgetState extends State<addDataWidget> {
                         //取消添加数据
                         OtherButton(
                             onPressed: () {
-                              print("取消添加数据");
+                              //print("取消添加数据");
                               setState(() {
                                 // 不显示 添加数据的填写框
                                 dataWidget.removeAt(1);
@@ -581,8 +596,8 @@ class _addDataWidgetState extends State<addDataWidget> {
                               }
 
                               if (invalidValueType > 0) {
-                                print(
-                                    "invalidvalue: $invalidValueType ${invalidValueText[invalidValueType]}");
+                                //print(
+                                //    "invalidvalue: $invalidValueType ${invalidValueText[invalidValueType]}");
                                 setState(() {});
                                 return;
                               }
@@ -765,7 +780,7 @@ class _MealButtonsRowState extends State<MealButtonsRow> {
               setState(() {
                 widget.selectedIndex = 0;
               });
-              print("左手按钮被点击了！");
+//print("左手按钮被点击了！");
             },
             text: "空腹",
             isSelected: widget.selectedIndex == 0,
@@ -776,7 +791,7 @@ class _MealButtonsRowState extends State<MealButtonsRow> {
               setState(() {
                 widget.selectedIndex = 1;
               });
-              print("右手按钮被点击了！");
+              // print("右手按钮被点击了！");
             },
             text: "餐后",
             isSelected: widget.selectedIndex == 1,
@@ -787,7 +802,7 @@ class _MealButtonsRowState extends State<MealButtonsRow> {
               setState(() {
                 widget.selectedIndex = 2;
               });
-              print("不选按钮被点击了！");
+              // print("不选按钮被点击了！");
             },
             text: "不选",
             isSelected: widget.selectedIndex == 2,
@@ -882,7 +897,7 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 0;
               });
-              print("开心按钮被点击了！");
+              //print("开心按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-nice.png",
             isSelected: widget.selectedIndex == 0,
@@ -893,7 +908,7 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 1;
               });
-              print("还好按钮被点击了！");
+              // print("还好按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-ok.png",
             isSelected: widget.selectedIndex == 1,
@@ -904,7 +919,7 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 2;
               });
-              print("不好按钮被点击了！");
+              // print("不好按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-bad.png",
             isSelected: widget.selectedIndex == 2,
@@ -1137,6 +1152,7 @@ class _TitleDateState extends State<TitleDate> {
 // 生成血压数据的显示模块
 // ignore: must_be_immutable
 class BloodPressureEditWidget extends StatefulWidget {
+  final int accountId;
   final int id;
   DateTime date = DateTime.now();
   DateTime time = DateTime.now();
@@ -1151,6 +1167,7 @@ class BloodPressureEditWidget extends StatefulWidget {
 
   BloodPressureEditWidget({
     Key? key,
+    required this.accountId,
     required this.id,
     required this.date,
     required this.time,
@@ -1177,7 +1194,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
     var token = await storage.read(key: 'token');
 
     final dio = Dio();
-    print("getDataFromServer");
+    //print("getDataFromServer");
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
@@ -1212,8 +1229,12 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
       "remark": afterEditedValue.remarks,
     };
 
-    print("==========进行修改 参数=========");
-    print(newVal);
+    if (widget.accountId >= 0) {
+      newVal["accountId"] = widget.accountId.toString();
+    }
+
+    //print("==========进行修改 参数=========");
+    //print(newVal);
 
     try {
       response = await dio.post(
@@ -1221,7 +1242,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
         data: newVal,
       );
 
-      print(response.data);
+      //print(response.data);
 
       if (response.data['code'] == 200) {
         print("修改数据成功");
@@ -1261,7 +1282,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
         onTap: () {
           // 当收起时，点击任意地方可以展开
 
-          print('${widget.id}被点击了！！！！');
+          // print('${widget.id}被点击了！！！！');
 
           if (getDataById(widget.id, "isExpanded") == 0) {
             setState(() {
@@ -1270,7 +1291,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
               // 其他的一律收起
               for (int i = 0; i < data.length; i++) {
                 if (data[i]["id"] != widget.id) {
-                  print('其他收起: ${data[i]["id"]}');
+                  //  print('其他收起: ${data[i]["id"]}');
                   setDataById(data[i]["id"], "isExpanded", 0);
                 }
               }
@@ -1323,15 +1344,15 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
                         cancelEditData: () {
                           setState(() {
                             setDataById(widget.id, "isExpanded", 0);
-                            print('取消修改 ${widget.id}');
+                            //print('取消修改 ${widget.id}');
                           });
                         },
                         confirmEditData: () {
-                          print("==========进行修改=========");
+                          /*  print("==========进行修改=========");
                           print("日期：${widget.date}");
                           print('确定修改 ${widget.id}');
                           afterEditedValue.printValue();
-                          print("======================");
+                          print("======================"); */
 
                           // editData(widget.id, afterEditedValue);
                           // //afterEditedValue.clear();
@@ -1690,6 +1711,9 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
               ],
               decoration: InputDecoration(
                   counterText: "",
+                  hintStyle: const TextStyle(
+                    color: Color.fromARGB(255, 167, 166, 166),
+                  ),
                   hintText: hintText,
                   contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
               textAlign: TextAlign.right,
@@ -1729,6 +1753,9 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
               decoration: InputDecoration(
                   counterText: "",
                   hintText: hintText_,
+                  hintStyle: const TextStyle(
+                    color: Color.fromARGB(255, 167, 166, 166),
+                  ),
                   contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.bottom,
@@ -1856,6 +1883,10 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
                                   decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "-",
+                                      hintStyle: TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 167, 166, 166),
+                                      ),
                                       contentPadding:
                                           EdgeInsets.fromLTRB(0, 0, 0, 6)),
                                   textAlign: TextAlign.center,
@@ -1924,8 +1955,8 @@ class _BloodSugarEditWidgetMoreState extends State<BloodSugarEditWidgetMore> {
                                   }
 
                                   if (invalidValueType > 0) {
-                                    print(
-                                        "invalidvalue: $invalidValueType ${invalidValueText[invalidValueType]}");
+                                    // print(
+                                    //      "invalidvalue: $invalidValueType ${invalidValueText[invalidValueType]}");
                                     setState(() {});
                                     return;
                                   }
@@ -2016,8 +2047,7 @@ class NoDataWidget extends StatelessWidget {
 
 // 此页面
 class BloodSugarEdit extends StatefulWidget {
-  //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
-  final Map arguments;
+  final Map arguments; // 需要 accountId, nickname, date, bsDataId
 
   BloodSugarEdit({Key? key, required this.arguments});
   @override
@@ -2027,12 +2057,12 @@ class BloodSugarEdit extends StatefulWidget {
 class _BloodSugarEditState extends State<BloodSugarEdit> {
   DateTime addTime = DateTime.now();
   DateTime date = DateTime.now();
-  int bsDataId = -1;
-  int prevPage = 0;
+  //int bsDataId = -1;
+  // int prevPage = 0;
 
   void getDataFromServer() async {
-    print(
-        '血糖修改页面请求日期：${date.year}-${date.month}-${date.day}....................................');
+    //print(
+    //    '血糖修改页面请求日期：${date.year}-${date.month}-${date.day}....................................');
     String requestDate = getFormattedDate(date);
 
     // 提取登录获取的token
@@ -2044,14 +2074,16 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
     dio.options.headers["Authorization"] = "Bearer $token";
 
     response = await dio.get(
-      "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate",
+      widget.arguments["accountId"] >= 0
+          ? "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate&accountId=${widget.arguments["accountId"]}"
+          : "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate",
       /* queryParameters: {
         "startDate": requestDate,
         "endDate": requestDate,
       }, */
     );
     if (response.data["code"] == 200) {
-      print("获取血糖数据成功EDIT");
+      //print("获取血糖数据成功EDIT");
       //print(response.data["data"]);
       data = response.data["data"];
       //bpdata = response.data["data"];
@@ -2079,9 +2111,9 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
       String remark_ = data[i]["remark"] ?? "暂无备注";
       data[i]["isExpanded"] = 0; // 默认收起
 
-      if (id_ == bsDataId) {
+      if (id_ == widget.arguments['bsDataId']) {
         data[i]["isExpanded"] = 1;
-        bsDataId = -1;
+        widget.arguments['bsDataId'] = -1;
       }
 
       /* print("第$i条数据");
@@ -2098,6 +2130,7 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
 
       dataWidget.add(UnconstrainedBox(
         child: BloodPressureEditWidget(
+          accountId: widget.arguments["accountId"],
           id: id_,
           date: date,
           time: time_,
@@ -2124,26 +2157,25 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
   void initState() {
     super.initState();
     date = widget.arguments['date'];
-    bsDataId = widget.arguments['bsDataId'];
-    prevPage = widget.arguments['prevPage'];
+    //bsDataId = widget.arguments['bsDataId'];
     // 先从后端获取数据
     getDataFromServer();
   }
 
   void updateDate(DateTime newDate) {
-    print("new date: $newDate");
+    //print("new date: $newDate");
     date = newDate;
     getDataFromServer();
   }
 
   void updateData() {
-    print("刷新，日期：${date.year}年${date.month}月${date.day}日");
+    //print("刷新，日期：${date.year}年${date.month}月${date.day}日");
     getDataFromServer();
   }
 
   // 控制同一时间只有一个能展开进行编辑，不会影响数据
   void updateView() {
-    print("updateView");
+    //print("updateView");
 
     List<int> isExpandedArray = [];
     for (int i = 0; i < data.length; i++) {
@@ -2161,6 +2193,7 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
       String BS = (data[i]["bs"].toString());
       dataWidgetTemp.add(UnconstrainedBox(
         child: BloodPressureEditWidget(
+          accountId: widget.arguments["accountId"],
           id: data[i]["id"],
           date: date,
           time: time_,
@@ -2189,7 +2222,7 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
   Widget build(BuildContext context) {
     // print("血压修改页面刷新");
     return Scaffold(
-      appBar: AppBar(
+      /*  appBar: AppBar(
         title: const Text(
           "TriGuard",
           style: TextStyle(
@@ -2200,7 +2233,11 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
         ),
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
-      ),
+      ), */
+
+      appBar: widget.arguments["accountId"] < 0
+          ? getAppBar(0, true, "TriGuard")
+          : getAppBar(1, true, widget.arguments["nickname"]),
 
       // 标题，日期与数据
       body: Container(
@@ -2216,11 +2253,12 @@ class _BloodSugarEditState extends State<BloodSugarEdit> {
       // 添加数据的按钮
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print("我要添加血糖数据");
+          //print("我要添加血糖数据");
           setState(() {
             dataWidget.insert(
                 1,
                 addDataWidget(
+                  accountId: widget.arguments["accountId"],
                   date: date,
                   time: addTime,
                   updateData: updateData,

@@ -10,7 +10,6 @@ import '../../account/token.dart';
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/other.dart';
-import './bpData2.dart';
 import './bloodPressureEdit.dart' hide armButtonTypes, feelingButtonTypes;
 
 const List<String> method = <String>['手机号', '邮箱'];
@@ -114,12 +113,14 @@ class BloodPressureGraph extends StatefulWidget {
   DateTime date;
   final String selectedDays;
   final UpdateDateCallback updateDate;
-  BloodPressureGraph(
-      {Key? key,
-      required this.date,
-      required this.selectedDays,
-      required this.updateDate})
-      : super(key: key);
+  final int accountId;
+  BloodPressureGraph({
+    Key? key,
+    required this.date,
+    required this.selectedDays,
+    required this.updateDate,
+    required this.accountId,
+  }) : super(key: key);
 
   @override
   State<BloodPressureGraph> createState() => _BloodPressureGraphState();
@@ -140,8 +141,8 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
   Future<void> getDataFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestEndDate = getFormattedDate(widget.date);
-    print(
-        '请求日期：$requestStartDate ~~~ $requestEndDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+    //print(
+    //    '请求日期：$requestStartDate ~~~ $requestEndDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
@@ -152,17 +153,27 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
+    var params = {
+      "startDate": requestStartDate,
+      "endDate": requestEndDate,
+    };
+
+    if (widget.accountId != -1) {
+      params["accountId"] = widget.accountId.toString();
+    }
+
     try {
       response = await dio.get(
         "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
-        queryParameters: {
+        /* queryParameters: {
           "startDate": requestStartDate,
           "endDate": requestEndDate,
-        },
+        }, */
+        queryParameters: params,
       );
       if (response.data["code"] == 200) {
-        print("获取血压数据成功");
-        //print(response.data["data"]);
+        //print("获取血压数据成功");
+        // print(response.data["data"]);
         data = response.data["data"];
         //bpdata = response.data["data"];
       } else {
@@ -225,7 +236,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
   @override
   Widget build(BuildContext context) {
-    print('血压折线图更新build：${widget.date}，天数：${widget.selectedDays}');
+    // print('血压折线图更新build：${widget.date}，天数：${widget.selectedDays}');
 
     // after getDataFromServer finish then return the Echarts widget
     return FutureBuilder(
@@ -376,13 +387,15 @@ class BloodPressureGraphWidget extends StatefulWidget {
   final UpdateDateCallback updateDate;
   final UpdateDaysCallback updateDays;
   String selectedDays = "最近7天";
+  final int accountId;
   BloodPressureGraphWidget(
       {Key? key,
       required this.date,
       required this.selectedDays,
       required this.updateView,
       required this.updateDate,
-      required this.updateDays})
+      required this.updateDays,
+      required this.accountId})
       : super(key: key);
 
   @override
@@ -402,7 +415,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
+    //print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
 
     /* BloodPressureGraph graph =  BloodPressureGraph(
       date: widget.date,
@@ -437,6 +450,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
             //selectedDays: selectedDays2,
             selectedDays: widget.selectedDays,
             updateDate: widget.updateDate,
+            accountId: widget.accountId,
           ),
         ]),
       ),
@@ -446,6 +460,8 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 
 // 只展示 （有备注）
 class BloodPressureData extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   final int id;
   final DateTime date;
   final int hour;
@@ -460,6 +476,8 @@ class BloodPressureData extends StatefulWidget {
 
   const BloodPressureData(
       {Key? key,
+      required this.accountId,
+      required this.nickname,
       required this.id,
       required this.date,
       required this.hour,
@@ -695,21 +713,9 @@ class _BloodPressureDataState extends State<BloodPressureData> {
           // Edit
           GestureDetector(
             onTap: () {
-              print("编辑 ${widget.id}");
-              /* Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BloodPressureEdit(
-                    arguments: {
-                      "bpDataId": widget.id,
-                      "date": widget.date,
-                      "prevPage": 1,
-                    },
-                  ),
-                ),
-              ); */
+              //OK
 
-              Navigator.push(
+              /* Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => BloodPressureEdit(
@@ -722,6 +728,19 @@ class _BloodPressureDataState extends State<BloodPressureData> {
                 ),
               ).then((_) {
                 //print("哈哈哈");
+                widget.updateData();
+              }); */
+
+              var args = {
+                "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                "nickname": widget.nickname,
+                "bpDataId": widget.id, //表示跳转后展开这个id的血压数据
+                "date": widget.date,
+              };
+
+              Navigator.pushNamed(context, "/homePage/BloodPressure/Edit",
+                      arguments: args)
+                  .then((_) {
                 widget.updateData();
               });
             },
@@ -776,7 +795,7 @@ class NoDataWidget extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
-              print("添加数据");
+              //print("添加数据");
               /* Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -807,12 +826,18 @@ class NoDataWidget extends StatelessWidget {
 
 // 当日没有数据 可以跳转至添加数据页面
 class NoDataListWidget extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   final DateTime date;
   final VoidCallback updateData;
 
-  const NoDataListWidget(
-      {Key? key, required this.date, required this.updateData})
-      : super(key: key);
+  const NoDataListWidget({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.date,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
   State<NoDataListWidget> createState() => _NoDataListWidgetState();
@@ -841,6 +866,7 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // 暂无数据
             const Text(
               "暂无数据",
               style: TextStyle(
@@ -851,10 +877,10 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
             const SizedBox(
               width: 5,
             ),
+            // 今日没有数据，点击跳转至添加数据页面
             GestureDetector(
               onTap: () {
-                print("添加数据");
-                Navigator.push(
+                /* Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => BloodPressureEdit(
@@ -868,9 +894,21 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
                 ).then((_) {
                   //print("哈哈哈");
                   widget.updateData();
+                }); */
+                var args = {
+                  "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                  "bpDataId": -1,
+                  "nickname": widget.nickname,
+                  "date": widget.date,
+                };
+
+                Navigator.pushNamed(context, "/homePage/BloodPressure/Edit",
+                        arguments: args)
+                    .then((_) {
+                  widget.updateData();
                 });
               },
-              child: Container(
+              child: SizedBox(
                 height: 20,
                 width: 20,
                 child:
@@ -887,29 +925,33 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
 // 展示所有
 // ignore: must_be_immutable
 class BloodPressureDataList extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   final VoidCallback updateData;
   DateTime date;
   int showMore;
-  BloodPressureDataList(
-      {Key? key,
-      required this.date,
-      required this.showMore,
-      required this.updateData})
-      : super(key: key);
+
+  BloodPressureDataList({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.date,
+    required this.showMore,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
   State<BloodPressureDataList> createState() => _BloodPressureDataListState();
 }
 
 class _BloodPressureDataListState extends State<BloodPressureDataList> {
-  List<Map> data2 = bpdata;
   List<dynamic> data = [];
   List<Widget> dataWidget = [];
   int length = 1;
 
   Future<void> getDataFromServer() async {
-    print(
-        '请求日期：${widget.date.year}-${widget.date.month}-${widget.date.day}....................................');
+    //print(
+    //    '请求日期：${widget.date.year}-${widget.date.month}-${widget.date.day}....................................');
     String requestDate = getFormattedDate(widget.date);
 
     // 提取登录获取的token
@@ -921,16 +963,27 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
+    var params = {
+      "startDate": requestDate,
+      "endDate": requestDate,
+    };
+
+    if (widget.accountId != -1) {
+      params["accountId"] = widget.accountId.toString();
+    }
+    //print(params);
+
     try {
       response = await dio.get(
         "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
-        queryParameters: {
+        /* queryParameters: {
           "startDate": requestDate,
           "endDate": requestDate,
-        },
+        }, */
+        queryParameters: params,
       );
       if (response.data["code"] == 200) {
-        //print("获取血压数据成功");
+        // print("获取血压数据成功");
         //print(response.data["data"]);
         data = response.data["data"];
         //bpdata = response.data["data"];
@@ -942,40 +995,6 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       print(e);
       data = [];
     }
-
-    //print(data);
-
-    //dataWidget = [];
-
-    /* for (int i = 0; i < data.length; i++) {
-      int id_ = data[i]["id"];
-      DateTime date_ = DateTime.parse(data[i]["date"]);
-      String timeStr = data[i]["time"];
-      int hour = int.parse(timeStr.split(":")[0]);
-      int minute = int.parse(timeStr.split(":")[1]);
-      DateTime time_ = DateTime(2023, 01, 01, hour, minute);
-      int sbp_ = data[i]["sbp"];
-      int dbp_ = data[i]["dbp"];
-      int heartRate_ = data[i]["heartRate"];
-      int arm_ = data[i]["arm"];
-      int feeling_ = data[i]["feeling"];
-      String remark_ = data[i]["remark"] ?? "暂无备注";
-      data[i]["isExpanded"] = 0; // 默认收起
-
-      /* print("=====第$i条数据=====");
-      print("id: $id_");
-      print("date: $date_");
-      print("time: $time_");
-      print("sbp: $sbp_");
-      print("dbp: $dbp_");
-      print("heartRate: $heartRate_");
-      print("arm: $arm_");
-      print("feeling: $feeling_");
-      print("remark: $remark_");
-      print("==================="); */
-    } */
-
-    //setState(() {});
   }
 
   @override
@@ -986,39 +1005,6 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     getDataFromServer().then((_) {
       getdataWidgetList();
     });
-  }
-
-  void getWidgetList() {
-    dataWidget = [];
-
-    //TODO 要考虑到当天没有数据的情况
-
-    // 收起时就显示一个
-
-    if (widget.showMore == 1) {
-      length = data2.length;
-    } else {
-      length = 1;
-    }
-
-    print("length: $length````````````````````````````````````");
-    //print(data2);
-
-    for (int i = 0; i < length; i++) {
-      dataWidget.add(BloodPressureData(
-        id: data2[i]["id"],
-        date: widget.date,
-        hour: data2[i]["hour"],
-        minute: data2[i]["minute"],
-        SBloodpressure: data2[i]["sbp"],
-        DBloodpressure: data2[i]["dbp"],
-        heartRate: data2[i]["heartRate"],
-        feeling: data2[i]["feeling"],
-        arm: data2[i]["arm"],
-        remark: data2[i]["remark"],
-        updateData: widget.updateData,
-      ));
-    }
   }
 
   void getdataWidgetList() {
@@ -1036,6 +1022,8 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     if (data.isEmpty) {
       //dataWidget.add(NoDataWidget());
       dataWidget.add(NoDataListWidget(
+        accountId: widget.accountId,
+        nickname: widget.nickname,
         date: widget.date,
         updateData: widget.updateData,
       ));
@@ -1071,6 +1059,8 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       print("==================="); */
 
       dataWidget.add(BloodPressureData(
+        accountId: widget.accountId,
+        nickname: widget.nickname,
         id: id_,
         date: date_,
         hour: hour_,
@@ -1090,8 +1080,8 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        "-----------------------------------------------------------------------");
+    //print(
+    //   "-----------------------------------------------------------------------");
     /* getDataFromServer().then((_) {
       getdataWidgetList();
     });
@@ -1153,15 +1143,20 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 //展示列表数据接口
 // ignore: must_be_immutable
 class BloodPressureDataWidget extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   DateTime date;
   final VoidCallback updateView;
   final VoidCallback updateData;
-  BloodPressureDataWidget(
-      {Key? key,
-      required this.date,
-      required this.updateView,
-      required this.updateData})
-      : super(key: key);
+
+  BloodPressureDataWidget({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.date,
+    required this.updateView,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
   State<BloodPressureDataWidget> createState() =>
@@ -1187,11 +1182,13 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
   @override
   Widget build(BuildContext context) {
     dataWidgetList = BloodPressureDataList(
+      accountId: widget.accountId,
+      nickname: widget.nickname,
       date: widget.date,
       showMore: showMore,
       updateData: widget.updateData,
     );
-    print('血压展示列表数据更新: ${widget.date}');
+    //print('血压展示列表数据更新: ${widget.date}');
 
     return Center(
       child: Container(
@@ -1336,7 +1333,7 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
 
   @override
   Widget build(BuildContext context) {
-    print("血压统计饼图更新 ${widget.date} ${widget.selectedDays}");
+    //print("血压统计饼图更新 ${widget.date} ${widget.selectedDays}");
 
     return Container(
       width: MediaQuery.of(context).size.width * 0.85,
@@ -1365,6 +1362,7 @@ class BloodPressureStaticWidget extends StatefulWidget {
   final String selectedDays;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
+  final int accountId;
 
   BloodPressureStaticWidget({
     Key? key,
@@ -1373,6 +1371,7 @@ class BloodPressureStaticWidget extends StatefulWidget {
     required this.selectedDays,
     required this.updateView,
     required this.updateDate,
+    required this.accountId,
   }) : super(key: key);
 
   @override
@@ -1399,8 +1398,8 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   Future<void> getDataFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestEndDate = getFormattedDate(widget.date);
-    print(
-        '请求日期：$requestStartDate ~~~ $requestEndDate ??????????????????????????????????');
+    //print(
+    //    '请求日期：$requestStartDate ~~~ $requestEndDate ??????????????????????????????????');
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
@@ -1411,16 +1410,26 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
+    var params = {
+      "startDate": requestStartDate,
+      "endDate": requestEndDate,
+    };
+
+    if (widget.accountId != -1) {
+      params["accountId"] = widget.accountId.toString();
+    }
+
     try {
       response = await dio.post(
         "http://43.138.75.58:8080/api/blood-pressure/get-by-filter",
-        data: {
+        /*  data: {
           "startDate": requestStartDate,
           "endDate": requestEndDate,
-        },
+        }, */
+        data: params,
       );
       if (response.data["code"] == 200) {
-        print("获取血压数据成功（饼图）");
+        //print("获取血压数据成功（饼图）");
         //print(response.data["data"]);
         data = response.data["data"]["countedDataList"];
         //bpdata = response.data["data"];
@@ -1467,11 +1476,11 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
       avg.add(data[i]["avg"]);
     }
 
-    print("SBPTimes: $SBPTimes");
+    /*  print("SBPTimes: $SBPTimes");
     print("DBPTimes: $DBPTimes");
     print("heartRateTimes: $heartRateTimes");
     print("total: $total");
-    print("avg: $avg");
+    print("avg: $avg"); */
   }
 
   @override
@@ -1485,7 +1494,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     averageSbp = 120;
     averageDbp = 99;
     averageHr = 95;
-    print("饼图 initstate");
+    //print("饼图 initstate");
   }
 
   List<int> getTypeData(int pageNum) {
@@ -1916,12 +1925,12 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                         pageNum = 2;
                       }
 
-                      print("右滑 页面左移动");
+                      //print("右滑 页面左移动");
 
                       setState(() {});
                     } else if (details.primaryDelta! < -15) {
                       pageNum += 1;
-                      print("左滑 页面右移动");
+                      // print("左滑 页面右移动");
                       if (pageNum > 2) {
                         pageNum = 0;
                       }
@@ -2029,7 +2038,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print('血压饼图pie更新build：${widget.date}，天数：${widget.selectedDays}');
+    //print('血压饼图pie更新build：${widget.date}，天数：${widget.selectedDays}');
 
     // 需要重新获取数据
     if (widget.refreshData) {
@@ -2082,7 +2091,13 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
 // 更多数据按钮
 class BloodPressureMoreInfoButton extends StatefulWidget {
-  const BloodPressureMoreInfoButton({super.key});
+  final int accountId;
+  final String nickname;
+  const BloodPressureMoreInfoButton({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+  }) : super(key: key);
 
   @override
   State<BloodPressureMoreInfoButton> createState() =>
@@ -2101,7 +2116,15 @@ class _BloodPressureMoreInfoButtonState
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: () {
-                Navigator.pushNamed(context, 'homePage/BloodPressure/MoreData');
+                //Navigator.pushNamed(context, 'homePage/BloodPressure/MoreData');
+
+                var args = {
+                  "accountId": widget.accountId,
+                  "nickname": widget.nickname,
+                };
+
+                Navigator.pushNamed(context, 'homePage/BloodPressure/MoreData',
+                    arguments: args);
               },
               child: Container(
                   width: 150,
@@ -2159,7 +2182,9 @@ class _BloodPressureMoreInfoButtonState
 // 血压详情此页面
 class BloodPressureDetails extends StatefulWidget {
   final Map arguments;
-  const BloodPressureDetails({Key? key, required this.arguments});
+  // 需要 accountId ， nickname，date 如果是自己的数据，accountId = -1
+  const BloodPressureDetails({Key? key, required this.arguments})
+      : super(key: key);
 
   @override
   State<BloodPressureDetails> createState() => _BloodPressureDetailsState();
@@ -2186,6 +2211,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
       updateView: updateView,
       updateDate: updateDate,
       updateDays: updateDays,
+      accountId: widget.arguments["accountId"],
     );
   }
 
@@ -2198,6 +2224,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
         updateView: updateView,
         updateDate: updateDate,
         updateDays: updateDays,
+        accountId: widget.arguments["accountId"],
       );
     });
   }
@@ -2219,6 +2246,7 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
         updateView: updateView,
         updateDate: updateDate,
         updateDays: updateDays,
+        accountId: widget.arguments["accountId"],
       );
     });
   }
@@ -2236,15 +2264,16 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
         updateView: updateView,
         updateDate: updateDate,
         updateDays: updateDays,
+        accountId: widget.arguments["accountId"],
       );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    print("血压详情页面rebuild");
+    //print("血压详情页面rebuild");
     return Scaffold(
-      appBar: AppBar(
+      /* appBar: AppBar(
         title: const Text(
           "TriGuard",
           style: TextStyle(
@@ -2252,7 +2281,10 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
         ),
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
-      ),
+      ), */
+      appBar: widget.arguments["accountId"] < 0
+          ? getAppBar(0, true, "TriGuard")
+          : getAppBar(1, true, widget.arguments["nickname"]),
       body: Container(
         color: Colors.white,
         child: ListView(shrinkWrap: true, children: [
@@ -2284,17 +2316,28 @@ class _BloodPressureDetailsState extends State<BloodPressureDetails> {
             date: date,
             updateView: updateView,
             updateData: updateData,
+            accountId: widget.arguments["accountId"],
+            nickname: widget.arguments["accountId"] >= 0
+                ? widget.arguments["nickname"]
+                : "TriGuard",
           ),
 
           //统计组件
           BloodPressureStaticWidget(
-              refreshData: true,
-              date: date,
-              selectedDays: selectedDays,
-              updateView: updateView,
-              updateDate: updateDate),
+            refreshData: true,
+            date: date,
+            selectedDays: selectedDays,
+            updateView: updateView,
+            updateDate: updateDate,
+            accountId: widget.arguments["accountId"],
+          ),
 
-          BloodPressureMoreInfoButton(),
+          BloodPressureMoreInfoButton(
+            accountId: widget.arguments["accountId"],
+            nickname: widget.arguments["accountId"] >= 0
+                ? widget.arguments["nickname"]
+                : "TriGuard",
+          ),
         ]),
       ),
     );

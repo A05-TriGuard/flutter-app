@@ -5,7 +5,6 @@ import 'package:triguard/component/titleDate/titleDate.dart';
 import 'package:dio/dio.dart';
 
 import '../../component/header/header.dart';
-import "../bloodPressure/bpData.dart";
 import '../../account/token.dart';
 import "../../other/other.dart";
 
@@ -121,17 +120,6 @@ void setDataById(int id, String type, int value) {
   print("set failed");
 }
 
-DateTime getTimeById(int id) {
-  for (int i = 0; i < data.length; i++) {
-    if (data[i]["id"] == id) {
-      int hour = int.parse(bpdata[i]["time"].toString().split(":")[0]);
-      int minute = int.parse(bpdata[i]["time"].toString().split(":")[1]);
-      return DateTime(2023, 11, 11, hour, minute);
-    }
-  }
-  return DateTime.now();
-}
-
 void setTimeById(int id, DateTime time) {
   for (int i = 0; i < data.length; i++) {
     if (data[i]["id"] == id) {
@@ -199,12 +187,14 @@ class _addDataButtonState extends State<addDataButton> {
 // 添加数据的 填写框
 // ignore: must_be_immutable
 class addDataWidget extends StatefulWidget {
+  final int accountId;
   DateTime date;
   final VoidCallback updateData;
   DateTime time = DateTime.now();
 
   addDataWidget(
       {Key? key,
+      required this.accountId,
       required this.updateData,
       required this.time,
       required this.date})
@@ -255,8 +245,9 @@ class _addDataWidgetState extends State<addDataWidget> {
       newVal["remark"] = remarkController.text;
     }
 
-    print(newVal);
-    // return;
+    if (widget.accountId >= 0) {
+      newVal["accountId"] = widget.accountId.toString();
+    }
 
     final Dio dio = Dio();
 
@@ -320,6 +311,9 @@ class _addDataWidgetState extends State<addDataWidget> {
               decoration: InputDecoration(
                   counterText: "",
                   hintText: hintText,
+                  hintStyle: const TextStyle(
+                    color: Color.fromARGB(255, 167, 166, 166),
+                  ),
                   contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
               textAlign: TextAlign.right,
               textAlignVertical: TextAlignVertical.bottom,
@@ -358,6 +352,9 @@ class _addDataWidgetState extends State<addDataWidget> {
               decoration: InputDecoration(
                   counterText: "",
                   hintText: hintText_,
+                  hintStyle: const TextStyle(
+                    color: Color.fromARGB(255, 167, 166, 166),
+                  ),
                   contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.bottom,
@@ -540,6 +537,10 @@ class _addDataWidgetState extends State<addDataWidget> {
                                   decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "-",
+                                      hintStyle: TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 167, 166, 166),
+                                      ),
                                       contentPadding:
                                           EdgeInsets.fromLTRB(0, 0, 0, 6)),
                                   textAlign: TextAlign.center,
@@ -1052,6 +1053,7 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
 // 生成血压数据的显示模块
 // ignore: must_be_immutable
 class BloodFatEditWidget extends StatefulWidget {
+  final int accountId;
   final int id;
   DateTime date = DateTime.now();
   DateTime time = DateTime.now();
@@ -1071,6 +1073,7 @@ class BloodFatEditWidget extends StatefulWidget {
 
   BloodFatEditWidget({
     Key? key,
+    required this.accountId,
     required this.id,
     required this.date,
     required this.time,
@@ -1101,17 +1104,14 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
     var token = await storage.read(key: 'token');
 
     final dio = Dio();
-    print("getDataFromServer");
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
-    response = await dio
-        .get("http://43.138.75.58:8080/api/blood-lipids/delete?id=$id");
+    response = await dio.get(widget.accountId >= 0
+        ? "http://43.138.75.58:8080/api/blood-lipids/delete?id=$id&accountId=${widget.accountId}"
+        : "http://43.138.75.58:8080/api/blood-lipids/delete?id=$id");
     if (response.data["code"] == 200) {
       print("删除血脂数据成功");
-      //print(response.data["data"]);
-      // data = response.data["data"];
-      //bpdata = response.data["data"];
     } else {
       print(response);
       print("删除血脂数据失败");
@@ -1138,16 +1138,15 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
       "remark": afterEditedValue.remarks,
     };
 
-    print("==========进行修改 参数=========");
-    print(newVal);
+    if (widget.accountId >= 0) {
+      newVal["accountId"] = widget.accountId.toString();
+    }
 
     try {
       response = await dio.post(
         "http://43.138.75.58:8080/api/blood-lipids/update",
         data: newVal,
       );
-
-      print(response.data);
 
       if (response.data['code'] == 200) {
         print("修改数据成功");
@@ -1189,8 +1188,6 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
         onTap: () {
           // 当收起时，点击任意地方可以展开
 
-          print('${widget.id}被点击了！！！！');
-
           if (getDataById(widget.id, "isExpanded") == 0) {
             setState(() {
               setDataById(widget.id, "isExpanded", 1);
@@ -1198,7 +1195,6 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
               // 其他的一律收起
               for (int i = 0; i < data.length; i++) {
                 if (data[i]["id"] != widget.id) {
-                  print('其他收起: ${data[i]["id"]}');
                   setDataById(data[i]["id"], "isExpanded", 0);
                 }
               }
@@ -1257,19 +1253,10 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
                         cancelEditData: () {
                           setState(() {
                             setDataById(widget.id, "isExpanded", 0);
-                            print('取消修改 ${widget.id}');
                           });
                         },
                         confirmEditData: () {
-                          print("==========进行修改=========");
-                          print("日期：${widget.date}");
-                          print('确定修改 ${widget.id}');
-                          afterEditedValue.printValue();
-                          print("======================");
-
-                          // editData(widget.id, afterEditedValue);
-                          // //afterEditedValue.clear();
-                          // widget.updateData();
+                          //afterEditedValue.printValue();
 
                           editData(widget.id, afterEditedValue).then((_) {
                             widget.updateData();
@@ -1656,6 +1643,9 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
               decoration: InputDecoration(
                   counterText: "",
                   hintText: hintText,
+                  hintStyle: const TextStyle(
+                    color: Color.fromARGB(255, 167, 166, 166),
+                  ),
                   contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
               textAlign: TextAlign.right,
               textAlignVertical: TextAlignVertical.bottom,
@@ -1692,9 +1682,13 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               decoration: InputDecoration(
-                  counterText: "",
-                  hintText: hintText_,
-                  contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                counterText: "",
+                hintText: hintText_,
+                hintStyle: const TextStyle(
+                  color: Color.fromARGB(255, 167, 166, 166),
+                ),
+                contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+              ),
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.bottom,
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
@@ -1879,6 +1873,10 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
                                   decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "-",
+                                      hintStyle: TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 167, 166, 166),
+                                      ),
                                       contentPadding:
                                           EdgeInsets.fromLTRB(0, 0, 0, 6)),
                                   textAlign: TextAlign.center,
@@ -2041,10 +2039,10 @@ class NoDataWidget extends StatelessWidget {
 
 // 此页面
 class BloodFatEdit extends StatefulWidget {
-  //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
   final Map arguments;
+  // 需要 accountId, nickname, date, bfDataId
 
-  BloodFatEdit({Key? key, required this.arguments});
+  const BloodFatEdit({Key? key, required this.arguments}) : super(key: key);
   @override
   _BloodFatEditState createState() => _BloodFatEditState();
 }
@@ -2053,11 +2051,10 @@ class _BloodFatEditState extends State<BloodFatEdit> {
   DateTime addTime = DateTime.now();
   DateTime date = DateTime.now();
   int bfDataId = -1;
-  int prevPage = 0;
 
   void getDataFromServer() async {
-    print(
-        '血脂修改请求日期：${date.year}-${date.month}-${date.day}....................................');
+    // print(
+    //    '血脂修改请求日期：${date.year}-${date.month}-${date.day}....................................');
     String requestDate = getFormattedDate(date);
 
     // 提取登录获取的token
@@ -2069,14 +2066,16 @@ class _BloodFatEditState extends State<BloodFatEdit> {
     dio.options.headers["Authorization"] = "Bearer $token";
 
     response = await dio.get(
-      "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate",
+      widget.arguments["accountId"] >= 0
+          ? "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate&accountId=${widget.arguments["accountId"]}"
+          : "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate",
       /* queryParameters: {
         "startDate": requestDate,
         "endDate": requestDate,
       }, */
     );
     if (response.data["code"] == 200) {
-      print("获取血脂lipids数据成功EDIT");
+      //print("获取血脂lipids数据成功EDIT");
       //print(response.data["data"]);
       data = response.data["data"];
       //bpdata = response.data["data"];
@@ -2084,31 +2083,6 @@ class _BloodFatEditState extends State<BloodFatEdit> {
       print(response);
       data = [];
     }
-    /*  data = [
-      {
-        "id": 12,
-        "date": "2023-11-28",
-        "time": "09:06",
-        "tc": 5.6,
-        "tg": 3.0,
-        "ldl": 0.2,
-        "hdl": 2.7,
-        "feeling": 1,
-        "remark": "egrgr464",
-      },
-      {
-        "id": 15,
-        "date": "2023-11-27",
-        "time": "12:06",
-        "tc": 4.7,
-        "tg": 9.8,
-        "ldl": 2.1,
-        "hdl": 0.5,
-        "feeling": 2,
-        "remark": "gregrgyhey464r",
-      },
-    ]; */
-
     titleDateWidget =
         TitleDate(date: date, updateView: updateView, updateDate: updateDate);
     dataWidget = [];
@@ -2130,9 +2104,9 @@ class _BloodFatEditState extends State<BloodFatEdit> {
       String remark_ = data[i]["remark"] ?? "暂无备注";
       data[i]["isExpanded"] = 0; // 默认收起
 
-      if (id_ == bfDataId) {
+      if (id_ == widget.arguments["bfDataId"]) {
         data[i]["isExpanded"] = 1;
-        bfDataId = -1;
+        widget.arguments["bfDataId"] = -1;
       }
 
       /* print("第$i条数据");
@@ -2149,6 +2123,7 @@ class _BloodFatEditState extends State<BloodFatEdit> {
 
       dataWidget.add(UnconstrainedBox(
         child: BloodFatEditWidget(
+          accountId: widget.arguments["accountId"],
           id: id_,
           date: date,
           time: time_,
@@ -2181,26 +2156,25 @@ class _BloodFatEditState extends State<BloodFatEdit> {
   void initState() {
     super.initState();
     date = widget.arguments['date'];
-    bfDataId = widget.arguments['bfDataId'];
-    prevPage = widget.arguments['prevPage'];
+    widget.arguments['bfDataId'];
     // 先从后端获取数据
     getDataFromServer();
   }
 
   void updateDate(DateTime newDate) {
-    print("new date: $newDate");
+    // print("new date: $newDate");
     date = newDate;
     getDataFromServer();
   }
 
   void updateData() {
-    print("刷新，日期：${date.year}年${date.month}月${date.day}日");
+    //print("刷新，日期：${date.year}年${date.month}月${date.day}日");
     getDataFromServer();
   }
 
   // 控制同一时间只有一个能展开进行编辑，不会影响数据
   void updateView() {
-    print("updateView");
+    //print("updateView");
 
     List<int> isExpandedArray = [];
     for (int i = 0; i < data.length; i++) {
@@ -2221,6 +2195,7 @@ class _BloodFatEditState extends State<BloodFatEdit> {
       DateTime time_ = DateTime(2023, 01, 01, hour, minute);
       dataWidgetTemp.add(UnconstrainedBox(
         child: BloodFatEditWidget(
+          accountId: widget.arguments["accountId"],
           id: data[i]["id"],
           date: date,
           time: time_,
@@ -2254,7 +2229,7 @@ class _BloodFatEditState extends State<BloodFatEdit> {
   Widget build(BuildContext context) {
     // print("血压修改页面刷新");
     return Scaffold(
-      appBar: AppBar(
+      /* appBar: AppBar(
         title: const Text(
           "TriGuard",
           style: TextStyle(
@@ -2265,7 +2240,10 @@ class _BloodFatEditState extends State<BloodFatEdit> {
         ),
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
-      ),
+      ), */
+      appBar: widget.arguments["accountId"] < 0
+          ? getAppBar(0, true, "TriGuard")
+          : getAppBar(1, true, widget.arguments["nickname"]),
 
       // 标题，日期与数据
       body: Container(
@@ -2286,6 +2264,7 @@ class _BloodFatEditState extends State<BloodFatEdit> {
             dataWidget.insert(
                 1,
                 addDataWidget(
+                  accountId: widget.arguments["accountId"],
                   date: date,
                   time: addTime,
                   updateData: updateData,

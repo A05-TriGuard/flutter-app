@@ -5,7 +5,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
-import './homePageSupervisor.dart';
+//import './homePageSupervisor.dart';
 import '../account/token.dart';
 
 // -------------今日记录模块--------------------
@@ -257,18 +257,20 @@ class _TodayActivitiesState extends State<TodayActivities> {
 // ================此页面======================
 // ignore: must_be_immutable
 class GuardianPersonPage extends StatefulWidget {
-  final int accountId;
+  /* final int accountId;
   final String email;
   final String username;
   String nickname;
-  final String image;
+  final String image; */
+  final Map arguments;
   GuardianPersonPage({
     Key? key,
-    required this.accountId,
+    /* required this.accountId,
     required this.email,
     required this.username,
     required this.nickname,
-    required this.image,
+    required this.image, */
+    required this.arguments,
   }) : super(key: key);
 
   @override
@@ -289,7 +291,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
 
     try {
       response = await dio.get(
-        "http://43.138.75.58:8080/api/ward/delete?wardId=${widget.accountId}",
+        "http://43.138.75.58:8080/api/ward/delete?wardId=${widget.arguments["accountId"]}",
       );
       if (response.data["code"] == 200) {
         print("删除成功");
@@ -351,7 +353,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
           // 个人头像
           CircleAvatar(
             radius: 18,
-            backgroundImage: NetworkImage(widget.image),
+            backgroundImage: NetworkImage(widget.arguments["image"]),
           ),
           //
           SizedBox(width: 10),
@@ -363,7 +365,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
               maxWidth: MediaQuery.of(context).size.width * 0.7,
             ),
             child: Text(
-              widget.nickname,
+              widget.arguments["nickname"],
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'BalooBhai',
@@ -470,7 +472,8 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                               onTap: () {
                                 refreshActivitiesData = false;
                                 isEditingNickname = !isEditingNickname;
-                                nicknameController.text = widget.nickname;
+                                nicknameController.text =
+                                    widget.arguments["nickname"];
                                 setState(() {});
                               },
                               child: const Icon(
@@ -582,8 +585,8 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                     return;
                                   }
 
-                                  bool status =
-                                      await setNickname(widget.accountId);
+                                  bool status = await setNickname(
+                                      widget.arguments["accountId"]);
 
                                   // 修改失败
                                   if (!status) {
@@ -596,7 +599,8 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                   // 修改成功
                                   refreshActivitiesData = false;
                                   isEditingNickname = !isEditingNickname;
-                                  widget.nickname = nicknameController.text;
+                                  widget.arguments["nickname"] =
+                                      nicknameController.text;
                                   setState(() {});
                                 },
                                 child: Container(
@@ -649,7 +653,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       width: MediaQuery.of(context).size.width * 0.55,
                       //color: Colors.yellow,
                       child: Text(
-                        widget.username,
+                        widget.arguments["username"],
                         textAlign: TextAlign.left,
                         style: const TextStyle(
                           fontFamily: 'BalooBhai',
@@ -697,7 +701,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       alignment: Alignment.centerLeft,
                       width: MediaQuery.of(context).size.width * 0.6,
                       child: Text(
-                        widget.email,
+                        widget.arguments["email"],
                         textAlign: TextAlign.left,
                         style: const TextStyle(
                           fontFamily: 'BalooBhai',
@@ -721,9 +725,10 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                   //删除
                   GestureDetector(
                     onTap: () async {
-                      print("删除${widget.accountId}");
+                      print("删除${widget.arguments["accountId"]}");
                       // Navigator.pushNamed(context, '/edit'); ____
-                      bool status = await deleteWard(widget.accountId);
+                      bool status =
+                          await deleteWard(widget.arguments["accountId"]);
                       if (status) {
                         Navigator.pop(context);
                       }
@@ -754,22 +759,31 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                   //查看数据详情
                   GestureDetector(
                     onTap: () {
-                      print("查看数据详情$accountID");
+                      print("查看数据详情${widget.arguments["accountId"]}");
                       // Navigator.pushNamed(context, '/edit');
-                      Navigator.push(
+                      /* Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => HomePage(
-                            accountId: accountID,
+                            accountId: widget.arguments["accountId"],
                             groupId: -1,
-                            nickname: widget.nickname,
+                            nickname: widget.arguments["nickname"],
                             groupName: "",
                           ),
                         ),
                       ).then((_) {
                         print("哈哈哈");
                         //widget.updateData();
-                      });
+                      }); */
+
+                      var args = {
+                        "accountId": widget.arguments["accountId"],
+                        "groupId": -1,
+                        "nickname": widget.arguments["nickname"],
+                        "groupName": "",
+                      };
+                      Navigator.pushNamed(context, '/homePage', arguments: args);
+                          
                     },
                     child: Container(
                       width: 120,
@@ -831,10 +845,10 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
           getNicknameTitle(),
           const SizedBox(height: 10),
           getGroupMemberWidgetMore(1, "admin使得房价快速了解2就进了进了2金额开零就2零",
-              "beyzhex@gmail.com额废物废物废物34234323", widget.nickname),
+              "beyzhex@gmail.com额废物废物废物34234323", widget.arguments["nickname"]),
           const SizedBox(height: 10),
           TodayActivities(
-            accountId: widget.accountId,
+            accountId: widget.arguments["accountId"],
             refreshActivitiesData: refreshActivitiesData,
           ),
         ]),

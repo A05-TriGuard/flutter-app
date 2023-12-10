@@ -220,7 +220,23 @@ class _GuardianWidgetState extends State<GuardianWidget> {
           var result =
               wardList.where((element) => element["accountId"] == wardId);
           if (result.isNotEmpty) {
-            Navigator.push(
+            var arguments = {
+              "accountId": wardId,
+              "email": result.first["email"],
+              "username": result.first["username"],
+              "nickname": result.first["nickname"],
+              //"image": result.first["image"] ??
+              //"https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+              "image":
+                  "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+            };
+            print("arguments(supervisor):$arguments");
+            Navigator.pushNamed(context, '/supervisor/person',
+                    arguments: arguments)
+                .then((value) => setState(() {}));
+
+            // OK
+            /* Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => GuardianPersonPage(
@@ -232,7 +248,7 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                       "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
                 ),
               ),
-            ).then((value) => setState(() {}));
+            ).then((value) => setState(() {})); */
           }
 
           //updateView(id);
@@ -309,7 +325,8 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                           } else {
                             print("Not found");
                           }
-                          Navigator.push(
+                          // OK
+                          /* Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => GuardianPersonPage(
@@ -320,7 +337,23 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                                   image: result.first["image"] ??
                                       "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png"),
                             ),
-                          );
+                          ).then((value) => setState(() {})); */
+
+                          var arguments = {
+                            "accountId": wardId,
+                            "nickname": result.first["nickname"],
+                            "username": result.first["username"],
+                            "email": result.first["email"],
+
+                            // "image": result.first["image"] ??
+                            //     "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+                            "image":
+                                "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+                          };
+                          Navigator.pushNamed(context, '/supervisor/person',
+                                  arguments: arguments)
+                              .then((value) => setState(() {}));
+                          //.then((value) => setState(() {}));
                         },
                       ),
                     ],
@@ -343,7 +376,8 @@ class _GuardianWidgetState extends State<GuardianWidget> {
           0),
       child: GestureDetector(
         onTap: () {
-          Navigator.push(
+          // OK
+          /* Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => GuardianGroupPage(
@@ -351,8 +385,12 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                 groupName: name,
               ),
             ),
-          ).then((value) => setState(() {}));
-          //updateView(id);
+          ).then((value) => setState(() {})); */
+
+          var args = {"groupId": wardId, "groupName": name};
+          //Navigator.pushNamed(context, '/supervisor/group', arguments: args);
+          Navigator.pushNamed(context, '/supervisor/group', arguments: args)
+              .then((value) => setState(() {}));
         },
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
@@ -420,11 +458,17 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                         icon: Image.asset("assets/icons/right-arrow.png",
                             width: 15, height: 15),
                         onPressed: () {
-                          Navigator.push(
+                          // OK
+                          /*      Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => GuardianGroupPage(
-                                      groupId: wardId, groupName: name)));
+                                      groupId: wardId, groupName: name))); */
+
+                          var args = {"groupId": wardId, "groupName": name};
+                          Navigator.pushNamed(context, '/supervisor/group',
+                                  arguments: args)
+                              .then((value) => setState(() {}));
                         },
                       ),
                     ],
@@ -723,22 +767,34 @@ class _GuardianWidgetState extends State<GuardianWidget> {
 
                 // add
 
-                /* getGuardianGroupWidget(1, "群组1", "assets/images/loginBg1.png"),
-                for (int i = 2; i <= 6; i++)
-                  getGuardianPersonWidget(
-                      i, "妈妈", "assets/images/loginBg1.png"), */
-                //getWardedListWidget(),
-                Column(
+                /*  Column(
                   children: wardedListWidget,
+                ), */
+                /*  ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: wardedListWidget.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return wardedListWidget[index];
+                  },
+                ), */
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: 50,
+                    maxHeight: MediaQuery.of(context).size.height * 0.62,
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Column(
+                      children: wardedListWidget,
+                    ),
+                  ),
                 ),
 
                 const SizedBox(
                   height: 30,
                 ),
               ]),
-              widget.visibleCreateGroupWidget == true
-                  ? getInviteGuardianWidget()
-                  : const SizedBox(),
             ]);
           } else {
             return Column(
@@ -2096,8 +2152,22 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
               ],
             ),
 
-            Column(
+            // 太多的时候会overflow
+            /* Column(
               children: getAllGuardianWidget(),
+            ),
+ */
+            Container(
+              constraints: BoxConstraints(
+                minHeight: 50,
+                maxHeight: MediaQuery.of(context).size.height * 0.62,
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  children: getAllGuardianWidget(),
+                ),
+              ),
             ),
 
             const SizedBox(

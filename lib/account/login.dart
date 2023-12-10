@@ -60,7 +60,8 @@ class _LoginPageState extends State<LoginPage> {
           print(value);
           print("-=============================="); */
 
-          Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
+          Navigator.pushNamed(context, '/mainPages',
+              arguments: {"accountId": -1});
           //Navigator.pushReplacement(context, '/mainPages', arguments: {"id": 1});
         } else if (response.data['code'] == 403) {
           isLoginFailed = true;

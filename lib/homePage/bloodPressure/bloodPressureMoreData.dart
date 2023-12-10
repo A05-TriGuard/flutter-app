@@ -2,8 +2,6 @@ import 'dart:io';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:excel/excel.dart' as ExcelPackage;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,15 +9,11 @@ import 'package:permission_handler/permission_handler.dart';
 //import 'package:syncfusion_flutter_xlsio/xlsio.dart'
 //    hide Column, Row, Border, Stack;
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:triguard/account/token.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
-import '../../other/gradientBorder/gradient_borders.dart';
-import './bpData.dart';
-import './bpAllData.dart';
 import '../../other/other.dart';
 
 //typedef UpdateDateCallback = void Function(DateTime newDate);
@@ -195,11 +189,13 @@ class BloodPressureFilterParam {
 // 血压表格记录
 // ignore: must_be_immutable
 class BloodPressureRecordWidget extends StatefulWidget {
+  final int accountId;
   BloodPressureFilterParam filterParam;
   bool oldParam = false;
   final VoidCallback updateGraph;
   BloodPressureRecordWidget(
       {Key? key,
+      required this.accountId,
       required this.filterParam,
       required this.oldParam,
       required this.updateGraph})
@@ -237,6 +233,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   List<dynamic> recordData = [];
   List<dynamic> statisticData = [];
 
+  // 更新excel表格
   Future<void> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
     var status1 = await Permission.storage.request().isGranted;
@@ -268,10 +265,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     print("folderPath: ${folderPath.path}");
 
     // 判断文件夹是否存在，不存在则创建
-    if (await folderPath.exists()) {
-      print("folderPath exist");
-    } else {
-      print("folderPath not exist");
+    if (await folderPath.exists() == false) {
       folderPath.create();
     }
 
@@ -466,7 +460,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     String startTime = getFormattedTime(widget.filterParam.startTime);
     String endTime = getFormattedTime(widget.filterParam.endTime);
     String minSBP = widget.filterParam.minSBPController.text;
-
     String maxSBP = widget.filterParam.maxSBPController.text;
     String minDBP = widget.filterParam.minDBPController.text;
     String maxDBP = widget.filterParam.maxDBPController.text;
@@ -513,22 +506,12 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       filterParam["remark"] = remark;
     }
 
-    print(filterParam);
-
-    /* print("开始日期：$startDate");
-    print("结束日期：$endDate");
-    print("开始时间：$startTime");
-    print("结束时间：$endTime");
-    print("收缩压：$minSBP ~ $maxSBP");
-    print("舒张压：$minDBP ~ $maxDBP");
-    print("心率：$minHeartRate ~ $maxHeartRate");
-    print("手臂：$armBool ,$arm");
-    print("感觉：$feelingBool ,$feeling");
-    print("备注：$remarkBool ,$remark"); */
+    if (widget.accountId >= 0) {
+      filterParam["accountId"] = widget.accountId.toString();
+    }
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
@@ -541,7 +524,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         data: filterParam,
       );
       if (response.data["code"] == 200) {
-        print("获取血压数据成功 按条件筛选");
+        //print("获取血压数据成功 按条件筛选");
         recordData = response.data["data"]["bloodPressureList"];
         statisticData = response.data["data"]["countedDataList"];
       } else {
@@ -899,13 +882,13 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
 
     // 判断参数是否合法
     if (widget.filterParam.checkInvalidParam() > 0) {
-      print("invalid param");
+      //print("invalid param");
       widget.filterParam.refresh = false;
       return getWholeWidget(context);
     }
 
     if (widget.filterParam.refresh == false) {
-      print("数据表格 (不) 刷新");
+      //print("数据表格 (不) 刷新");
       return getWholeWidget(context);
     }
 
@@ -1894,7 +1877,7 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
                   widget.filterParam.refresh = true;
 
                   invalidParam = widget.filterParam.checkInvalidParam();
-                  print("invalidParam: $invalidParam");
+                  //print("invalidParam: $invalidParam");
                   //widget.updateGraph();
 
                   if (invalidParam == 0) {
@@ -2570,7 +2553,10 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
 // 血压数据详情页面
 class BloodPressureMoreData extends StatefulWidget {
-  const BloodPressureMoreData({super.key});
+  final Map arguments;
+  //需要 accountId, nickname
+  const BloodPressureMoreData({Key? key, required this.arguments})
+      : super(key: key);
 
   @override
   State<BloodPressureMoreData> createState() => _BloodPressureMoreDataState();
@@ -2604,10 +2590,19 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
   List<bool> prevFeelingsSelected = [false, false, false, true];
   bool isOldParam = true;
   bool showFilterWidget = false;
+
+  // 初始化
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  // 回调函数
   void updateGraph() {
     setState(() {});
   }
 
+  // 回调函数 更新日期
   void updateStartDate(DateTime newDate) {
     setState(() {
       filterParam.startDate = newDate;
@@ -2615,24 +2610,28 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
     });
   }
 
+  // 回调函数 更新日期
   void updateEndDate(DateTime newDate) {
     setState(() {
       filterParam.endDate = newDate;
     });
   }
 
+  // 回调函数 更新时间
   void updateStartTime(DateTime newTime) {
     setState(() {
       filterParam.startTime = newTime;
     });
   }
 
+  // 回调函数 更新时间
   void updateEndTime(DateTime newTime) {
     setState(() {
       filterParam.endTime = newTime;
     });
   }
 
+  // 回调函数 更新过滤器视图
   void updateFilterWidgetView(bool show) {
     setState(() {
       showFilterWidget = show;
@@ -2640,18 +2639,11 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
   }
 
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    print("血压数据页面rebuild===========================");
     return PopScope(
       //canPop: false,
       child: Scaffold(
-        appBar: AppBar(
+        /* appBar: AppBar(
           title: const Text(
             "TriGuard",
             style: TextStyle(
@@ -2659,7 +2651,10 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
           ),
           flexibleSpace: getHeader(MediaQuery.of(context).size.width,
               (MediaQuery.of(context).size.height * 0.1 + 11)),
-        ),
+        ), */
+        appBar: widget.arguments["accountId"] < 0
+            ? getAppBar(0, true, "TriGuard")
+            : getAppBar(1, true, widget.arguments["nickname"]),
         body: Container(
           color: Colors.white,
           child: ListView(shrinkWrap: true, children: [
@@ -2719,6 +2714,7 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
 
             // table数据表格
             BloodPressureRecordWidget(
+              accountId: widget.arguments["accountId"],
               filterParam: filterParam,
               oldParam: isOldParam,
               updateGraph: updateGraph,

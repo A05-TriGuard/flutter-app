@@ -5,7 +5,6 @@ import 'package:triguard/component/titleDate/titleDate.dart';
 import 'package:dio/dio.dart';
 
 import '../../component/header/header.dart';
-import "bpData.dart";
 import '../../account/token.dart';
 import "../../other/other.dart";
 
@@ -107,17 +106,6 @@ void setDataById(int id, String type, int value) {
   print("set failed");
 }
 
-DateTime getTimeById(int id) {
-  for (int i = 0; i < data.length; i++) {
-    if (data[i]["id"] == id) {
-      int hour = int.parse(bpdata[i]["time"].toString().split(":")[0]);
-      int minute = int.parse(bpdata[i]["time"].toString().split(":")[1]);
-      return DateTime(2023, 11, 11, hour, minute);
-    }
-  }
-  return DateTime.now();
-}
-
 void setTimeById(int id, DateTime time) {
   for (int i = 0; i < data.length; i++) {
     if (data[i]["id"] == id) {
@@ -186,6 +174,7 @@ class _addDataButtonState extends State<addDataButton> {
 // ignore: must_be_immutable
 class addDataWidget extends StatefulWidget {
   DateTime date;
+  final int accountId;
   final VoidCallback updateData;
   DateTime time = DateTime.now();
 
@@ -193,7 +182,8 @@ class addDataWidget extends StatefulWidget {
       {Key? key,
       required this.updateData,
       required this.time,
-      required this.date})
+      required this.date,
+      required this.accountId})
       : super(key: key);
 
   @override
@@ -239,6 +229,10 @@ class _addDataWidgetState extends State<addDataWidget> {
 
     if (remarkController.text != "") {
       newVal["remark"] = remarkController.text;
+    }
+
+    if (widget.accountId >= 0) {
+      newVal["accountId"] = widget.accountId;
     }
 
     print(newVal);
@@ -393,6 +387,10 @@ class _addDataWidgetState extends State<addDataWidget> {
                                       decoration: const InputDecoration(
                                           counterText: "",
                                           hintText: "100",
+                                          hintStyle: TextStyle(
+                                            color: Color.fromARGB(
+                                                255, 167, 166, 166),
+                                          ),
                                           contentPadding:
                                               EdgeInsets.fromLTRB(0, 0, 0, 5)),
                                       textAlign: TextAlign.center,
@@ -436,7 +434,11 @@ class _addDataWidgetState extends State<addDataWidget> {
                                       //initialValue: widget.DBloodpressure,
                                       decoration: const InputDecoration(
                                           counterText: "",
-                                          hintText: "80",
+                                          hintText: "70",
+                                          hintStyle: TextStyle(
+                                            color: Color.fromARGB(
+                                                255, 167, 166, 166),
+                                          ),
                                           contentPadding:
                                               EdgeInsets.fromLTRB(0, 0, 0, 5)),
                                       textAlign: TextAlign.center,
@@ -482,6 +484,10 @@ class _addDataWidgetState extends State<addDataWidget> {
                                       decoration: const InputDecoration(
                                           counterText: "",
                                           hintText: "90",
+                                          hintStyle: TextStyle(
+                                            color: Color.fromARGB(
+                                                255, 167, 166, 166),
+                                          ),
                                           contentPadding:
                                               EdgeInsets.fromLTRB(0, 0, 0, 5)),
                                       textAlign: TextAlign.center,
@@ -535,6 +541,10 @@ class _addDataWidgetState extends State<addDataWidget> {
                                   decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "-",
+                                      hintStyle: TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 167, 166, 166),
+                                      ),
                                       contentPadding:
                                           EdgeInsets.fromLTRB(0, 0, 0, 6)),
                                   textAlign: TextAlign.center,
@@ -842,7 +852,7 @@ class _ArmButtonsRowState extends State<ArmButtonsRow> {
               setState(() {
                 widget.selectedIndex = 0;
               });
-              print("左手按钮被点击了！");
+              //print("左手按钮被点击了！");
             },
             text: "左手",
             isSelected: widget.selectedIndex == 0,
@@ -853,7 +863,7 @@ class _ArmButtonsRowState extends State<ArmButtonsRow> {
               setState(() {
                 widget.selectedIndex = 1;
               });
-              print("右手按钮被点击了！");
+              //print("右手按钮被点击了！");
             },
             text: "右手",
             isSelected: widget.selectedIndex == 1,
@@ -864,7 +874,7 @@ class _ArmButtonsRowState extends State<ArmButtonsRow> {
               setState(() {
                 widget.selectedIndex = 2;
               });
-              print("不选按钮被点击了！");
+              // print("不选按钮被点击了！");
             },
             text: "不选",
             isSelected: widget.selectedIndex == 2,
@@ -909,7 +919,7 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 0;
               });
-              print("开心按钮被点击了！");
+              // print("开心按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-nice.png",
             isSelected: widget.selectedIndex == 0,
@@ -920,7 +930,7 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 1;
               });
-              print("还好按钮被点击了！");
+              // print("还好按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-ok.png",
             isSelected: widget.selectedIndex == 1,
@@ -931,7 +941,7 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 2;
               });
-              print("不好按钮被点击了！");
+              //print("不好按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-bad.png",
             isSelected: widget.selectedIndex == 2,
@@ -1166,6 +1176,7 @@ class _TitleDateState extends State<TitleDate> {
 // 生成血压数据的显示模块
 // ignore: must_be_immutable
 class BloodPressureEditWidget extends StatefulWidget {
+  final int accountId;
   final int id;
   DateTime date = DateTime.now();
   DateTime time = DateTime.now();
@@ -1181,6 +1192,7 @@ class BloodPressureEditWidget extends StatefulWidget {
 
   BloodPressureEditWidget({
     Key? key,
+    required this.accountId,
     required this.id,
     required this.date,
     required this.time,
@@ -1212,8 +1224,9 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
-    response = await dio
-        .get("http://43.138.75.58:8080/api/blood-pressure/delete?id=$id");
+    response = await dio.get(widget.accountId >= 0
+        ? "http://43.138.75.58:8080/api/blood-pressure/delete?id=$id&accountId=${widget.accountId}"
+        : "http://43.138.75.58:8080/api/blood-pressure/delete?id=$id");
     if (response.data["code"] == 200) {
       print("删除血压数据成功");
       //print(response.data["data"]);
@@ -1245,8 +1258,12 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
       "remark": afterEditedValue.remarks,
     };
 
-    print("==========进行修改 参数=========");
-    print(newVal);
+    if (widget.accountId >= 0) {
+      newVal["accountId"] = widget.accountId;
+    }
+
+    // print("==========进行修改 参数=========");
+    // print(newVal);
 
     try {
       response = await dio.post(
@@ -1296,7 +1313,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
         onTap: () {
           // 当收起时，点击任意地方可以展开
 
-          print('${widget.id}被点击了！！！！');
+          //print('${widget.id}被点击了！！！！');
 
           if (getDataById(widget.id, "isExpanded") == 0) {
             setState(() {
@@ -1305,7 +1322,7 @@ class _BloodPressureEditWidgetState extends State<BloodPressureEditWidget> {
               // 其他的一律收起
               for (int i = 0; i < data.length; i++) {
                 if (data[i]["id"] != widget.id) {
-                  print('其他收起: ${data[i]["id"]}');
+                  // print('其他收起: ${data[i]["id"]}');
                   setDataById(data[i]["id"], "isExpanded", 0);
                 }
               }
@@ -1833,6 +1850,10 @@ class _BloodPressureEditWidgetMoreState
                                       decoration: InputDecoration(
                                           counterText: "",
                                           hintText: "${widget.SBloodpressure}",
+                                          hintStyle: const TextStyle(
+                                            color: Color.fromARGB(
+                                                255, 167, 166, 166),
+                                          ),
                                           contentPadding:
                                               const EdgeInsets.fromLTRB(
                                                   0, 0, 0, 5)),
@@ -1878,6 +1899,10 @@ class _BloodPressureEditWidgetMoreState
                                       decoration: InputDecoration(
                                           counterText: "",
                                           hintText: "${widget.DBloodpressure}",
+                                          hintStyle: const TextStyle(
+                                            color: Color.fromARGB(
+                                                255, 167, 166, 166),
+                                          ),
                                           contentPadding:
                                               const EdgeInsets.fromLTRB(
                                                   0, 0, 0, 5)),
@@ -1923,6 +1948,10 @@ class _BloodPressureEditWidgetMoreState
                                       decoration: InputDecoration(
                                           counterText: "",
                                           hintText: "${widget.heartRate}",
+                                          hintStyle: const TextStyle(
+                                            color: Color.fromARGB(
+                                                255, 167, 166, 166),
+                                          ),
                                           contentPadding:
                                               const EdgeInsets.fromLTRB(
                                                   0, 0, 0, 5)),
@@ -1975,6 +2004,10 @@ class _BloodPressureEditWidgetMoreState
                                   decoration: const InputDecoration(
                                       counterText: "",
                                       hintText: "-",
+                                      hintStyle: TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 167, 166, 166),
+                                      ),
                                       contentPadding:
                                           EdgeInsets.fromLTRB(0, 0, 0, 6)),
                                   textAlign: TextAlign.center,
@@ -2136,8 +2169,8 @@ class NoDataWidget extends StatelessWidget {
 
 // 此页面
 class BloodPressureEdit extends StatefulWidget {
-  //TODO 需要参数（初始化时主页所选的日期与这里要保持一致）
   final Map arguments;
+  // 需要 accountId, nickname, date, bpDataId
 
   BloodPressureEdit({Key? key, required this.arguments});
   @override
@@ -2148,11 +2181,11 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
   DateTime addTime = DateTime.now();
   DateTime date = DateTime.now();
   int bpDataId = -1;
-  int prevPage = 0;
+  //int prevPage = 0;
 
   void getDataFromServer() async {
-    print(
-        '请求日期：${date.year}-${date.month}-${date.day}....................................');
+    //print(
+    //     '请求日期：${date.year}-${date.month}-${date.day}....................................');
     String requestDate = getFormattedDate(date);
 
     // 提取登录获取的token
@@ -2166,14 +2199,16 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
     dio.options.headers["Authorization"] = "Bearer $token";
 
     response = await dio.get(
-      "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
+        /*  "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
       queryParameters: {
         "startDate": requestDate,
         "endDate": requestDate,
-      },
-    );
+      }, */
+        widget.arguments["accountId"] >= 0
+            ? "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate&accountId=${widget.arguments["accountId"]}"
+            : "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate");
     if (response.data["code"] == 200) {
-      print("获取血压数据成功EDIT");
+      //print("获取血压数据成功EDIT");
       //print(response.data["data"]);
       data = response.data["data"];
       //bpdata = response.data["data"];
@@ -2224,6 +2259,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
 
       dataWidget.add(UnconstrainedBox(
         child: BloodPressureEditWidget(
+          accountId: widget.arguments["accountId"],
           id: id_,
           date: date,
           time: time_,
@@ -2252,7 +2288,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
     super.initState();
     date = widget.arguments['date'];
     bpDataId = widget.arguments['bpDataId'];
-    prevPage = widget.arguments['prevPage'];
+    //prevPage = widget.arguments['prevPage'];
     // 先从后端获取数据
     getDataFromServer();
   }
@@ -2287,6 +2323,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
       DateTime time_ = DateTime(2023, 01, 01, hour, minute);
       dataWidgetTemp.add(UnconstrainedBox(
         child: BloodPressureEditWidget(
+          accountId: widget.arguments["accountId"],
           id: data[i]["id"],
           date: date,
           time: time_,
@@ -2316,7 +2353,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
   Widget build(BuildContext context) {
     // print("血压修改页面刷新");
     return Scaffold(
-      appBar: AppBar(
+      /* appBar: AppBar(
         title: const Text(
           "TriGuard",
           style: TextStyle(
@@ -2327,7 +2364,10 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
         ),
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
-      ),
+      ), */
+      appBar: widget.arguments["accountId"] < 0
+          ? getAppBar(0, true, "TriGuard")
+          : getAppBar(1, true, widget.arguments["nickname"]),
 
       // 标题，日期与数据
       body: Container(
@@ -2348,6 +2388,7 @@ class _BloodPressureEditState extends State<BloodPressureEdit> {
             dataWidget.insert(
                 1,
                 addDataWidget(
+                  accountId: widget.arguments["accountId"],
                   date: date,
                   time: addTime,
                   updateData: updateData,

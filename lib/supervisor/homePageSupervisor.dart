@@ -13,6 +13,7 @@ class MyTitle extends StatefulWidget {
   final String value;
   final String unit;
   final String route;
+  final Object? arguments;
 
   const MyTitle(
       {Key? key,
@@ -20,7 +21,8 @@ class MyTitle extends StatefulWidget {
       required this.icon,
       required this.value,
       required this.unit,
-      required this.route})
+      required this.route,
+      this.arguments})
       : super(key: key);
 
   @override
@@ -42,8 +44,8 @@ class _MyTitleState extends State<MyTitle> {
                   children: [
                     Text(
                       widget.title,
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 5),
                     Image.asset(widget.icon, width: 25, height: 25),
@@ -60,9 +62,9 @@ class _MyTitleState extends State<MyTitle> {
                           fontWeight: FontWeight.bold,
                           color: Color.fromRGBO(165, 51, 51, 1)),
                     ),
-                    SizedBox(width: 5),
+                    const SizedBox(width: 5),
                     Text(widget.unit,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 14, fontWeight: FontWeight.bold)),
                     SizedBox(
                       width: 20,
@@ -72,7 +74,12 @@ class _MyTitleState extends State<MyTitle> {
                         icon: Icon(Icons.edit),
                         iconSize: 25,
                         onPressed: () {
-                          Navigator.pushNamed(context, widget.route);
+                          if (widget.arguments != null) {
+                            Navigator.pushNamed(context, widget.route,
+                                arguments: widget.arguments);
+                          } else {
+                            Navigator.pushNamed(context, widget.route);
+                          }
                         },
                       ),
                     )
@@ -131,13 +138,15 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
 
     try {
       response = await dio.get(
-        "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
+          /* "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
         queryParameters: {
           "startDate": requestDate,
           "endDate": requestDate,
           "accountId": widget.accountId,
-        },
-      );
+        }, */
+          widget.accountId >= 0
+              ? "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate&accountId=${widget.accountId}"
+              : "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate");
       if (response.data["code"] == 200) {
         //print("获取血压数据成功");
         data = response.data["data"];
@@ -204,12 +213,20 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               MyTitle(
-                  title: "今日血压",
-                  icon: "assets/icons/bloodPressure.png",
-                  value:
-                      "${todaySBP < 0 ? '-' : todaySBP}/${todayDBP < 0 ? '-' : todayDBP}",
-                  unit: "mmHg",
-                  route: "/homePage/BloodPressure/Edit"),
+                title: "今日血压",
+                icon: "assets/icons/bloodPressure.png",
+                value:
+                    "${todaySBP < 0 ? '-' : todaySBP}/${todayDBP < 0 ? '-' : todayDBP}",
+                unit: "mmHg",
+                route: "/homePage/BloodPressure/Edit",
+                arguments: widget.accountId >= 0
+                    ? {
+                        "accountId": widget.accountId,
+                        "date": widget.date,
+                        "bpDataId": -1,
+                      }
+                    : null,
+              ),
 
               const SizedBox(
                 height: 5,
@@ -332,8 +349,13 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
                   ),
                   GestureDetector(
                     onTap: () {
+                      var arguments = {
+                        "accountId": widget.accountId,
+                        "date": widget.date
+                      };
                       Navigator.pushNamed(
-                          context, "/homePage/BloodPressure/Details");
+                          context, "/homePage/BloodPressure/Details",
+                          arguments: arguments);
                     },
                     child: Container(
                       height: 30,
@@ -1511,7 +1533,7 @@ class _HomePageState extends State<HomePage> {
     if (widget.groupId >= 0) {
       getGroupMemberListFromServer();
     }
-    print("监护的首页rebuild");
+    print("监护的首页rebuild: 个人：${widget.accountId} 群组：${widget.groupId}");
 
     return PopScope(
       canPop: true,
