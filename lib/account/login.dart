@@ -24,9 +24,35 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoginFailed = false;
   Dio dio = Dio();
   String loginStateHintText = "";
+  int accountId = -1;
+
+  Future<void> getAccountId() async {
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        "http://43.138.75.58:8080/api/account/info",
+      );
+      if (response.data["code"] == 200) {
+        accountId = response.data["data"]["id"];
+        await storage.write(key: "accountId", value: accountId.toString());
+        String? checkId = await storage.read(key: 'accountId');
+        print('checkId: $checkId');
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   // 登录函数
-  void login() async {
+  Future<void> login() async {
     final username = usernameController.text;
     final password = passwordController.text;
 
@@ -59,9 +85,10 @@ class _LoginPageState extends State<LoginPage> {
           var value = await storage.read(key: 'token');
           print(value);
           print("-=============================="); */
+          await getAccountId().then((value) => Navigator.pushNamed(
+              context, '/mainPages',
+              arguments: {"accountId": -1}));
 
-          Navigator.pushNamed(context, '/mainPages',
-              arguments: {"accountId": -1});
           //Navigator.pushReplacement(context, '/mainPages', arguments: {"id": 1});
         } else if (response.data['code'] == 403) {
           isLoginFailed = true;
@@ -169,7 +196,6 @@ class _LoginPageState extends State<LoginPage> {
                       // 用户名输入框
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.7,
-                        // TODO
                         child: TextFormField(
                           controller: usernameController,
                           maxLines: 1,
@@ -181,7 +207,8 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: InputDecoration(
                             //取消奇怪的高度
                             isCollapsed: true,
-                            contentPadding: EdgeInsets.fromLTRB(0, 10, 15, 10),
+                            contentPadding:
+                                const EdgeInsets.fromLTRB(0, 10, 15, 10),
                             counterStyle:
                                 const TextStyle(color: Colors.black38),
                             prefixIcon: Padding(
@@ -191,13 +218,14 @@ class _LoginPageState extends State<LoginPage> {
                                   width: 16,
                                   height: 16,
                                 )),
-                            prefixIconConstraints: BoxConstraints(minWidth: 60),
+                            prefixIconConstraints:
+                                const BoxConstraints(minWidth: 60),
                             labelText: '用户名/手机号/邮箱',
                             labelStyle: const TextStyle(
                               color: Color.fromARGB(96, 104, 104, 104),
                             ),
                             //fillColor: Color.fromARGB(190, 255, 255, 255),
-                            fillColor: Color.fromARGB(187, 250, 250, 250),
+                            fillColor: const Color.fromARGB(187, 250, 250, 250),
                             filled: true,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
@@ -221,7 +249,6 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.7,
                         //height: 45,
-                        // TODO
                         child: TextFormField(
                           controller: passwordController,
                           obscureText: true, //隐藏密码
@@ -233,7 +260,8 @@ class _LoginPageState extends State<LoginPage> {
 
                           decoration: InputDecoration(
                             isCollapsed: true,
-                            contentPadding: EdgeInsets.fromLTRB(0, 10, 15, 10),
+                            contentPadding:
+                                const EdgeInsets.fromLTRB(0, 10, 15, 10),
                             prefixIcon: Padding(
                                 padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                                 child: Image.asset(
@@ -241,13 +269,14 @@ class _LoginPageState extends State<LoginPage> {
                                   width: 20,
                                   height: 20,
                                 )),
-                            prefixIconConstraints: BoxConstraints(minWidth: 60),
+                            prefixIconConstraints:
+                                const BoxConstraints(minWidth: 60),
                             labelText: '密码',
                             labelStyle: const TextStyle(
                               color: Color.fromARGB(96, 104, 104, 104),
                             ),
                             //fillColor: Color.fromARGB(190, 255, 255, 255),
-                            fillColor: Color.fromARGB(187, 250, 250, 250),
+                            fillColor: const Color.fromARGB(187, 250, 250, 250),
                             filled: true,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
@@ -284,8 +313,8 @@ class _LoginPageState extends State<LoginPage> {
                         child: SizedBox(
                           width: MediaQuery.of(context).size.width * 0.7,
                           child: FilledButton(
-                            onPressed: () {
-                              login();
+                            onPressed: () async {
+                              await login();
                               //Navigator.pushNamed(context, '/mainPages');
                               // print("object");
                             },

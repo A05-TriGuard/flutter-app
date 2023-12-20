@@ -3589,13 +3589,19 @@ class _SupervisorState extends State<Supervisor> {
   // ————————————————————此页面——————————————————————
   @override
   Widget build(BuildContext context) {
+    /* int colorIndex = 0;
+    if (pageController.page == null || pageController.page! < 0.5) {
+      colorIndex = 0;
+    } else {
+      colorIndex = 1;
+    } */
     //print("监护rebuild");
 
     return PopScope(
       canPop: false,
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        appBar: AppBar(
+        /* appBar: AppBar(
           title: const Text(
             "TriGuard",
             style: TextStyle(
@@ -3642,9 +3648,52 @@ class _SupervisorState extends State<Supervisor> {
               },
             ),
           ],
+        ), */
+        appBar: getAppBar(
+          0,
+          false,
+          "TriGuard",
+          actions: [
+            Builder(
+              builder: (context) {
+                if (pageController.page == null || pageController.page! < 0.5) {
+                  return Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: () async {
+                          print("添加监护人");
+                          //showInviteGuardianWidget(context);
+                          //showOverlay(context);
+                          await getWardListFromServer();
+                          openFilterDialog();
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.notifications),
+                        onPressed: () async {
+                          print("通知");
+                          //getInvitationNotification();
+                          invitationNotification(context);
+                        },
+                      )
+                    ],
+                  );
+                } else {
+                  return IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      print("添加监护人");
+                      showInviteGuardianWidget(context);
+                    },
+                  );
+                }
+              },
+            ),
+          ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-        body: Stack(children: [
+        body: Stack(alignment: Alignment.bottomCenter, children: [
           PageView(
             controller: pageController,
             scrollDirection: Axis.horizontal,
@@ -3693,6 +3742,52 @@ class _SupervisorState extends State<Supervisor> {
               ),
             ],
           ),
+          /*  Container(
+            height: 50,
+            width: 50,
+            color: Colors.yellow,
+          ) */
+          /* Container(
+            width: 30,
+            height: 20,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      height: 10,
+                      width: 10,
+                      //color: Colors.yellow,
+                      decoration: BoxDecoration(
+                        color: (1 == 1) ? Colors.blue : Colors.grey,
+                        //borderRadius: BorderRadius.circular(10),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                      height: 10,
+                      width: 10,
+                      //color: Colors.yellow,
+                      decoration: BoxDecoration(
+                        color: (0 == 0) ? Colors.blue : Colors.grey,
+                        //borderRadius: BorderRadius.circular(10),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+              ],
+            ),
+          ),
+         */
         ]),
       ),
     );

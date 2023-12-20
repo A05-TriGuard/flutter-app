@@ -1055,13 +1055,15 @@ class _MyBloodFatState extends State<MyBloodFat> {
 class MyActivities extends StatefulWidget {
   final DateTime date;
   final int accountId;
+  final String nickname;
   final String value;
-  const MyActivities(
-      {Key? key,
-      required this.accountId,
-      required this.value,
-      required this.date})
-      : super(key: key);
+  const MyActivities({
+    Key? key,
+    required this.accountId,
+    required this.value,
+    required this.date,
+    required this.nickname,
+  }) : super(key: key);
 
   @override
   State<MyActivities> createState() => _MyActivitiesState();
@@ -1080,7 +1082,13 @@ class _MyActivitiesState extends State<MyActivities> {
         icon: "assets/icons/exercising.png",
         value: widget.value,
         unit: "分钟",
-        route: "/homePage/BloodPressure/Edit",
+        route: "/homePage/Activity/Edit",
+        arguments: {
+          "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+          "nickname": widget.accountId >= 0 ? widget.nickname : "TriGuard",
+          "date": widget.date,
+          "activityDataId": -1,
+        },
         refreshData: refreshData,
       ), //TODO
 
@@ -1204,7 +1212,16 @@ class _MyActivitiesState extends State<MyActivities> {
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushNamed(context, "/homePage/Activity/Details");
+            //Navigator.pushNamed(context, "/homePage/Activity/Details");
+
+            var args = {
+              "accountId": widget.accountId,
+              "nickname": widget.nickname,
+              "date": widget.date,
+            };
+            Navigator.pushNamed(context, "/homePage/Activity/Details",
+                    arguments: args)
+                .then((value) => refreshData());
           },
           child: Container(
             height: 30,
@@ -1741,6 +1758,7 @@ class _HomePageState extends State<HomePage> {
               // 运动
               MyActivities(
                   accountId: widget.arguments["accountId"],
+                  nickname: widget.arguments["nickname"],
                   date: selectedDate,
                   value: "45"),
 
