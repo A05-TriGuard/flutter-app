@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:cached_video_player/cached_video_player.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -18,18 +18,17 @@ class VideoPlayerScreen extends StatefulWidget {
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  late VideoPlayerController _controller;
+  late CachedVideoPlayerController _controller;
   late Future<void> _initializeVideoPlayerFuture;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(
-      Uri.parse(
-        widget.videolink,
-      ),
-    );
-    _initializeVideoPlayerFuture = _controller.initialize();
+    _controller = CachedVideoPlayerController.network(
+        "http://43.138.75.58:8080/static/${widget.videolink}");
+    _initializeVideoPlayerFuture = _controller.initialize().catchError((error) {
+      print('Error initializing video: $error');
+    });
     _controller.setLooping(true);
   }
 
@@ -41,6 +40,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _controller.setLooping(true);
+
     return FutureBuilder(
       future: _initializeVideoPlayerFuture,
       builder: (context, snapshot) {
@@ -66,7 +67,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                               }
                             });
                           },
-                          child: VideoPlayer(_controller),
+                          child: CachedVideoPlayer(_controller),
+                          //VideoPlayer(_controller),
                         ),
                         Visibility(
                             visible: !(_controller.value.isPlaying),
@@ -174,7 +176,9 @@ class Gallery extends StatelessWidget {
       itemCount: images.length,
       builder: (context, index) {
         return PhotoViewGalleryPageOptions(
-            imageProvider: NetworkImage(images[index]),
+            imageProvider: NetworkImage(
+              "http://43.138.75.58:8080/static/${images[index]}",
+            ),
             minScale: PhotoViewComputedScale.contained * 0.8,
             maxScale: PhotoViewComputedScale.covered * 1.3);
       },

@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
    <application
+        android:usesCleartextTraffic="true"
         android:label="triguard"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

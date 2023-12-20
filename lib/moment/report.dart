@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import '../account/token.dart';
 
 class ConfirmReportDialog extends StatelessWidget {
-  const ConfirmReportDialog({super.key});
+  final int postId;
+  const ConfirmReportDialog({super.key, required this.postId});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,10 @@ class ConfirmReportDialog extends StatelessWidget {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      content: ReportDialog(width: screenWidth * 0.9),
+                      content: ReportDialog(
+                        width: screenWidth * 0.9,
+                        postId: postId,
+                      ),
                     );
                   });
             },
@@ -48,7 +54,8 @@ class ConfirmReportDialog extends StatelessWidget {
 
 class ReportDialog extends StatefulWidget {
   final double width;
-  const ReportDialog({super.key, required this.width});
+  final int postId;
+  const ReportDialog({super.key, required this.width, required this.postId});
 
   @override
   State<ReportDialog> createState() => _ReportDialogState();
@@ -57,6 +64,26 @@ class ReportDialog extends StatefulWidget {
 class _ReportDialogState extends State<ReportDialog> {
   bool canReport = false;
   final inputController = TextEditingController();
+
+  // Moment API
+  void reportPost() async {
+    var token = await storage.read(key: 'token');
+    var reportReason = inputController.value.text;
+
+    try {
+      final dio = Dio();
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/moment/report?momentId=${widget.postId}&reason=$reportReason',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+      }
+    } catch (e) {/**/}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +105,12 @@ class _ReportDialogState extends State<ReportDialog> {
                     style: TextStyle(fontSize: 20),
                   )),
               TextButton(
-                  onPressed: canReport ? () {} : null,
+                  onPressed: canReport
+                      ? () {
+                          Navigator.pop(context);
+                          reportPost();
+                        }
+                      : null,
                   child: const Text(
                     "举报",
                     style: TextStyle(fontSize: 20),

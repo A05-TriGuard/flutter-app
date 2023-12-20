@@ -1,32 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:dio/dio.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../component/icons.dart';
+import '../account/token.dart';
 import 'media.dart';
 import 'post.dart';
 import 'report.dart';
 import 'comment.dart';
-
-class PostInfo {
-  final String username;
-  final String profilepic;
-  final String date;
-  final String content;
-  final List<String> images;
-  final String video;
-  bool addfriend;
-  bool star;
-  bool like;
-  PostInfo(
-      {required this.username,
-      required this.profilepic,
-      required this.date,
-      required this.content,
-      required this.images,
-      required this.video,
-      required this.addfriend,
-      required this.star,
-      required this.like});
-}
 
 class Moment extends StatefulWidget {
   const Moment({super.key});
@@ -43,10 +24,24 @@ class _MomentState extends State<Moment> {
     MyIcons().bloodSugarBig()
   ];
   var className = <String>["高血脂", "高血压", "高血糖"];
+  var categoryName = <String>["饮食", "运动", "生活", "其他"];
   bool showHeader = true;
   int curSelClassInd = 0;
   int curSelCatInd = 0;
   String selectedFilter = "最新发布";
+  //bool toUpdate = false;
+  var curPostList = [];
+  var postTileList = [];
+  var userFollowMap = {};
+  var curUserId = 0;
+  bool isLoading = true;
+  //bool remainPosition = false;
+  double lastPosition = 0;
+  late ScrollController listViewController;
+  final searchController = TextEditingController();
+  String keyword = "";
+
+/*
   var testPost = PostInfo(
     username: "山野都有雾灯kk",
     //profilepic: "assets/images/testUser.png",
@@ -100,15 +95,131 @@ class _MomentState extends State<Moment> {
       video: "",
       addfriend: false,
       star: false,
-      like: false);
+      like: false); 
+      */
+
+  // Moment API
+  void getAccountId() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/account/info',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        curUserId = response.data["data"]["id"];
+        fetchNShowPostList();
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void fetchNShowPostList() async {
+    curPostList.clear();
+
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          keyword != ""
+              ? 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter&keyword=$keyword'
+              : 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        if (keyword != "") {
+          setState(() {
+            curPostList = response.data["data"];
+            isLoading = false;
+            keyword = "";
+            searchController.clear();
+          });
+        } else {
+          setState(() {
+            curPostList = response.data["data"];
+            isLoading = false;
+          });
+        }
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  void addUserFollowPair(int userId, bool isFollow) {
+    setState(() {
+      userFollowMap[userId.toString()] = isFollow;
+      isLoading = true;
+      //remainPosition = true;
+      lastPosition = listViewController.offset;
+    });
+    fetchNShowPostList();
+  }
+
+  bool getUserFollowCond(int userId) {
+    return userFollowMap[userId.toString()];
+  }
+
+  void updatePostList(List newPostList) {
+    setState(() {
+      curPostList = newPostList;
+    });
+  }
+
+  void createPostTileList(double width) {
+    postTileList.clear();
+
+    for (int i = 0; i < curPostList.length; ++i) {
+      var tmp = curPostList[i]["accountId"].toString();
+      if (!userFollowMap.containsKey(tmp)) {
+        userFollowMap[tmp] = curPostList[i]["isFollow"];
+      }
+
+      postTileList.add(PostTile(
+        //key: UniqueKey(),
+        width: width,
+        curPost: curPostList[i],
+        curUserId: curUserId,
+        updatePostList: updatePostList,
+        getSelectedProperty: getSelectedProperty,
+        updateUserFollowMap: addUserFollowPair,
+        getFollowCond: getUserFollowCond,
+      ));
+    }
+  }
+
+  String getSelectedProperty(int index) {
+    if (index == 0) {
+      return className[curSelClassInd];
+    }
+    if (index == 1) {
+      return categoryName[curSelCatInd];
+    }
+    return selectedFilter;
+  }
 
   void headerButtonAction(int curIndex) {
     if (curSelClassInd == curIndex) {
       setState(() {
-        classSelected[curSelClassInd] = false;
-        classSelected[curIndex] = true;
-        curSelClassInd = curIndex;
+        //classSelected[curSelClassInd] = false;
+        //classSelected[curIndex] = true;
+        //curSelClassInd = curIndex;
         showHeader = !showHeader;
+        //isLoading = true;
+        lastPosition = listViewController.offset;
       });
     } else {
       setState(() {
@@ -116,14 +227,27 @@ class _MomentState extends State<Moment> {
         classSelected[curIndex] = true;
         curSelClassInd = curIndex;
         showHeader = true;
+        isLoading = true;
+        lastPosition = 0.0;
       });
+      fetchNShowPostList();
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getAccountId();
+    //fetchNShowPostList();
   }
 
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
+    listViewController = ScrollController(initialScrollOffset: lastPosition);
+
+    createPostTileList(screenWidth - 80);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -284,7 +408,9 @@ class _MomentState extends State<Moment> {
                                                         onTap: () {
                                                           setState(() {
                                                             curSelCatInd = 0;
+                                                            lastPosition = 0.0;
                                                           });
+                                                          fetchNShowPostList();
                                                         },
                                                         child: CategoryButton(
                                                             curInd:
@@ -301,7 +427,9 @@ class _MomentState extends State<Moment> {
                                                         onTap: () {
                                                           setState(() {
                                                             curSelCatInd = 1;
+                                                            lastPosition = 0.0;
                                                           });
+                                                          fetchNShowPostList();
                                                         },
                                                         child: CategoryButton(
                                                             curInd:
@@ -318,7 +446,9 @@ class _MomentState extends State<Moment> {
                                                         onTap: () {
                                                           setState(() {
                                                             curSelCatInd = 2;
+                                                            lastPosition = 0.0;
                                                           });
+                                                          fetchNShowPostList();
                                                         },
                                                         child: CategoryButton(
                                                             curInd:
@@ -335,7 +465,9 @@ class _MomentState extends State<Moment> {
                                                         onTap: () {
                                                           setState(() {
                                                             curSelCatInd = 3;
+                                                            lastPosition = 0.0;
                                                           });
+                                                          fetchNShowPostList();
                                                         },
                                                         child: CategoryButton(
                                                             curInd:
@@ -411,16 +543,19 @@ class _MomentState extends State<Moment> {
                                             onChanged: (value) {
                                               setState(() {
                                                 selectedFilter = value!;
+                                                lastPosition = 0.0;
                                               });
+                                              fetchNShowPostList();
                                             },
                                           ),
                                         ),
                                         // 搜索框
                                         Expanded(
-                                          child: Container(
+                                          child: SizedBox(
                                             width: screenWidth * 0.5,
                                             height: 30,
                                             child: TextField(
+                                              controller: searchController,
                                               onTap: () {},
                                               decoration: InputDecoration(
                                                   hintText: "关键词搜索",
@@ -449,7 +584,14 @@ class _MomentState extends State<Moment> {
                                                                           252),
                                                                   width: 2)),
                                                   suffixIcon: IconButton(
-                                                    onPressed: () {},
+                                                    onPressed: () {
+                                                      keyword =
+                                                          searchController.text;
+                                                      fetchNShowPostList();
+                                                      FocusScope.of(context)
+                                                          .requestFocus(
+                                                              FocusNode());
+                                                    },
                                                     icon: Image.asset(
                                                         "assets/icons/searchWhite.png",
                                                         width: 10),
@@ -471,26 +613,25 @@ class _MomentState extends State<Moment> {
                           decoration:
                               const BoxDecoration(color: Colors.black12),
                         ),
+                        // 帖子列表
                         Expanded(
-                            child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: Container(
-                            decoration:
-                                const BoxDecoration(color: Colors.black12),
-                            child: Column(
-                              children: [
-                                PostTile(
-                                    width: screenWidth - 80, curPost: testPost),
-                                PostTile(
-                                    width: screenWidth - 80,
-                                    curPost: testPost2),
-                                PostTile(
-                                    width: screenWidth - 80,
-                                    curPost: testPost3),
-                              ],
-                            ),
-                          ),
-                        )),
+                          child: isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : Container(
+                                  decoration: const BoxDecoration(
+                                      color: Colors.black12),
+                                  child: ListView.builder(
+                                      physics: const BouncingScrollPhysics(),
+                                      scrollDirection: Axis.vertical,
+                                      controller: listViewController,
+                                      shrinkWrap: true,
+                                      itemCount: postTileList.length,
+                                      itemBuilder:
+                                          (BuildContext context, index) {
+                                        return postTileList[index];
+                                      }),
+                                ),
+                        )
                       ]),
                     ),
                     // 发帖按钮
@@ -504,7 +645,13 @@ class _MomentState extends State<Moment> {
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
-                                  content: Post(width: screenWidth * 0.4),
+                                  content: Post(
+                                    width: screenWidth * 0.4,
+                                    curClass: className[curSelClassInd],
+                                    curCategory: categoryName[curSelCatInd],
+                                    curFilter: selectedFilter,
+                                    updatePostList: updatePostList,
+                                  ),
                                 );
                               });
                         },
@@ -528,6 +675,174 @@ class _MomentState extends State<Moment> {
     );
   }
 }
+
+/*
+class PostList extends StatefulWidget {
+  final double width;
+  final bool toUpdate;
+  final Function(int) getSelectedProperty;
+  final Function(bool) setChange;
+  const PostList(
+      {super.key,
+      required this.width,
+      required this.toUpdate,
+      required this.getSelectedProperty,
+      required this.setChange});
+
+  @override
+  State<PostList> createState() => _PostListState();
+}
+
+class _PostListState extends State<PostList> {
+  var curClass = "高血脂";
+  var curCategory = "饮食";
+  var curFilter = "最新发布";
+  var curPostList = [];
+  var postTileList = [];
+  var userFollowMap = {};
+  var curUserId = 0;
+  bool isLoading = false;
+  bool needUpdate = false;
+
+/*
+  // Moment API
+  void getAccountId() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/account/info',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        curUserId = response.data["data"]["id"];
+        fetchNShowPostList();
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void fetchNShowPostList() async {
+    setState(() {
+      isLoading = true;
+    });
+    curPostList.clear();
+
+    curClass = widget.getSelectedProperty(0);
+    curCategory = widget.getSelectedProperty(1);
+    curFilter = widget.getSelectedProperty(2);
+
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio();
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        if (!widget.toUpdate) {
+          setState(() {
+            curPostList = response.data["data"];
+            isLoading = false;
+          });
+        } else {
+          curPostList = response.data["data"];
+          widget.setChange(false);
+        }
+      }
+    } catch (e) {/**/}
+  }
+*/
+
+  void addUserFollowPair(int userId, bool isFollow) {
+    setState(() {
+      userFollowMap[userId.toString()] = isFollow;
+    });
+    fetchNShowPostList();
+  }
+
+  bool getUserFollowCond(int userId) {
+    return userFollowMap[userId.toString()];
+  }
+
+  void updatePostList(List newPostList) {
+    setState(() {
+      curPostList = newPostList;
+    });
+  }
+
+  void createPostTileList(double width) {
+    postTileList.clear();
+
+    for (int i = 0; i < curPostList.length; ++i) {
+      var tmp = curPostList[i]["accountId"].toString();
+      if (!userFollowMap.containsKey(tmp)) {
+        userFollowMap[tmp] = curPostList[i]["isFollow"];
+      }
+
+      postTileList.add(PostTile(
+        width: width,
+        curPost: curPostList[i],
+        curUserId: curUserId,
+        updatePostList: updatePostList,
+        getSelectedProperty: widget.getSelectedProperty,
+        updateUserFollowMap: addUserFollowPair,
+        getFollowCond: getUserFollowCond,
+      ));
+    }
+  }
+
+  void preprocess() {
+    curClass = widget.getSelectedProperty(0);
+    curCategory = widget.getSelectedProperty(1);
+    curFilter = widget.getSelectedProperty(2);
+    print("curClass:$curClass  curCategory:$curCategory  curFilter:$curFilter");
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    needUpdate = widget.toUpdate;
+    //getAccountId();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //widget.setChange(false);
+    //preprocess();
+    //createPostTileList(widget.width);
+    if (needUpdate) {
+      //fetchNShowPostList();
+      //getAccountId();
+    }
+    createPostTileList(widget.width);
+
+    return Expanded(
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Container(
+              decoration: const BoxDecoration(color: Colors.black12),
+              child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: postTileList.length,
+                  itemBuilder: (BuildContext context, index) {
+                    return postTileList[index];
+                  }),
+            ),
+    );
+  }
+} */
 
 class ClassButton extends StatelessWidget {
   final String title;
@@ -562,11 +877,6 @@ class ClassButton extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
         )
-
-        // Text(
-        //   title,
-        //   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        // )
       ]),
     );
   }
@@ -599,31 +909,231 @@ class CategoryButton extends StatelessWidget {
             fontWeight: curInd == catInd ? FontWeight.w900 : FontWeight.normal,
             color: curInd == catInd ? Colors.white : Colors.black,
           ),
-        )
-        // Text(
-        //   title,
-        //   textAlign: TextAlign.center,
-        //   style: TextStyle(
-        //       fontWeight: curInd == catInd ? FontWeight.w900 : FontWeight.normal,
-        //       color: curInd == catInd ? Colors.white : Colors.black,
-        //       fontSize: 16),
-        // ),
-        );
+        ));
   }
 }
 
 class PostTile extends StatefulWidget {
-  final PostInfo curPost;
+  final Map curPost;
   final double width;
-  const PostTile({super.key, required this.width, required this.curPost});
+  final int curUserId;
+  final Function(List) updatePostList;
+  final Function(int) getSelectedProperty;
+  final Function(int, bool) updateUserFollowMap;
+  final Function(int) getFollowCond;
+  const PostTile(
+      {super.key,
+      required this.width,
+      required this.curPost,
+      required this.curUserId,
+      required this.updatePostList,
+      required this.getSelectedProperty,
+      required this.updateUserFollowMap,
+      required this.getFollowCond});
 
   @override
   State<PostTile> createState() => _PostTileState();
 }
 
 class _PostTileState extends State<PostTile> {
-  bool addfriend = false;
+  bool isFollow = false;
+  bool isFavorite = false;
+  bool isLike = false;
+  int likeCount = 0;
+  int commentCount = 0;
+  int favoriteCount = 0;
   var imageContainerList = <Widget>[];
+  var commentList = [];
+  var updatedPostList = [];
+  var curClass = "";
+  var curCategory = "";
+  var curFilter = "";
+  bool isLoadingFollow = false;
+
+  void getProperty() {
+    curClass = widget.getSelectedProperty(0);
+    curCategory = widget.getSelectedProperty(1);
+    curFilter = widget.getSelectedProperty(2);
+  }
+
+  void refreshPage() {
+    fetchPostList();
+
+    setState(() {
+      isLoadingFollow = !isLoadingFollow;
+    });
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return const Dialog(
+            backgroundColor: Colors.transparent,
+          );
+        });
+
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      Navigator.pop(context);
+      setState(() {
+        isLoadingFollow = !isLoadingFollow;
+      });
+    });
+  }
+
+  // Moment API
+  void fetchPostList() async {
+    updatedPostList.clear();
+    getProperty();
+
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        print("fetched data");
+        updatedPostList = response.data["data"];
+        print(updatedPostList);
+        widget.updatePostList(updatedPostList);
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  // Moment API
+  void addPostToCollection() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/moment/favorite?momentId=${widget.curPost["id"]}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          isFavorite = true;
+          favoriteCount += 1;
+        });
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void removePostFromCollection() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/moment/unfavorite?momentId=${widget.curPost["id"]}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          isFavorite = false;
+          favoriteCount -= 1;
+        });
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void likePost() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/moment/like?momentId=${widget.curPost["id"]}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          isLike = true;
+          likeCount += 1;
+        });
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void unlikePost() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/moment/unlike?momentId=${widget.curPost["id"]}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          isLike = false;
+          likeCount -= 1;
+        });
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void followUser() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/moment/follow?momentAccountId=${widget.curPost["accountId"]}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        widget.updateUserFollowMap(widget.curPost["accountId"], true);
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void unfollowUser() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/moment/unfollow?momentAccountId=${widget.curPost["accountId"]}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        widget.updateUserFollowMap(widget.curPost["accountId"], false);
+      }
+    } catch (e) {/**/}
+  }
 
   void createImageConList(
       BuildContext context, List imageList, double imageSize) {
@@ -665,10 +1175,21 @@ class _PostTileState extends State<PostTile> {
                                 offset: Offset(1, 1),
                                 blurRadius: 3)
                           ]),
-                      child: Image.network(
-                        imageList[i],
+                      child: CachedNetworkImage(
                         fit: BoxFit.cover,
+                        imageUrl:
+                            "http://43.138.75.58:8080/static/${imageList[i]}",
+                        placeholder: (context, url) => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
+
+                      // Image.network(
+                      //   imageList[i],
+                      //   fit: BoxFit.cover,
+                      // ),
                     ),
                     Container(
                       width: imageSize,
@@ -697,9 +1218,22 @@ class _PostTileState extends State<PostTile> {
                             offset: Offset(1, 1),
                             blurRadius: 3)
                       ]),
-                  child: Image.network(
-                    imageList[i],
+                  child:
+                      // Image.network(
+                      //   //imageList[i],
+                      //   //"https://cdn.mos.cms.futurecdn.net/iC7HBvohbJqExqvbKcV3pP.jpg",
+                      //   "http://43.138.75.58:8080/static/1702984086797IMG_20231216_004005.jpg",
+                      //   fit: BoxFit.cover,
+                      // ),
+                      CachedNetworkImage(
                     fit: BoxFit.cover,
+                    imageUrl: "http://43.138.75.58:8080/static/${imageList[i]}",
+                    //"http://43.138.75.58:8080/static/1702984086797IMG_20231216_004005.jpg",
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
                   ),
                 ),
         ),
@@ -710,11 +1244,31 @@ class _PostTileState extends State<PostTile> {
     }
   }
 
+  List<String> separateString(String input) {
+    if (input.endsWith(';')) {
+      input = input.substring(0, input.length - 1);
+    }
+    List<String> result = input.split(';');
+    result.removeWhere((element) => element.isEmpty);
+    return result;
+  }
+
+  void changeCommentCount() {
+    setState(() {
+      commentCount += 1;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     setState(() {
-      addfriend = widget.curPost.addfriend;
+      isFollow = widget.getFollowCond(widget.curPost["accountId"]);
+      isFavorite = widget.curPost["isFavorite"];
+      isLike = widget.curPost["isLike"];
+      likeCount = widget.curPost["likeCount"];
+      commentCount = widget.curPost["commentCount"];
+      favoriteCount = widget.curPost["favoriteCount"];
     });
   }
 
@@ -723,14 +1277,20 @@ class _PostTileState extends State<PostTile> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
-    createImageConList(context, widget.curPost.images, widget.width * 0.33);
+    if (widget.curPost["images"] != "") {
+      createImageConList(context, separateString(widget.curPost["images"]),
+          widget.width * 0.33);
+    } else {
+      createImageConList(context, [], widget.width * 0.33);
+    }
 
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.fromLTRB(30, 15, 30, 15),
           decoration: const BoxDecoration(color: Colors.white),
-          child: Column(children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             // 帖子 header
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -742,7 +1302,10 @@ class _PostTileState extends State<PostTile> {
                   child: CircleAvatar(
                     radius: 21,
                     backgroundColor: Colors.white,
-                    backgroundImage: NetworkImage(widget.curPost.profilepic),
+                    backgroundImage: widget.curPost["profile"] != ""
+                        ? NetworkImage(widget.curPost["profile"])
+                        : const NetworkImage(
+                            "https://static.vecteezy.com/system/resources/previews/020/765/399/non_2x/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"),
                   ),
                 ),
                 // 用户名 & 发布日期
@@ -755,13 +1318,13 @@ class _PostTileState extends State<PostTile> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           Text(
-                            widget.curPost.username,
+                            widget.curPost["username"],
                             maxLines: 1,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w600),
                           ),
                           Text(
-                            widget.curPost.date,
+                            widget.curPost["date"],
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.black54),
                           )
@@ -777,32 +1340,46 @@ class _PostTileState extends State<PostTile> {
                     Row(
                       children: [
                         // 关注按键
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              addfriend = !addfriend;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(5, 0, 7, 0),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Colors.orange),
-                                borderRadius: BorderRadius.circular(10)),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  addfriend ? null : Icons.add,
-                                  size: addfriend ? 3 : 15,
-                                  color: Colors.orange,
+                        Visibility(
+                          visible:
+                              widget.curPost["accountId"] != widget.curUserId,
+                          child: isLoadingFollow
+                              ? const CircularProgressIndicator()
+                              : InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      if (isFollow) {
+                                        unfollowUser();
+                                      } else {
+                                        followUser();
+                                      }
+                                    });
+                                  },
+                                  child: Container(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(5, 0, 7, 0),
+                                    decoration: BoxDecoration(
+                                        border:
+                                            Border.all(color: Colors.orange),
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          isFollow ? null : Icons.add,
+                                          size: isFollow ? 3 : 15,
+                                          color: Colors.orange,
+                                        ),
+                                        Text(
+                                          isFollow ? "取消关注" : "关注",
+                                          style: const TextStyle(
+                                              color: Colors.orange,
+                                              fontSize: 14),
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                Text(
-                                  addfriend ? "取消关注" : "关注",
-                                  style: const TextStyle(
-                                      color: Colors.orange, fontSize: 14),
-                                )
-                              ],
-                            ),
-                          ),
                         ),
                         const SizedBox(
                           width: 10,
@@ -814,7 +1391,83 @@ class _PostTileState extends State<PostTile> {
                                 barrierColor: Colors.black87,
                                 context: context,
                                 builder: (BuildContext context) {
-                                  return const ConfirmReportDialog();
+                                  return AlertDialog(
+                                      insetPadding: EdgeInsets.zero,
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          widget.curPost["accountId"] ==
+                                                  widget.curUserId
+                                              ?
+                                              // 删除按钮
+                                              Row(
+                                                  children: [
+                                                    Expanded(
+                                                        child: TextButton(
+                                                            onPressed: () {
+                                                              Navigator.pop(
+                                                                  context);
+                                                              showDialog(
+                                                                  barrierColor:
+                                                                      Colors
+                                                                          .black87,
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          context) {
+                                                                    return DeleteDialog(
+                                                                        curPostId:
+                                                                            widget.curPost[
+                                                                                "id"],
+                                                                        getSelectedProperty:
+                                                                            widget
+                                                                                .getSelectedProperty,
+                                                                        updatePostList:
+                                                                            widget.updatePostList);
+                                                                  });
+                                                            },
+                                                            child: const Text(
+                                                              "删除",
+                                                              style: TextStyle(
+                                                                  fontSize: 18),
+                                                            )))
+                                                  ],
+                                                )
+                                              :
+                                              // 举报按钮
+                                              Row(
+                                                  children: [
+                                                    Expanded(
+                                                        child: TextButton(
+                                                            onPressed: () {
+                                                              Navigator.pop(
+                                                                  context);
+                                                              showDialog(
+                                                                  barrierColor:
+                                                                      Colors
+                                                                          .black87,
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          context) {
+                                                                    return ConfirmReportDialog(
+                                                                      postId: widget
+                                                                              .curPost[
+                                                                          "id"],
+                                                                    );
+                                                                  });
+                                                            },
+                                                            child: const Text(
+                                                              "举报",
+                                                              style: TextStyle(
+                                                                  fontSize: 18),
+                                                            )))
+                                                  ],
+                                                ),
+                                        ],
+                                      ));
                                 });
                           },
                           child: const Text(
@@ -830,27 +1483,40 @@ class _PostTileState extends State<PostTile> {
             ),
             const SizedBox(height: 10),
             Text(
-              widget.curPost.content,
+              widget.curPost["content"],
               style: const TextStyle(fontSize: 18, height: 1.5),
             ),
             const SizedBox(height: 10),
             // 照片栏 media = image
+            // widget.curPost["images"] != ""
+            //     ? Row(
+            //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //         children: imageContainerList,
+            //       )
+            //     : Container(),
             Visibility(
-              visible: widget.curPost.images.isNotEmpty,
+              visible: widget.curPost["images"] != "",
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: imageContainerList,
               ),
             ),
             // 视频 media = video
-            Visibility(
-              visible: widget.curPost.video != "",
-              child: VideoPlayerScreen(
-                enlarge: false,
-                videolink: widget.curPost.video,
-                fullscreen: false,
-              ),
-            ),
+            widget.curPost["video"] != ""
+                ? VideoPlayerScreen(
+                    enlarge: false,
+                    videolink: widget.curPost["video"],
+                    fullscreen: false,
+                  )
+                : Container(),
+            // Visibility(
+            //   visible: widget.curPost["video"] != "",
+            //   child: VideoPlayerScreen(
+            //     enlarge: false,
+            //     videolink: widget.curPost[],
+            //     fullscreen: false,
+            //   ),
+            // ),
             const SizedBox(height: 10),
             Container(
               color: Colors.black12,
@@ -882,20 +1548,24 @@ class _PostTileState extends State<PostTile> {
                   flex: 1,
                   child: InkWell(
                     onTap: () {
-                      setState(() {
-                        widget.curPost.star = !widget.curPost.star;
-                      });
+                      if (isFavorite) {
+                        removePostFromCollection();
+                      } else {
+                        addPostToCollection();
+                      }
                     },
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          widget.curPost.star
+                          isFavorite
                               ? MyIcons().collectionAdded()
                               : MyIcons().collection(),
                           const SizedBox(width: 5),
-                          const Text(
-                            "收藏",
-                            style: TextStyle(fontSize: 16),
+                          Text(
+                            favoriteCount <= 0
+                                ? "收藏"
+                                : favoriteCount.toString(),
+                            style: const TextStyle(fontSize: 16),
                           )
                         ]),
                   ),
@@ -911,8 +1581,11 @@ class _PostTileState extends State<PostTile> {
                             return AlertDialog(
                               insetPadding: EdgeInsets.zero,
                               content: CommentDialog(
-                                  width: screenWidth * 0.65,
-                                  height: screenHeight * 0.5),
+                                width: screenWidth * 0.65,
+                                height: screenHeight * 0.5,
+                                postId: widget.curPost["id"],
+                                incCommentCount: changeCommentCount,
+                              ),
                             );
                           });
                     },
@@ -921,9 +1594,9 @@ class _PostTileState extends State<PostTile> {
                         children: [
                           MyIcons().comment(),
                           const SizedBox(width: 5),
-                          const Text(
-                            "评论",
-                            style: TextStyle(fontSize: 16),
+                          Text(
+                            commentCount <= 0 ? "评论" : commentCount.toString(),
+                            style: const TextStyle(fontSize: 16),
                           )
                         ]),
                   ),
@@ -933,19 +1606,21 @@ class _PostTileState extends State<PostTile> {
                   child: InkWell(
                     onTap: () {
                       setState(() {
-                        widget.curPost.like = !widget.curPost.like;
+                        if (isLike) {
+                          unlikePost();
+                        } else {
+                          likePost();
+                        }
                       });
                     },
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          widget.curPost.like
-                              ? MyIcons().liked()
-                              : MyIcons().like(),
+                          isLike ? MyIcons().liked() : MyIcons().like(),
                           const SizedBox(width: 5),
-                          const Text(
-                            "点赞",
-                            style: TextStyle(fontSize: 16),
+                          Text(
+                            likeCount <= 0 ? "点赞" : likeCount.toString(),
+                            style: const TextStyle(fontSize: 16),
                           )
                         ]),
                   ),
@@ -955,6 +1630,134 @@ class _PostTileState extends State<PostTile> {
           ]),
         ),
         const SizedBox(height: 7),
+      ],
+    );
+  }
+}
+
+class DeleteDialog extends StatefulWidget {
+  final int curPostId;
+  final Function(int) getSelectedProperty;
+  final Function(List) updatePostList;
+  const DeleteDialog(
+      {super.key,
+      required this.curPostId,
+      required this.getSelectedProperty,
+      required this.updatePostList});
+
+  @override
+  State<DeleteDialog> createState() => _DeleteDialogState();
+}
+
+class _DeleteDialogState extends State<DeleteDialog> {
+  bool isLoading = false;
+  var updatedPostList = [];
+  var curClass = "";
+  var curCategory = "";
+  var curFilter = "";
+
+  void getProperty() {
+    curClass = widget.getSelectedProperty(0);
+    curCategory = widget.getSelectedProperty(1);
+    curFilter = widget.getSelectedProperty(2);
+  }
+
+  // Moment API
+  void deletePost() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio();
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/moment/delete?momentId=${widget.curPostId}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        refreshPost();
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void fetchNShowPostList() async {
+    getProperty();
+
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        updatedPostList = response.data["data"];
+        widget.updatePostList(updatedPostList);
+      } else {
+        //print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Request failed: $e');
+    }
+  }
+
+  void refreshPost() {
+    fetchNShowPostList();
+
+    setState(() {
+      isLoading = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      Navigator.pop(context);
+      isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text(
+        "操作提示",
+        style: TextStyle(fontSize: 24),
+      ),
+      content: Stack(
+        alignment: Alignment.center,
+        children: [
+          Visibility(
+            visible: isLoading,
+            child: const CircularProgressIndicator(),
+          ),
+          const Text(
+            "确认删除该帖子？",
+            style: TextStyle(fontSize: 22),
+          )
+        ],
+      ),
+      actions: [
+        TextButton(
+            onPressed: () {
+              deletePost();
+            },
+            child: const Text(
+              "确认",
+              style: TextStyle(fontSize: 20),
+            )),
+        TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text(
+              "取消",
+              style: TextStyle(fontSize: 20),
+            ))
       ],
     );
   }
