@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import '../account/token.dart';
 
 class CommentInfo {
   final String username;
@@ -21,7 +23,14 @@ class CommentInfo {
 class CommentDialog extends StatefulWidget {
   final double height;
   final double width;
-  const CommentDialog({super.key, required this.height, required this.width});
+  final int postId;
+  final Function() incCommentCount;
+  const CommentDialog(
+      {super.key,
+      required this.height,
+      required this.width,
+      required this.postId,
+      required this.incCommentCount});
 
   @override
   State<CommentDialog> createState() => _CommentDialogState();
@@ -30,8 +39,12 @@ class CommentDialog extends StatefulWidget {
 class _CommentDialogState extends State<CommentDialog> {
   bool canComment = false;
   bool showTextField = false;
+  bool hasQuote = false;
+  int curQuoteCommentId = -1;
   String hintText = "输入评论";
   final inputController = TextEditingController();
+  var commentList = [];
+  /*
   var commentList = [
     CommentInfo(
         comment: "评论加好奇，这是一个很长很长的评论哈哈哈哈应该够长了吗",
@@ -51,8 +64,65 @@ class _CommentDialogState extends State<CommentDialog> {
         quoteComment: "评论加好奇，这是一个很长很长的评论哈哈哈哈应该够长了吗",
         quoteUsername: "这个是第一个用户名",
         commentTime: "2023-12-01   13:21"),
-  ];
+  ]; */
   var commentTileList = [];
+
+  // Moment API
+  void fetchNShowCommentList() async {
+    commentList.clear();
+
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio();
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/moment/comment/list?momentId=${widget.postId}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        setState(() {
+          commentList = response.data["data"];
+        });
+      }
+    } catch (e) {/**/}
+  }
+
+  // Moment API
+  void postComment() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      FormData formData = FormData.fromMap(hasQuote
+          ? {
+              'momentId': widget.postId,
+              'content': inputController.value.text,
+              'quoteCommentId': curQuoteCommentId
+            }
+          : {'momentId': widget.postId, 'content': inputController.value.text});
+      final response = await dio.post(
+          'http://43.138.75.58:8080/api/moment/comment',
+          data: formData,
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          showTextField = false;
+          canComment = false;
+          inputController.clear();
+          hasQuote = false;
+        });
+        fetchNShowCommentList();
+      }
+    } catch (e) {/**/}
+  }
 
   void createCommentTileList(double width) {
     commentTileList.clear();
@@ -72,8 +142,10 @@ class _CommentDialogState extends State<CommentDialog> {
                           onPressed: () {
                             Navigator.pop(context);
                             setState(() {
-                              hintText = "回复${commentList[i].username}：";
+                              hintText = "回复${commentList[i]["username"]}：";
                               showTextField = true;
+                              hasQuote = true;
+                              curQuoteCommentId = commentList[i]["id"];
                             });
                           },
                         )
@@ -92,7 +164,8 @@ class _CommentDialogState extends State<CommentDialog> {
                   child: CircleAvatar(
                     radius: 20,
                     backgroundColor: Colors.white,
-                    backgroundImage: NetworkImage(commentList[i].profilepic),
+                    backgroundImage: NetworkImage(commentList[i]["profile"] ??
+                        "https://static.vecteezy.com/system/resources/previews/020/765/399/non_2x/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"),
                   ),
                 ),
                 const SizedBox(
@@ -100,83 +173,94 @@ class _CommentDialogState extends State<CommentDialog> {
                 ),
                 // 评论主体
                 Expanded(
-                    flex: 1,
-                    child: SizedBox(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 评论用户名
-                          Text(
-                            commentList[i].username,
+                  flex: 1,
+                  child: SizedBox(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 评论用户名
+                        Text(
+                          commentList[i]["username"],
+                          style:
+                              const TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        const SizedBox(
+                          height: 2,
+                        ),
+                        // 评论
+                        SizedBox(
+                          child: Text(
+                            commentList[i]["content"],
+                            overflow: TextOverflow.clip,
                             style: const TextStyle(
-                                fontSize: 14, color: Colors.grey),
+                                fontSize: 14, color: Colors.black87),
                           ),
-                          const SizedBox(
-                            height: 2,
-                          ),
-                          SizedBox(
-                            child: Text(
-                              commentList[i].comment,
-                              overflow: TextOverflow.clip,
-                              style: const TextStyle(
-                                  fontSize: 14, color: Colors.black87),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 2,
-                          ),
-                          // 评论日期、时间
-                          Text(
-                            commentList[i].commentTime,
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
-                          ),
-                          // 引用的评论
-                          Visibility(
-                            visible: commentList[i].hasQuote,
-                            child: Column(
-                              children: [
-                                const SizedBox(
-                                  height: 3,
-                                ),
-                                Container(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(5, 2, 5, 2),
-                                  decoration: BoxDecoration(
-                                      color: Colors.black12,
-                                      borderRadius: BorderRadius.circular(3)),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        commentList[i].quoteUsername,
-                                        style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black54),
-                                      ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                      Container(
-                                        child: Text(
-                                          commentList[i].quoteComment,
+                        ),
+                        const SizedBox(
+                          height: 2,
+                        ),
+                        // 评论日期、时间
+                        Text(
+                          commentList[i]["createTime"],
+                          style:
+                              const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        // 引用的评论
+                        Visibility(
+                          visible: commentList[i]["quoteCommentId"] != null,
+                          child: Column(
+                            children: [
+                              const SizedBox(
+                                height: 3,
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: Container(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(5, 2, 5, 2),
+                                    decoration: BoxDecoration(
+                                        color: Colors.black12,
+                                        borderRadius: BorderRadius.circular(3)),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // 引用评论用户名
+                                        Text(
+                                          commentList[i]
+                                                  ["quoteCommentUsername"] ??
+                                              "",
+                                          style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black54),
+                                        ),
+                                        const SizedBox(
+                                          height: 2,
+                                        ),
+                                        // 引用评论内容
+                                        Text(
+                                          commentList[i]
+                                                  ["quoteCommentContent"] ??
+                                              "",
                                           overflow: TextOverflow.clip,
                                           style: const TextStyle(
                                               fontSize: 14,
                                               color: Colors.black54),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
+                                      ],
+                                    ),
+                                  ))
+                                ],
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ))
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -193,6 +277,12 @@ class _CommentDialogState extends State<CommentDialog> {
         ],
       ));
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNShowCommentList();
   }
 
   @override
@@ -249,7 +339,10 @@ class _CommentDialogState extends State<CommentDialog> {
                           }
                         },
                         controller: inputController,
-                        style: const TextStyle(height: 1.5, fontSize: 20),
+                        style: const TextStyle(
+                          height: 1.5,
+                          fontSize: 20,
+                        ),
                         decoration: InputDecoration(hintText: hintText),
                         maxLines: 2,
                       ),
@@ -273,11 +366,8 @@ class _CommentDialogState extends State<CommentDialog> {
                     TextButton(
                         onPressed: canComment
                             ? () {
-                                setState(() {
-                                  showTextField = false;
-                                  inputController.clear();
-                                  canComment = false;
-                                });
+                                postComment();
+                                widget.incCommentCount();
                               }
                             : null,
                         child: const Text(
