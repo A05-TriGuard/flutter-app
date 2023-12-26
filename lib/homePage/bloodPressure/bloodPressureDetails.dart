@@ -1398,6 +1398,10 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   Future<void> getDataFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestEndDate = getFormattedDate(widget.date);
+    if (widget.selectedDays == "当前的月") {
+      requestEndDate = getFormattedDate(
+          DateTime(widget.date.year, widget.date.month + 1, 0));
+    }
     //print(
     //    '请求日期：$requestStartDate ~~~ $requestEndDate ??????????????????????????????????');
 

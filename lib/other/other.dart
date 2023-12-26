@@ -33,6 +33,8 @@ String getStartDate(DateTime endDate, String selectedDays) {
     startDate = endDate;
   } else if (selectedDays == "当前的月") {
     startDate = DateTime(endDate.year, endDate.month, 1);
+    // endDate为当前月份的最后一天
+    //endDate = DateTime(endDate.year, endDate.month + 1, 0);
   } else {
     startDate = endDate.subtract(const Duration(days: 7));
   }

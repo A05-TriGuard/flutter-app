@@ -1,4 +1,3 @@
-//import 'dart:html';
 import 'dart:async';
 import 'dart:convert';
 
@@ -22,6 +21,53 @@ import '../bloodPressure/bloodPressureEdit.dart'
 const List<String> method = <String>['手机号', '邮箱'];
 typedef UpdateDateCallback = void Function(DateTime newDate);
 typedef UpdateDaysCallback = void Function(String newDays);
+List<String> items = [
+  '不选',
+  '跑步',
+  '散步',
+  '骑行',
+  '游泳',
+  '跳水',
+  '篮球',
+  '足球',
+  '羽毛球',
+  '乒乓球',
+  '网球',
+  '台球',
+  '壁球',
+  '排球',
+  '藤球',
+  '毽子',
+  '健身',
+  '瑜伽',
+  '跳绳',
+  '爬山',
+  '太极',
+  '武术',
+  '散手',
+  '气功',
+  '八段锦',
+  '跆拳道',
+  '空手道',
+  '拳击',
+  '柔道',
+  '飞盘',
+  '滑板',
+  '轮滑',
+  '滑雪',
+  '滑冰',
+  '攀岩',
+  '高尔夫',
+  '保龄球',
+  '桌球',
+  '棒球',
+  '垒球',
+  '橄榄球',
+  '曲棍球',
+  '冰球',
+  '板球',
+  '其他'
+];
 
 // 图表天数选择
 // ignore: must_be_immutable
@@ -117,11 +163,13 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
 // 血压图表
 // ignore: must_be_immutable
 class BloodPressureGraph extends StatefulWidget {
+  final int accountId;
   DateTime date;
   final String selectedDays;
   final UpdateDateCallback updateDate;
   BloodPressureGraph(
       {Key? key,
+      required this.accountId,
       required this.date,
       required this.selectedDays,
       required this.updateDate})
@@ -134,6 +182,8 @@ class BloodPressureGraph extends StatefulWidget {
 class _BloodPressureGraphState extends State<BloodPressureGraph> {
   // 从后端请求得到的原始数据
   List<dynamic> data = [];
+  List<dynamic> exerciseDataList = [];
+  List<dynamic> stepDataList = [];
 
   // 显示的数据
   List<int> dayData = [];
@@ -143,72 +193,65 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
   List<int> heartRateData = [];
   List<int> exercisingData = [];
   List<int> stepCountData = [];
+  List<int> durationData = [];
 
-  // 从后端请求数据
-  Future<void> getDataFromServer() async {
+  // 获取运动与步数数据
+  Future<void> getDataListFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestEndDate = getFormattedDate(widget.date);
-    print(
-        '请求日期：$requestStartDate ~~~ $requestEndDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+    //String endDate = getFormattedDate(widget.date);
+    if (widget.selectedDays == "当前的月") {
+      requestEndDate = getFormattedDate(
+          DateTime(widget.date.year, widget.date.month + 1, 0));
+    }
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
+    var arguments = {
+      "startDate": requestStartDate,
+      "endDate": requestEndDate,
+    };
 
-    try {
-      response = await dio.get(
-        "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
-        queryParameters: {
-          "startDate": requestStartDate,
-          "endDate": requestEndDate,
-        },
-      );
-      if (response.data["code"] == 200) {
-        print("获取血压数据成功");
-        //print(response.data["data"]);
-        data = response.data["data"];
-        //bpdata = response.data["data"];
-      } else {
-        print(response);
-        data = [];
-      }
-    } catch (e) {
-      print(e);
+    if (widget.accountId >= 0) {
+      arguments["accountId"] = (widget.accountId).toString();
+    }
+
+    response = await dio.get(
+      "http://43.138.75.58:8080/api/sports/info",
+      queryParameters: arguments,
+    );
+    if (response.data["code"] == 200) {
+      data = response.data["data"];
+    } else {
+      print(response);
       data = [];
     }
 
+    //print("======================图表数据=====================");
+    //print(data);
+
+    stepCountData = [];
+    exercisingData = [];
     dayData = [];
     monthData = [];
-    sbpData = [];
-    dbpData = [];
-    heartRateData = [];
-    exercisingData = [];
-    stepCountData = [];
 
-    for (int i = data.length - 1; i >= 0; i--) {
-      int id_ = data[i]["id"];
+    for (int i = 0; i < data.length; i++) {
       String date_ = data[i]["date"];
       int month_ = int.parse(date_.split("-")[1]);
       int day_ = int.parse(date_.split("-")[2]);
-      int sbp_ = data[i]["sbp"];
-      int dbp_ = data[i]["dbp"];
-      int heartRate_ = data[i]["heartRate"];
 
+      stepCountData.add(data[i]["steps"]);
+      exercisingData.add(data[i]["duration"]);
       dayData.add(day_);
       monthData.add(month_);
-      sbpData.add(sbp_);
-      dbpData.add(dbp_);
-      heartRateData.add(heartRate_);
     }
 
-    // TODO 删除
-    exercisingData = sbpData;
-    stepCountData = dbpData;
+    //setState(() {});
   }
 
   @override
@@ -221,12 +264,10 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
   @override
   Widget build(BuildContext context) {
-    print('血压折线图更新build：${widget.date}，天数：${widget.selectedDays}');
+    //print('血压折线图更新build：${widget.date}，天数：${widget.selectedDays}');
 
-    // after getDataFromServer finish then return the Echarts widget
     return FutureBuilder(
-      // Replace getDataFromServer with the Future you want to wait for
-      future: getDataFromServer(),
+      future: getDataListFromServer(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return UnconstrainedBox(
@@ -395,6 +436,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 // 日期选择器 与 血压图表 组件
 // ignore: must_be_immutable
 class BloodPressureGraphWidget extends StatefulWidget {
+  final int accountId;
   DateTime date;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
@@ -403,6 +445,7 @@ class BloodPressureGraphWidget extends StatefulWidget {
   BloodPressureGraphWidget(
       {Key? key,
       required this.date,
+      required this.accountId,
       required this.selectedDays,
       required this.updateView,
       required this.updateDate,
@@ -419,14 +462,13 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     //setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
+    //print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
 
     /* BloodPressureGraph graph =  BloodPressureGraph(
       date: widget.date,
@@ -442,7 +484,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
     );
 
     return UnconstrainedBox(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(children: [
           Column(
@@ -457,6 +499,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
           ),
           //graph,
           BloodPressureGraph(
+            accountId: widget.accountId,
             date: widget.date,
             //selectedDays: selectedDays2,
             selectedDays: widget.selectedDays,
@@ -470,29 +513,31 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 
 // 只展示 （有备注）
 class BloodPressureData extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   final int id;
   final DateTime date;
-  final int hour;
-  final int minute;
-  final int SBloodpressure;
-  final int DBloodpressure;
-  final int heartRate;
-  final int arm;
+  final String startTime;
+  final String endTime;
+  final int duration;
+  final int type;
+
   final int feeling;
   final String remark;
+
   final VoidCallback updateData;
 
   const BloodPressureData(
       {Key? key,
+      required this.accountId,
+      required this.nickname,
       required this.id,
       required this.date,
-      required this.hour,
-      required this.minute,
-      required this.SBloodpressure,
-      required this.DBloodpressure,
-      required this.heartRate,
+      required this.startTime,
+      required this.endTime,
+      required this.duration,
+      required this.type,
       required this.feeling,
-      required this.arm,
       required this.remark,
       required this.updateData})
       : super(key: key);
@@ -509,9 +554,7 @@ class _BloodPressureDataState extends State<BloodPressureData> {
 
   Widget getInfoPage() {
     return Container(
-      //duration: Duration(milliseconds: 1000),
-      //curve: Curves.easeInOut,
-      height: 80,
+      height: 180,
       width: MediaQuery.of(context).size.width * 0.85,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -521,35 +564,98 @@ class _BloodPressureDataState extends State<BloodPressureData> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            Text(
-                '${widget.hour < 10 ? "0${widget.hour}" : widget.hour}:${widget.minute < 10 ? "0${widget.minute}" : widget.minute}',
-                style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai")),
-            Column(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('血压: ${widget.SBloodpressure} / ${widget.DBloodpressure}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                Text('心率: ${widget.heartRate} ',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                const Text(
+                  '开始时间: ',
+                  style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                ),
+                Text(
+                  widget.startTime,
+                  style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai"),
+                ),
               ],
             ),
-            Column(
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('手臂: ${armButtonTypes[widget.arm]}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                Text('感觉: ${feelingButtonTypes[widget.feeling]}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                const Text(
+                  '结束时间: ',
+                  style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                ),
+                Text(
+                  widget.endTime,
+                  style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai"),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  '总时长: ',
+                  style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      (widget.duration).toString(),
+                      style: const TextStyle(
+                          fontSize: 20, fontFamily: "BalooBhai"),
+                    ),
+                    const Text(
+                      '分钟',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: "BalooBhai",
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  '运动类型: ',
+                  style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                ),
+                Text(
+                  items[widget.type],
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: "BalooBhai",
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  '感觉: ',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: "BalooBhai",
+                  ),
+                ),
+                Text(
+                  feelingButtonTypes[widget.feeling],
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: "BalooBhai",
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ],
@@ -560,7 +666,7 @@ class _BloodPressureDataState extends State<BloodPressureData> {
 
   Widget getRemarkPage() {
     return Container(
-      height: 80,
+      height: 180,
       width: MediaQuery.of(context).size.width * 0.85,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -630,18 +736,6 @@ class _BloodPressureDataState extends State<BloodPressureData> {
     );
   }
 
-  /* @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(
-          height: 5,
-        ),
-        getInfoPage(),
-      ],
-    );
-  } */
-
   @override
   Widget build(BuildContext context) {
     Widget infoPage = getInfoPage();
@@ -658,23 +752,6 @@ class _BloodPressureDataState extends State<BloodPressureData> {
           });
         }
       },
-      /* child: Container(
-        //duration: Duration(milliseconds: 1000),
-        //curve: Curves.easeIn,
-        child: showRemark ? getRemarkPage() : infoPage,
-      ), */
-
-      /* child: AnimatedContainer(
-        duration: Duration(milliseconds: 1000),
-        //curve: Curves.easeInOut,
-        width: showRemark == true
-            ? MediaQuery.of(context).size.width * 0.85
-            : MediaQuery.of(context).size.width * 0.85,
-        height: showRemark == true ? 160 : 80,
-        curve: Curves.fastOutSlowIn,
-        child: showRemark ? getRemarkPage() : infoPage,
-      ), */
-
       child: Stack(
         alignment: Alignment.topRight,
         children: [
@@ -720,23 +797,23 @@ class _BloodPressureDataState extends State<BloodPressureData> {
           GestureDetector(
             onTap: () {
               print("编辑 ${widget.id}");
-              /* Navigator.push(
+              // accountId, nickname, date, activityDataId
+              var args = {
+                "accountId": widget.accountId,
+                "nickname": widget.nickname,
+                "date": widget.date,
+                "activityDataId": widget.id,
+              };
+              Navigator.pushNamed(context, '/homePage/Activity/Edit',
+                      arguments: args)
+                  .then((_) {
+                //print("哈哈哈");
+                widget.updateData();
+              });
+              /*  Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => BloodPressureEdit(
-                    arguments: {
-                      "bpDataId": widget.id,
-                      "date": widget.date,
-                      "prevPage": 1,
-                    },
-                  ),
-                ),
-              ); */
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BloodPressureEdit(
+                  builder: (context) => Edit(
                     arguments: {
                       "bpDataId": widget.id,
                       "date": widget.date,
@@ -747,7 +824,7 @@ class _BloodPressureDataState extends State<BloodPressureData> {
               ).then((_) {
                 //print("哈哈哈");
                 widget.updateData();
-              });
+              }); */
             },
             child: Container(
               child: Image.asset(
@@ -763,80 +840,20 @@ class _BloodPressureDataState extends State<BloodPressureData> {
   }
 }
 
-// 当日没有数据
-class NoDataWidget extends StatelessWidget {
-  const NoDataWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return UnconstrainedBox(
-      child: Stack(
-        alignment: Alignment.topRight,
-        children: [
-          Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20.0),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
-                ),
-              ],
-            ),
-            child: const Center(
-              child: Text(
-                "暂无数据",
-                style: TextStyle(
-                    fontSize: 20,
-                    fontFamily: "BalooBhai",
-                    color: Color.fromRGBO(48, 48, 48, 1)),
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              print("添加数据");
-              /* Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BloodPressureEdit(
-                    arguments: {
-                      "bpDataId": -1,
-                      "date": DateTime.now(),
-                      "prevPage": 0,
-                    },
-                  ),
-                ),
-              ).then((_) {
-                //print("哈哈哈");
-                widget.updateData();
-              }); */
-            },
-            child: Container(
-              height: 20,
-              width: 20,
-              child: Image.asset("assets/icons/add.png", width: 20, height: 20),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // 当日没有数据 可以跳转至添加数据页面
 class NoDataListWidget extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   final DateTime date;
   final VoidCallback updateData;
 
-  const NoDataListWidget(
-      {Key? key, required this.date, required this.updateData})
-      : super(key: key);
+  const NoDataListWidget({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.date,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
   State<NoDataListWidget> createState() => _NoDataListWidgetState();
@@ -848,7 +865,7 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
     return UnconstrainedBox(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
-        height: 80,
+        height: 195,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20.0),
@@ -878,18 +895,15 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
             GestureDetector(
               onTap: () {
                 print("添加数据");
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BloodPressureEdit(
-                      arguments: {
-                        "bpDataId": -1,
-                        "date": widget.date,
-                        "prevPage": 1,
-                      },
-                    ),
-                  ),
-                ).then((_) {
+                var args = {
+                  "accountId": widget.accountId,
+                  "nickname": widget.nickname,
+                  "date": widget.date,
+                  "activityDataId": -1,
+                };
+                Navigator.pushNamed(context, '/homePage/Activity/Edit',
+                        arguments: args)
+                    .then((_) {
                   //print("哈哈哈");
                   widget.updateData();
                 });
@@ -911,15 +925,19 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
 // 展示所有
 // ignore: must_be_immutable
 class BloodPressureDataList extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   final VoidCallback updateData;
   DateTime date;
   int showMore;
-  BloodPressureDataList(
-      {Key? key,
-      required this.date,
-      required this.showMore,
-      required this.updateData})
-      : super(key: key);
+  BloodPressureDataList({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.date,
+    required this.showMore,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
   State<BloodPressureDataList> createState() => _BloodPressureDataListState();
@@ -932,74 +950,40 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
   int length = 1;
 
   Future<void> getDataFromServer() async {
-    print(
-        '请求日期：${widget.date.year}-${widget.date.month}-${widget.date.day}....................................');
     String requestDate = getFormattedDate(widget.date);
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
+    var arguments = {
+      "startDate": requestDate,
+      "endDate": requestDate,
+    };
 
-    try {
-      response = await dio.get(
-        "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
-        queryParameters: {
-          "startDate": requestDate,
-          "endDate": requestDate,
-        },
-      );
-      if (response.data["code"] == 200) {
-        //print("获取血压数据成功");
-        //print(response.data["data"]);
-        data = response.data["data"];
-        //bpdata = response.data["data"];
-      } else {
-        print(response);
-        data = [];
-      }
-    } catch (e) {
-      print(e);
-      data = [];
+    if (widget.accountId >= 0) {
+      arguments["accountId"] = (widget.accountId).toString();
     }
 
+    response = await dio.get(
+      "http://43.138.75.58:8080/api/sports/exercise/list",
+      queryParameters: arguments,
+    );
+    if (response.data["code"] == 200) {
+      if (response.data["data"] == null) {
+        data = [];
+      } else {
+        data = response.data["data"];
+      }
+    } else {
+      print(response);
+      data = [];
+    }
+    // print("===============运动数据列表=====================");
     //print(data);
-
-    //dataWidget = [];
-
-    /* for (int i = 0; i < data.length; i++) {
-      int id_ = data[i]["id"];
-      DateTime date_ = DateTime.parse(data[i]["date"]);
-      String timeStr = data[i]["time"];
-      int hour = int.parse(timeStr.split(":")[0]);
-      int minute = int.parse(timeStr.split(":")[1]);
-      DateTime time_ = DateTime(2023, 01, 01, hour, minute);
-      int sbp_ = data[i]["sbp"];
-      int dbp_ = data[i]["dbp"];
-      int heartRate_ = data[i]["heartRate"];
-      int arm_ = data[i]["arm"];
-      int feeling_ = data[i]["feeling"];
-      String remark_ = data[i]["remark"] ?? "暂无备注";
-      data[i]["isExpanded"] = 0; // 默认收起
-
-      /* print("=====第$i条数据=====");
-      print("id: $id_");
-      print("date: $date_");
-      print("time: $time_");
-      print("sbp: $sbp_");
-      print("dbp: $dbp_");
-      print("heartRate: $heartRate_");
-      print("arm: $arm_");
-      print("feeling: $feeling_");
-      print("remark: $remark_");
-      print("==================="); */
-    } */
-
-    //setState(() {});
   }
 
   @override
@@ -1007,46 +991,21 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     // TODO: 从后端请求数据
 
     super.initState();
-    getDataFromServer().then((_) {
+    /* getDataFromServer().then((_) {
       getdataWidgetList();
-    });
-  }
-
-  void getWidgetList() {
-    dataWidget = [];
-
-    //TODO 要考虑到当天没有数据的情况
-
-    // 收起时就显示一个
-
-    if (widget.showMore == 1) {
-      length = data2.length;
-    } else {
-      length = 1;
-    }
-
-    print("length: $length````````````````````````````````````");
-    //print(data2);
-
-    for (int i = 0; i < length; i++) {
-      dataWidget.add(BloodPressureData(
-        id: data2[i]["id"],
-        date: widget.date,
-        hour: data2[i]["hour"],
-        minute: data2[i]["minute"],
-        SBloodpressure: data2[i]["sbp"],
-        DBloodpressure: data2[i]["dbp"],
-        heartRate: data2[i]["heartRate"],
-        feeling: data2[i]["feeling"],
-        arm: data2[i]["arm"],
-        remark: data2[i]["remark"],
-        updateData: widget.updateData,
-      ));
-    }
+    }); */
   }
 
   void getdataWidgetList() {
     dataWidget = [];
+
+    // 如果data[i]["endTime"] == null ，则剔除这一项
+    for (int i = 0; i < data.length; i++) {
+      if (data[i]["endTime"] == null) {
+        data.removeAt(i);
+        i--;
+      }
+    }
 
     //TODO 要考虑到当天没有数据的情况
 
@@ -1060,6 +1019,8 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     if (data.isEmpty) {
       //dataWidget.add(NoDataWidget());
       dataWidget.add(NoDataListWidget(
+        accountId: widget.accountId,
+        nickname: widget.nickname,
         date: widget.date,
         updateData: widget.updateData,
       ));
@@ -1068,45 +1029,36 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     }
 
     for (int i = 0; i < data.length; i++) {
+      if (data[i]["endTime"] == null) {
+        continue;
+      }
       int id_ = data[i]["id"];
-      DateTime date_ = DateTime.parse(data[i]["date"]);
-      String timeStr = data[i]["time"];
-      int hour_ = int.parse(timeStr.split(":")[0]);
-      int minute_ = int.parse(timeStr.split(":")[1]);
-      DateTime time_ = DateTime(2023, 01, 01, hour_, minute_);
-      int sbp_ = data[i]["sbp"];
-      int dbp_ = data[i]["dbp"];
-      int heartRate_ = data[i]["heartRate"];
-      int arm_ = data[i]["arm"];
-      int feeling_ = data[i]["feeling"];
-      String remark_ = data[i]["remark"] ?? "暂无备注";
-      data[i]["isExpanded"] = 0; // 默认收起
+      String startTime = data[i]["startTime"];
+      String endTime = data[i]["endTime"];
+      int duration = data[i]["duration"];
+      int type = data[i]["type"];
+      int feelings = data[i]["feelings"];
+      String remark = data[i]["remark"] ?? "暂无备注";
 
-      /* print("=====第$i条数据=====");
-      print("id: $id_");
-      print("date: $date_");
-      print("time: $time_");
-      print("sbp: $sbp_");
-      print("dbp: $dbp_");
-      print("heartRate: $heartRate_");
-      print("arm: $arm_");
-      print("feeling: $feeling_");
-      print("remark: $remark_");
-      print("==================="); */
-
-      dataWidget.add(BloodPressureData(
-        id: id_,
-        date: date_,
-        hour: hour_,
-        minute: minute_,
-        SBloodpressure: sbp_,
-        DBloodpressure: dbp_,
-        heartRate: heartRate_,
-        feeling: feeling_,
-        arm: arm_,
-        remark: remark_,
-        updateData: widget.updateData,
+      dataWidget.add(UnconstrainedBox(
+        child: BloodPressureData(
+          accountId: widget.accountId,
+          nickname: widget.nickname,
+          id: id_,
+          date: widget.date,
+          startTime: startTime,
+          endTime: endTime,
+          duration: duration,
+          type: type,
+          feeling: feelings,
+          remark: remark,
+          updateData: widget.updateData,
+        ),
       ));
+    }
+
+    if (data.isEmpty) {
+      dataWidget.add(const NoDataWidget());
     }
 
     //setState(() {});
@@ -1116,34 +1068,16 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
   Widget build(BuildContext context) {
     print(
         "-----------------------------------------------------------------------");
-    /* getDataFromServer().then((_) {
-      getdataWidgetList();
-    });
-
-    // 收起展开的动画
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      height: length == 1 ? 95 : 95.0 * length,
-      curve: Curves.easeInOut,
-      child: SingleChildScrollView(
-        child: Column(
-          children: dataWidget,
-        ),
-      ),
-    ); */
 
     return FutureBuilder(
-      // Replace getDataFromServer with the Future you want to wait for
       future: getDataFromServer(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          // getDataFromServer is complete, now call getdataWidgetList
           getdataWidgetList();
 
-          // Return the AnimatedContainer here
           return AnimatedContainer(
             duration: const Duration(milliseconds: 1500),
-            height: length == 1 ? 95 : 95.0 * length,
+            height: length == 1 ? 195 : 195.0 * length,
             curve: Curves.easeInOut,
             child: SingleChildScrollView(
               child: Column(
@@ -1152,16 +1086,10 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
             ),
           );
         } else {
-          // You can return a loading indicator or placeholder here
-          //return CircularProgressIndicator();
-          //return Container();
           return UnconstrainedBox(
             child: Container(
               width: MediaQuery.of(context).size.width * 0.85,
               height: 100,
-              /* child: const Center(
-                child: CircularProgressIndicator(),
-              ), */
               child: Center(
                 child: LoadingAnimationWidget.staggeredDotsWave(
                     color: Colors.pink, size: 25),
@@ -1177,15 +1105,19 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 //展示列表数据接口
 // ignore: must_be_immutable
 class BloodPressureDataWidget extends StatefulWidget {
+  final int accountId;
+  final String nickname;
   DateTime date;
   final VoidCallback updateView;
   final VoidCallback updateData;
-  BloodPressureDataWidget(
-      {Key? key,
-      required this.date,
-      required this.updateView,
-      required this.updateData})
-      : super(key: key);
+  BloodPressureDataWidget({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.date,
+    required this.updateView,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
   State<BloodPressureDataWidget> createState() =>
@@ -1211,6 +1143,8 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
   @override
   Widget build(BuildContext context) {
     dataWidgetList = BloodPressureDataList(
+      accountId: widget.accountId,
+      nickname: widget.nickname,
       date: widget.date,
       showMore: showMore,
       updateData: widget.updateData,
@@ -1360,7 +1294,7 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
 
   @override
   Widget build(BuildContext context) {
-    print("血压统计饼图更新 ${widget.date} ${widget.selectedDays}");
+    //print("血压统计饼图更新 ${widget.date} ${widget.selectedDays}");
 
     return Container(
       width: MediaQuery.of(context).size.width * 0.85,
@@ -1389,6 +1323,7 @@ class BloodPressureStaticWidget extends StatefulWidget {
   final String selectedDays;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
+  final int accountId;
 
   BloodPressureStaticWidget({
     Key? key,
@@ -1397,6 +1332,7 @@ class BloodPressureStaticWidget extends StatefulWidget {
     required this.selectedDays,
     required this.updateView,
     required this.updateDate,
+    required this.accountId,
   }) : super(key: key);
 
   @override
@@ -1409,10 +1345,12 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   int pageNum = 0;
 
   List<dynamic> data = [];
-  List<String> seriesName = ["收缩压", "舒张压", "心率"];
+  List<String> seriesName = ["运动时长", "步数"];
   List<int> SBPTimes = [0, 0, 0, 0];
   List<int> DBPTimes = [0, 0, 0, 0];
   List<int> heartRateTimes = [0, 0, 0, 0];
+  List<int> stepTimes = [0, 0, 0, 0];
+  List<int> exerciseTimes = [0, 0, 0, 0];
   List<int> total = [0, 0, 0];
   List<int> avg = [];
   int averageSbp = 0;
@@ -1420,31 +1358,140 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   int totalTimes = 0;
   int averageHr = 0;
 
-  Future<void> getDataFromServer() async {
+  Future<void> getDataFromServer0() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestEndDate = getFormattedDate(widget.date);
-    print(
-        '请求日期：$requestStartDate ~~~ $requestEndDate ??????????????????????????????????');
-
+    if (widget.selectedDays == "当前的月") {
+      requestEndDate = getFormattedDate(
+          DateTime(widget.date.year, widget.date.month + 1, 0));
+    }
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
 
+    var params = {
+      "startDate": requestStartDate,
+      "endDate": requestEndDate,
+    };
+
+    if (widget.accountId != -1) {
+      params["accountId"] = widget.accountId.toString();
+    }
+    // List<dynamic> testData = [];
+
+    try {
+      response = await dio.post(
+          "http://43.138.75.58:8080/api/sports/exercise/filter",
+          data: params);
+
+      if (response.data["code"] == 200) {
+        //print("获取血压数据成功（饼图）");
+        //print(response.data["data"]);
+        //data = response.data["data"]["countedDataList"];
+        // print("?????????????????????????????????");
+        //print(response.data["data"]["countedDataList"]);
+        data = response.data["data"]["countedDataList"];
+        //bpdata = response.data["data"];
+      } else {
+        print(response);
+        data = [];
+      }
+    } catch (e) {
+      print(e);
+      data = [];
+    }
+
+    //return;
+
+    //print(data);
+
+    stepTimes = [];
+    exerciseTimes = [];
+
+    SBPTimes = [];
+    DBPTimes = [];
+    heartRateTimes = [];
+
+    avg = [];
+    total = [];
+    //{name: steps, less: 7, fewer: 0, medium: 1, more: 0},
+    //{name: exercise, less: 6, fewer: 1, medium: 0, more: 1}
+
+    /* [
+    {name: sbp, min: 88, max: 111, avg: 101, high: 0, medium: 8, low: 1, abnormal: 0, count: 9}, 
+    {name: dbp, min: 70, max: 111, avg: 83, high: 5, medium: 3, low: 0, abnormal: 1, count: 9}, 
+    {name: heart_rate, min: 72, max: 108, avg: 91, high: 1, medium: 8, low: 0, abnormal: 0, count: 9}] */
+
+    for (int i = 0; i < data.length; i++) {
+      if (data[i]["name"] == "steps") {
+        stepTimes.add(data[i]["less"]);
+        stepTimes.add(data[i]["fewer"]);
+        stepTimes.add(data[i]["medium"]);
+        stepTimes.add(data[i]["more"]);
+      } else if (data[i]["name"] == "exercise") {
+        exerciseTimes.add(data[i]["less"]);
+        exerciseTimes.add(data[i]["fewer"]);
+        exerciseTimes.add(data[i]["medium"]);
+        exerciseTimes.add(data[i]["more"]);
+      }
+    }
+
+    for (int i = 0; i < stepTimes.length; i++) {
+      totalTimes += stepTimes[i];
+    }
+
+    /* for (int i = 0; i < exerciseTimes.length; i++) {
+      totalTimes += exerciseTimes[i];
+    } */
+
+    /*  print("SBPTimes: $SBPTimes");
+    print("DBPTimes: $DBPTimes");
+    print("heartRateTimes: $heartRateTimes");
+    print("total: $total");
+    print("avg: $avg"); */
+  }
+
+  Future<void> getDataFromServer() async {
+    await getDataFromServer0();
+
+    String requestStartDate = getStartDate(widget.date, widget.selectedDays);
+    String requestEndDate = getFormattedDate(widget.date);
+    if (widget.selectedDays == "当前的月") {
+      requestEndDate = getFormattedDate(
+          DateTime(widget.date.year, widget.date.month + 1, 0));
+    }
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    var params = {
+      "startDate": requestStartDate,
+      "endDate": requestEndDate,
+    };
+
+    if (widget.accountId != -1) {
+      params["accountId"] = widget.accountId.toString();
+    }
+
     try {
       response = await dio.post(
         "http://43.138.75.58:8080/api/blood-pressure/get-by-filter",
-        data: {
+        /*  data: {
           "startDate": requestStartDate,
           "endDate": requestEndDate,
-        },
+        }, */
+        data: params,
       );
       if (response.data["code"] == 200) {
-        print("获取血压数据成功（饼图）");
+        //print("获取血压数据成功（饼图）");
         //print(response.data["data"]);
         data = response.data["data"]["countedDataList"];
         //bpdata = response.data["data"];
@@ -1490,91 +1537,44 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
       total.add(data[i]["count"]);
       avg.add(data[i]["avg"]);
     }
-
-    print("SBPTimes: $SBPTimes");
-    print("DBPTimes: $DBPTimes");
-    print("heartRateTimes: $heartRateTimes");
-    print("total: $total");
-    print("avg: $avg");
   }
 
   @override
   void initState() {
     // TODO: 从后端请求数据
     super.initState();
-    SBPTimes = DBPTimes = [3, 13, 5, 1];
-    heartRateTimes = [4, 12, 6, 0];
-    avg = [120, 99, 95];
-    totalTimes = 22;
-    averageSbp = 120;
-    averageDbp = 99;
-    averageHr = 95;
-    print("饼图 initstate");
+    SBPTimes = DBPTimes = [0, 0, 0, 0];
+    heartRateTimes = [0, 0, 0, 0];
+    avg = [0, 0, 0];
+    total = [0, 0, 0];
+    totalTimes = 0;
+    averageSbp = 0;
+    averageDbp = 0;
+    averageHr = 0;
   }
 
   List<int> getTypeData(int pageNum) {
     // SBP
     if (pageNum == 0) {
-      return SBPTimes;
+      return exerciseTimes;
     }
     // DBP
     else if (pageNum == 1) {
-      return DBPTimes;
-    }
-    // HR
-    else if (pageNum == 2) {
-      return heartRateTimes;
+      return stepTimes;
     }
     return [];
   }
 
   int getTimesData(int pageNum, int type) {
-    //List<List<int>> timesData = [SBPTimes, DBPTimes, heartRateTimes];
-
     // SBP
     if (pageNum == 0) {
-      return SBPTimes[type];
+      return exerciseTimes[type];
     }
     // DBP
     else if (pageNum == 1) {
-      return DBPTimes[type];
-    }
-    // HR
-    else if (pageNum == 2) {
-      return heartRateTimes[type];
+      return stepTimes[type];
     }
     return 0;
-  }
-
-  void updateData() {
-    if (widget.date == DateTime(2023, 11, 18)) {
-      SBPTimes = [4, 15, 7, 1];
-      DBPTimes = [3, 13, 5, 1];
-      heartRateTimes = [4, 12, 6, 0];
-      totalTimes = 22;
-      averageSbp = 120;
-      averageDbp = 99;
-      averageHr = 95;
-      avg = [120, 99, 95];
-    } else if (widget.date == DateTime(2023, 11, 11)) {
-      SBPTimes = [1, 22, 5, 5];
-      DBPTimes = [2, 20, 5, 3];
-      heartRateTimes = [4, 17, 8, 1];
-      totalTimes = 30;
-      averageSbp = 111;
-      averageDbp = 100;
-      averageHr = 88;
-      avg = [111, 100, 88];
-    } else {
-      SBPTimes = [1, 22, 5, 5];
-      DBPTimes = [1, 7, 2, 1];
-      heartRateTimes = [0, 10, 1, 0];
-      totalTimes = 11;
-      averageSbp = 97;
-      averageDbp = 88;
-      averageHr = 96;
-      avg = [97, 88, 96];
-    }
   }
 
   void setTitle() {
@@ -1609,9 +1609,9 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                   width: 2,
                 ),
                 Image.asset(
-                  pageNum <= 1
-                      ? "assets/icons/bloodPressure1.png"
-                      : "assets/icons/heartRate.png",
+                  pageNum == 0
+                      ? "assets/icons/exercising2.png"
+                      : "assets/icons/footprints.png",
                   height: 15,
                   width: 15,
                 ),
@@ -1645,7 +1645,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                 ),
                 Text(
                   //'${totalTimes} ',
-                  total[pageNum].toString(),
+                  totalTimes.toString(),
                   style: const TextStyle(
                       fontSize: 18,
                       fontFamily: "BalooBhai",
@@ -1683,7 +1683,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
         ),
 
         // 血压平均值
-        Row(
+        /* Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           //mainAxisAlignment: MainAxisAlignment.center,
@@ -1714,7 +1714,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
             ),
           ],
         ),
-
+ */
         // 次数统计
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1893,17 +1893,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
               borderRadius: BorderRadius.circular(5),
             ),
           ),
-          const SizedBox(
-            width: 5,
-          ),
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: pageNum == 2 ? Colors.blue : Colors.grey,
-              borderRadius: BorderRadius.circular(5),
-            ),
-          )
         ],
       ),
     );
@@ -1917,7 +1906,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
           children: [
             // 标题
             const PageTitle(
-              title: "血压心率统计",
+              title: "运动时长与步数统计",
               icons: "assets/icons/graph.png",
               fontSize: 18,
             ),
@@ -1937,16 +1926,16 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                     if (details.primaryDelta! > 15) {
                       pageNum -= 1;
                       if (pageNum < 0) {
-                        pageNum = 2;
+                        pageNum = 1;
                       }
 
-                      print("右滑 页面左移动");
+                      //print("右滑 页面左移动");
 
                       setState(() {});
                     } else if (details.primaryDelta! < -15) {
                       pageNum += 1;
-                      print("左滑 页面右移动");
-                      if (pageNum > 2) {
+                      // print("左滑 页面右移动");
+                      if (pageNum > 1) {
                         pageNum = 0;
                       }
                       setState(() {});
@@ -1979,17 +1968,18 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                         alignment: Alignment.center,
                         children: [
                           // left and right button
-                          Container(
+                          /* Container(
                             height: 50,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 GestureDetector(
                                   onTap: () {
+                                    print("左！！！！！！！！！！");
                                     widget.refreshData = false;
                                     pageNum -= 1;
                                     if (pageNum < 0) {
-                                      pageNum = 2;
+                                      pageNum = 1;
                                     }
                                     setState(() {});
                                   },
@@ -2005,9 +1995,10 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
+                                    print("右！！！！！！！！！！");
                                     widget.refreshData = false;
                                     pageNum += 1;
-                                    if (pageNum > 2) {
+                                    if (pageNum > 1) {
                                       pageNum = 0;
                                     }
                                     setState(() {});
@@ -2025,6 +2016,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                               ],
                             ),
                           ),
+                           */
                           AnimatedCrossFade(
                             duration: const Duration(milliseconds: 300),
                             firstChild: getDataStaticWidget(),
@@ -2053,16 +2045,17 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print('血压饼图pie更新build：${widget.date}，天数：${widget.selectedDays}');
+    //print('血压饼图pie更新build：${widget.date}，天数：${widget.selectedDays}');
 
     // 需要重新获取数据
     if (widget.refreshData) {
       widget.refreshData = false;
       return FutureBuilder(
-          future: getDataFromServer(),
+          future: getDataFromServer0(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               setTitle();
+
               return getDataStaticWholeWidget();
             } else {
               //return CircularProgressIndicator();
@@ -2098,15 +2091,34 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     }
 
     // 左右滑动，不必重新获取数据
-    getDataFromServer();
+    /* getDataFromServer0();
     setTitle();
-    return getDataStaticWholeWidget();
+    return getDataStaticWholeWidget(); */
+
+    return FutureBuilder(
+        future: getDataFromServer0(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            setTitle();
+
+            return getDataStaticWholeWidget();
+          } else {
+            setTitle();
+            return getDataStaticWholeWidget();
+          }
+        });
   }
 }
 
 // 更多数据按钮
 class BloodPressureMoreInfoButton extends StatefulWidget {
-  const BloodPressureMoreInfoButton({super.key});
+  final int accountId;
+  final String nickname;
+  const BloodPressureMoreInfoButton({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+  }) : super(key: key);
 
   @override
   State<BloodPressureMoreInfoButton> createState() =>
@@ -2125,7 +2137,15 @@ class _BloodPressureMoreInfoButtonState
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: () {
-                Navigator.pushNamed(context, 'homePage/BloodPressure/MoreData');
+                //Navigator.pushNamed(context, 'homePage/BloodPressure/MoreData');
+
+                var args = {
+                  "accountId": widget.accountId,
+                  "nickname": widget.nickname,
+                };
+
+                Navigator.pushNamed(context, 'homePage/Activity/MoreData',
+                    arguments: args);
               },
               child: Container(
                   width: 150,
@@ -2151,7 +2171,7 @@ class _BloodPressureMoreInfoButtonState
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
-                        "更多血压详情",
+                        "更多数据详情",
                         style: TextStyle(
                             fontFamily: 'BalooBhai',
                             fontSize: 15,
@@ -2243,7 +2263,9 @@ class _StepCountWidgetState extends State<StepCountWidget> {
               "http://43.138.75.58:8080/api/sports/steps",
             );
       if (response.data["code"] == 200) {
-        lastStepCount = response.data["data"];
+        //print("%%%%%%%%%%%%%%%%%%%");
+        //print("获取最近一次的步数数据成功：${response.data["data"]}");
+        lastStepCount = response.data["data"][0]["steps"];
         print("获取最近一次的步数数据成功：$lastStepCount");
       } else {
         print(response);
@@ -2592,11 +2614,9 @@ class TodayActivities extends StatefulWidget {
 }
 
 class _TodayActivitiesState extends State<TodayActivities> {
-  late Stream<StepCount> _stepCountStream;
-  String _steps = '0';
   String steps2 = '1234';
-  String exercisingHours = '1';
-  String exercisingMins = '55';
+  int exercisingHours = 1;
+  int exercisingMins = 55;
   bool isExercising = false;
   List<String> items = [
     '不选',
@@ -2646,10 +2666,9 @@ class _TodayActivitiesState extends State<TodayActivities> {
     '其他'
   ];
   int selectedType = 0;
-  bool isExpanded = false;
   bool isPause = false;
-  DateTime startTime = DateTime.now();
-  DateTime endTime = DateTime.now();
+  String startTime = "2023-01-01 00:00";
+  String endTime = "2023-01-01 00:00";
   OverlayEntry? overlayEntry;
   final watchTimer = StopWatchTimer(mode: StopWatchMode.countUp);
   int lastStepCount = 0;
@@ -2657,9 +2676,245 @@ class _TodayActivitiesState extends State<TodayActivities> {
   int feelings = 1;
   TextEditingController remarksController = TextEditingController();
 
+  // ++++++++++++++++后端API+++++++++++++++
+  // 获取今日已运动时长
+  Future<void> getTodayExercisingDuration() async {
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        widget.accountId >= 0
+            ? "http://43.138.75.58:8080/api/sports/exercise/duration?accountId=${widget.accountId}"
+            : "http://43.138.75.58:8080/api/sports/exercise/duration",
+      );
+      if (response.data["code"] == 200) {
+        //print("============今日已经运动时长===============");
+        //print(response.data["data"]);
+        int totalMinutes = response.data["data"];
+        exercisingHours = totalMinutes ~/ 60;
+        exercisingMins = totalMinutes % 60;
+        // print('total:$totalMinutes  ==> $exercisingHours:$exercisingMins ');
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  // 获取当前有没有运动，有则获取开始时间，类型，是否暂停等
+  Future<void> getTodayCurrentExercising() async {
+    // print("=======getTodayCurrentExercising===========");
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    try {
+      response = await dio.get(
+        widget.accountId >= 0
+            ? "http://43.138.75.58:8080/api/sports/exercise/current?accountId=${widget.accountId}"
+            : "http://43.138.75.58:8080/api/sports/exercise/current",
+      );
+      if (response.data["code"] == 200) {
+        //print("============!!!!!!===============");
+        //print(response.data["data"]);
+        //int totalMinutes = response.data["data"];
+        //exercisingHours = totalMinutes ~/ 60;
+        //exercisingMins = totalMinutes % 60;
+        // print("=======getTodayCurrentExercising===========");
+        //  print(response.data["data"]);
+        if (response.data["data"] == null) {
+          isExercising = false;
+          isPause = false;
+          startTime = "2023-01-01 00:00";
+          selectedType = 0;
+          return;
+        } else {
+          isExercising = response.data["data"]["isExercising"];
+          isPause = response.data["data"]["isPausing"];
+
+          startTime = response.data["data"]["startTime"];
+          selectedType = response.data["data"]["type"];
+        }
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  //开始运动
+  Future<bool> startExercising() async {
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    startTime =
+        '${getFormattedDate(DateTime.now())} ${getFormattedTime(DateTime.now())}';
+
+    var arguments = {
+      "type": selectedType,
+      "time":
+          '${getFormattedDate(DateTime.now())} ${getFormattedTime(DateTime.now())}',
+    };
+
+    if (widget.accountId >= 0) {
+      arguments["accountId"] = (widget.accountId).toString();
+    }
+
+    print("=========startExercising===========");
+    print(arguments);
+
+    try {
+      response = await dio.post(
+          "http://43.138.75.58:8080/api/sports/exercise/start",
+          queryParameters: arguments);
+      if (response.data["code"] == 200) {
+        print("==========开始运动成功===============");
+        //data = response.data["data"]["countedDataList"];
+        //bpdata = response.data["data"];
+        return true;
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
+  // 暂停运动
+  Future<bool> pauseExercising() async {
+    //return true;
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    var arguments = {
+      "time":
+          '${getFormattedDate(DateTime.now())} ${getFormattedTime(DateTime.now())}',
+    };
+
+    if (widget.accountId >= 0) {
+      arguments["accountId"] = (widget.accountId.toString());
+    }
+
+    print("=========pauseExercising===========");
+    print(arguments);
+
+    try {
+      response = await dio.post(
+          "http://43.138.75.58:8080/api/sports/exercise/pause",
+          queryParameters: arguments);
+      if (response.data["code"] == 200) {
+        print("==========暂停运动成功===============");
+        //data = response.data["data"]["countedDataList"];
+        //bpdata = response.data["data"];
+        return true;
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
+  // 继续运动
+  Future<bool> continueExercising() async {
+    //return true;
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    var arguments = {
+      "time":
+          '${getFormattedDate(DateTime.now())} ${getFormattedTime(DateTime.now())}',
+    };
+
+    if (widget.accountId >= 0) {
+      arguments["accountId"] = (widget.accountId.toString());
+    }
+
+    print("=========continueExercising===========");
+    print(arguments);
+
+    try {
+      response = await dio.post(
+          "http://43.138.75.58:8080/api/sports/exercise/continue",
+          queryParameters: arguments);
+      if (response.data["code"] == 200) {
+        print("==========恢复运动成功===============");
+        //data = response.data["data"]["countedDataList"];
+        //bpdata = response.data["data"];
+        return true;
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
+  // 结束运动
+  Future<bool> endExercising() async {
+    var token = await storage.read(key: 'token');
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    var arguments = {
+      "time":
+          '${getFormattedDate(DateTime.now())} ${getFormattedTime(DateTime.now())}',
+      "feelings": feelings,
+      "remark": remarksController.text,
+    };
+
+    if (widget.accountId >= 0) {
+      arguments["accountId"] = widget.accountId;
+    }
+
+    print("=========endExercising===========");
+    print(arguments);
+
+    try {
+      response = await dio.post(
+          "http://43.138.75.58:8080/api/sports/exercise/end",
+          queryParameters: arguments);
+      if (response.data["code"] == 200) {
+        print("==========结束运动成功===============");
+        //data = response.data["data"]["countedDataList"];
+        //bpdata = response.data["data"];
+        return true;
+      } else {
+        print(response);
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
+  //=========================================
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     accountId = widget.accountId;
   }
@@ -2774,11 +3029,11 @@ class _TodayActivitiesState extends State<TodayActivities> {
             onTap: () {
               selectedType = items.indexOf(item);
               print(items[selectedType]);
-              setState(() {
+              /* setState(() {
                 // 更新被选中的运动类型
 
                 //
-              });
+              }); */
               overlayEntry?.markNeedsBuild();
             },
             child: Container(
@@ -2806,7 +3061,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
     );
   }
 
-  // 运动类型选择界面
+  // 运动类型选择界面 (运动类型标题+选项+确定/取消)
   Widget getTypeSelector2() {
     return Center(
       child: Padding(
@@ -2850,28 +3105,40 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 // 取消运动
                 ElevatedButton(
                   onPressed: () {
-                    isExpanded = false;
                     //setState(() {});
                     overlayEntry?.remove();
                   },
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(
-                        Color.fromARGB(255, 118, 246, 255)),
+                        const Color.fromARGB(255, 118, 246, 255)),
                   ),
-                  child: Text('取消'),
+                  child: const Text('取消'),
                 ),
 
                 //确定开始运动
                 ElevatedButton(
-                  onPressed: () {
-                    isExpanded = false;
+                  onPressed: () async {
+                    /* isExpanded = false;
                     isExercising = true;
-                    // 开始timer
-                    startTime = DateTime.now();
-                    watchTimer.onStartTimer();
                     setState(() {});
                     overlayEntry?.markNeedsBuild();
                     overlayEntry?.remove();
+                    return; */
+                    // 开始timer
+                    //startTime = DateTime.now();
+                    //watchTimer.onStartTimer();
+
+                    bool status = await startExercising();
+                    if (status) {
+                      //print("开始运动成功");
+                      isExercising = true;
+                      setState(() {});
+                      overlayEntry?.markNeedsBuild();
+                      overlayEntry?.remove();
+                    } else {
+                      print("开始运动失败");
+                      overlayEntry?.remove();
+                    }
                   },
                   style: ButtonStyle(
                     backgroundColor:
@@ -2896,7 +3163,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
         left: 0,
         child: Material(
           color: Colors.transparent,
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
             //color: const Color.fromARGB(156, 255, 255, 255),
@@ -2908,7 +3175,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Color.fromARGB(217, 131, 131, 131)),
+                  border: Border.all(
+                      color: const Color.fromARGB(217, 131, 131, 131)),
                   boxShadow: const [
                     BoxShadow(
                       color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -3083,7 +3351,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 const SizedBox(
                   width: 10,
                 ),
-                Container(
+                SizedBox(
                   height: 41,
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.45,
@@ -3117,26 +3385,25 @@ class _TodayActivitiesState extends State<TodayActivities> {
                   // 取消
                   ElevatedButton(
                     onPressed: () {
-                      isExpanded = false;
                       //setState(() {});
                       overlayEntry?.remove();
                     },
                     style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(
-                          Color.fromARGB(255, 118, 246, 255)),
+                          const Color.fromARGB(255, 118, 246, 255)),
                     ),
-                    child: Text('取消'),
+                    child: const Text('取消'),
                   ),
 
                   //确定
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       /* setState(() {});
                         overlayEntry?.markNeedsBuild();
                         overlayEntry?.remove();
                         Navigator.pop(context); */
 
-                      isExercising = false;
+                      /* isExercising = false;
                       isPause = false;
                       watchTimer.onStopTimer();
                       print(
@@ -3145,200 +3412,30 @@ class _TodayActivitiesState extends State<TodayActivities> {
                       overlayEntry?.remove();
                       setState(() {});
                       Navigator.pop(context);
+                      return; */
+
+                      bool status = await endExercising();
+                      if (status) {
+                        isExercising = false;
+                        isPause = false;
+                        overlayEntry?.remove();
+                        setState(() {});
+                        Navigator.pop(context);
+                      } else {
+                        print("结束运动失败");
+                        overlayEntry?.remove();
+                      }
                     },
                     style: ButtonStyle(
                       backgroundColor:
                           MaterialStateProperty.all(Colors.greenAccent),
                     ),
-                    child: Text('开始'),
+                    child: Text('确定'),
                   ),
                 ],
               ),
             ]),
       ),
-    );
-  }
-
-  // -----------------------------
-  // 运动类型选择
-  List<Widget> getAllType() {
-    List<Widget> typeList = [];
-
-    for (int i = 0; i < items.length; i++) {
-      Widget choice = GestureDetector(
-        onTap: () {
-          setState(() {
-            // 更新被选中的运动类型
-
-            selectedType = i;
-            //print(selectedType);
-          });
-        },
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            // if is selected then change color
-            color: selectedType == i ? Colors.blue : Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: Theme.of(context).hintColor,
-            ),
-          ),
-          child: Text(
-            items[i],
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).hintColor,
-            ),
-          ),
-        ),
-      );
-      typeList.add(choice);
-    }
-
-    return typeList;
-  }
-
-  // 有用 所有类型map
-  Widget exercisingTypeSelector() {
-    //网格布局，将items中的数据放入网格中
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.65,
-      height: 260,
-      child: GridView.count(
-        crossAxisCount: 3,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 2.5,
-        children: items.map((item) {
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                // 更新被选中的运动类型
-                selectedType = items.indexOf(item);
-                // print(items[selectedType]);
-              });
-            },
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: item == items[selectedType]
-                    ? Color.fromARGB(255, 253, 184, 255)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: Theme.of(context).hintColor,
-                ),
-              ),
-              child: Text(
-                item,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(context).hintColor,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // 开始运动 (有用)
-  Widget getTypeSelector() {
-    return Center(
-      child: Container(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            //标题
-            const Text(
-              "开始运动",
-              style: TextStyle(
-                fontSize: 20,
-                fontFamily: "BalooBhai",
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            // 输入ID
-            const Text(
-              "选择运动类型: ",
-              style: TextStyle(
-                fontSize: 18,
-                fontFamily: "BalooBhai",
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            // 类型选择
-            SizedBox(
-              height: 260,
-              width: MediaQuery.of(context).size.width * 0.8,
-              child: SingleChildScrollView(
-                child: exercisingTypeSelector(),
-              ),
-            ),
-
-            // 取消，确定
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                // 取消运动
-                ElevatedButton(
-                  onPressed: () {
-                    isExpanded = false;
-                    setState(() {});
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                        Color.fromARGB(255, 118, 246, 255)),
-                  ),
-                  child: Text('取消'),
-                ),
-
-                //确定开始运动
-                ElevatedButton(
-                  onPressed: () {
-                    isExpanded = false;
-                    isExercising = true;
-                    // 开始timer
-                    startTime = DateTime.now();
-                    watchTimer.onStartTimer();
-                    setState(() {});
-                  },
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(Colors.greenAccent),
-                  ),
-                  child: Text('开始'),
-                ),
-              ],
-            ),
-          ],
-          //),
-        ),
-      ),
-    );
-  }
-
-  //计时器显示
-  StreamBuilder<int> getStopWatchTimer() {
-    return StreamBuilder<int>(
-      stream: watchTimer.rawTime,
-      initialData: watchTimer.rawTime.value,
-      builder: (context, snap) {
-        final value = snap.data!;
-        final displayTime = StopWatchTimer.getDisplayTime(value,
-            hours: true, minute: true, second: true, milliSecond: false);
-        return Text(
-          displayTime,
-          style: const TextStyle(
-              fontSize: 25,
-              fontFamily: "BalooBhai",
-              fontWeight: FontWeight.bold),
-        );
-      },
     );
   }
 
@@ -3408,7 +3505,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                               height: height1,
                               alignment: Alignment.center,
                               child: Text(
-                                exercisingHours,
+                                '$exercisingHours',
                                 style: const TextStyle(
                                   fontSize: 35,
                                   fontFamily: "BalooBhai",
@@ -3433,7 +3530,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                               height: height1,
                               alignment: Alignment.center,
                               child: Text(
-                                exercisingMins,
+                                '$exercisingMins',
                                 style: const TextStyle(
                                   fontSize: 35,
                                   fontFamily: "BalooBhai",
@@ -3460,186 +3557,188 @@ class _TodayActivitiesState extends State<TodayActivities> {
                     ),
                   ),
                   // 运动中或开始运动
-                  isExpanded == false
-                      ? isExercising == false
-                          // 不在运动时
-                          ? // 开始/结束运动按钮
-                          Container(
-                              height: 50,
-                              alignment: Alignment.center,
-                              //color: Colors.amber,
-                              child: GestureDetector(
-                                onTap: () {
-                                  /* setState(() {
+                  isExercising == false
+                      // 不在运动时
+                      ? // 开始/结束运动按钮
+                      Container(
+                          height: 50,
+                          alignment: Alignment.center,
+                          //color: Colors.amber,
+                          child: GestureDetector(
+                            onTap: () {
+                              /* setState(() {
                                     isExpanded = !isExpanded;
                                   }); */
-                                  exercisingTypeOverlay(context);
-                                },
-                                child: Container(
-                                  width: 100,
-                                  height: 35,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: const Color.fromARGB(
-                                        255, 104, 200, 255),
-                                    border: Border.all(
-                                      color: const Color.fromRGBO(0, 0, 0, 0.2),
-                                    ),
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: const Text(
-                                    '开始运动',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: "BalooBhai",
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                              exercisingTypeOverlay(context);
+                            },
+                            child: Container(
+                              width: 100,
+                              height: 35,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 104, 200, 255),
+                                border: Border.all(
+                                  color: const Color.fromRGBO(0, 0, 0, 0.2),
+                                ),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: const Text(
+                                '开始运动',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontFamily: "BalooBhai",
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
                               ),
-                            )
-                          //运动时
-                          : Column(
-                              children: [
-                                const Divider(
-                                  height: 1,
-                                  thickness: 1,
-                                  color: Colors.black45,
-                                ),
-                                // 计时器
-                                Container(
-                                  // color: Colors.greenAccent,
-                                  height: 40,
-                                  alignment: Alignment.center,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        "开始时间：",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontFamily: "BalooBhai",
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      // 计时器
-                                      /* Container(
-                                    //color: Colors.greenAccent,
-                                    height: 50,
-                                    alignment: Alignment.center,
-                                    child: getStopWatchTimer(),
-                                  ), */
-                                      Container(
-                                        //color: Colors.greenAccent,
-                                        height: 40,
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          "${startTime.hour}:${startTime.minute}:${startTime.second}",
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontFamily: "BalooBhai",
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // 运动类型
-                                Container(
-                                  //color: Colors.yellowAccent,
-                                  height: 40,
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    "运动类型：${items[selectedType]}",
-                                    style: const TextStyle(
+                            ),
+                          ),
+                        )
+                      //运动时
+                      : Column(
+                          children: [
+                            const Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Colors.black45,
+                            ),
+                            // 计时器
+                            Container(
+                              // color: Colors.greenAccent,
+                              height: 40,
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    "开始时间：",
+                                    style: TextStyle(
                                       fontSize: 18,
                                       fontFamily: "BalooBhai",
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ),
+                                  Container(
+                                    //color: Colors.greenAccent,
+                                    height: 40,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      startTime,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontFamily: "BalooBhai",
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
 
-                                const SizedBox(
-                                  height: 4,
+                            // 运动类型
+                            Container(
+                              //color: Colors.yellowAccent,
+                              height: 40,
+                              alignment: Alignment.center,
+                              child: Text(
+                                "运动类型：${items[selectedType]}",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontFamily: "BalooBhai",
+                                  fontWeight: FontWeight.bold,
                                 ),
+                              ),
+                            ),
 
-                                // 暂停与结束运动按钮
-                                Container(
-                                  //color: Colors.deepPurpleAccent,
-                                  height: 40,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      // 暂停
-                                      Container(
+                            const SizedBox(
+                              height: 4,
+                            ),
+
+                            // 暂停与结束运动按钮
+                            Container(
+                              //color: Colors.deepPurpleAccent,
+                              height: 40,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // 暂停
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        if (isPause == false) {
+                                          bool status = await pauseExercising();
+
+                                          if (status) {
+                                            isPause = true;
+                                          }
+                                        } else {
+                                          bool status =
+                                              await continueExercising();
+
+                                          if (status) {
+                                            isPause = false;
+                                          }
+                                        }
+                                        setState(() {});
+                                        /*  setState(() {
+                                          /* if (isPause == false) {
+                                            isPause = true;
+                                            //watchTimer.onStopTimer();
+                                            print("暂停运动");
+                                          } else {
+                                            isPause = false;
+                                            //watchTimer.onStartTimer();
+                                            print("继续运动");
+                                          } */
+                                        }); */
+                                      },
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
                                         alignment: Alignment.center,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              if (isPause == false) {
-                                                isPause = true;
-                                                watchTimer.onStopTimer();
-                                                print("暂停运动");
-                                              } else {
-                                                isPause = false;
-                                                watchTimer.onStartTimer();
-                                                print("继续运动");
-                                              }
-                                            });
-                                          },
-                                          child: Container(
-                                            width: 100,
-                                            height: 35,
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                              color: isPause == false
-                                                  ? Colors.blueAccent
-                                                  : Color.fromARGB(
-                                                      255, 104, 255, 112),
-                                              border: Border.all(
-                                                color: const Color.fromRGBO(
-                                                    0, 0, 0, 0.2),
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                            ),
-                                            child: Text(
-                                              isPause == false
-                                                  ? '暂停运动'
-                                                  : '继续运动',
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontFamily: "BalooBhai",
-                                                fontWeight: FontWeight.bold,
-                                                color: Color.fromARGB(
-                                                    255, 0, 0, 0),
-                                              ),
-                                            ),
+                                        decoration: BoxDecoration(
+                                          color: isPause == false
+                                              ? Colors.blueAccent
+                                              : const Color.fromARGB(
+                                                  255, 104, 255, 112),
+                                          border: Border.all(
+                                            color: const Color.fromRGBO(
+                                                0, 0, 0, 0.2),
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                        child: Text(
+                                          isPause == false ? '暂停运动' : '继续运动',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontFamily: "BalooBhai",
+                                            fontWeight: FontWeight.bold,
+                                            color: Color.fromARGB(255, 0, 0, 0),
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      //结束
-                                      Container(
-                                        height: 100,
-                                        alignment: Alignment.center,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            endExercisingDialog(context);
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  //结束
+                                  Container(
+                                    height: 100,
+                                    alignment: Alignment.center,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        endExercisingDialog(context);
 
-                                            if (isExercising == false) {
-                                              setState(() {});
-                                            }
+                                        if (isExercising == false) {
+                                          setState(() {});
+                                        }
 
-                                            /* setState(() {
+                                        /* setState(() {
                                               isExercising = false;
                                               watchTimer.onStopTimer();
                                               final displayTime =
@@ -3654,43 +3753,38 @@ class _TodayActivitiesState extends State<TodayActivities> {
                                               print(
                                                   "结束运动 类型:${items[selectedType]}  开始/结束：${startTime} ~ ${DateTime.now()} 时长：${displayTime}");
                                             }); */
-                                          },
-                                          child: Container(
-                                            width: 100,
-                                            height: 35,
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                              color: const Color.fromARGB(
-                                                  255, 255, 104, 104),
-                                              border: Border.all(
-                                                color: const Color.fromRGBO(
-                                                    0, 0, 0, 0.2),
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                            ),
-                                            child: const Text(
-                                              '结束运动',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontFamily: "BalooBhai",
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
+                                      },
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: const Color.fromARGB(
+                                              255, 255, 104, 104),
+                                          border: Border.all(
+                                            color: const Color.fromRGBO(
+                                                0, 0, 0, 0.2),
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                        child: const Text(
+                                          '结束运动',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontFamily: "BalooBhai",
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            )
-                      // 选择运动类型并开始
-                      : SizedBox(
-                          height: 380,
-                          child: getTypeSelector(),
-                        ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
                 ],
               ),
             ),
@@ -3718,6 +3812,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
     return FutureBuilder(
         future: Future.wait([
           getActivityRecognitionPermission(),
+          getTodayExercisingDuration(),
+          getTodayCurrentExercising(),
         ]),
         builder: (context, snapshot) {
           // 加载完成
@@ -3804,6 +3900,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
       date = widget.arguments["date"];
     }
     bloodPressureGraphtWidget = BloodPressureGraphWidget(
+      accountId: widget.arguments["accountId"],
       date: date,
       selectedDays: selectedDays,
       updateView: updateView,
@@ -3816,6 +3913,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
   void updateData() {
     setState(() {
       bloodPressureGraphtWidget = BloodPressureGraphWidget(
+        accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
         updateView: updateView,
@@ -3837,6 +3935,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
     setState(() {
       date = newDate;
       bloodPressureGraphtWidget = BloodPressureGraphWidget(
+        accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
         updateView: updateView,
@@ -3854,6 +3953,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
     setState(() {
       selectedDays = newDays;
       bloodPressureGraphtWidget = BloodPressureGraphWidget(
+        accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
         updateView: updateView,
@@ -3867,15 +3967,6 @@ class _ActivityDetailsState extends State<ActivityDetails> {
   Widget build(BuildContext context) {
     print("活动详情页面rebuild");
     return Scaffold(
-      /* appBar: AppBar(
-        title: const Text(
-          "TriGuard",
-          style: TextStyle(
-              fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-        ),
-        flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-            (MediaQuery.of(context).size.height * 0.1 + 11)),
-      ), */
       appBar: widget.arguments["accountId"] < 0
           ? getAppBar(0, true, "TriGuard")
           : getAppBar(1, true, widget.arguments["nickname"]),
@@ -3914,6 +4005,37 @@ class _ActivityDetailsState extends State<ActivityDetails> {
           bloodPressureGraphtWidget,
 
           // 血压图表组件
+          const SizedBox(
+            height: 10,
+          ),
+
+          //数据列表组件
+          BloodPressureDataWidget(
+            accountId: widget.arguments["accountId"],
+            nickname: widget.arguments["nickname"],
+            date: date,
+            updateView: updateView,
+            updateData: updateData,
+          ),
+
+          const SizedBox(
+            height: 10,
+          ),
+
+          //统计组件
+          BloodPressureStaticWidget(
+              accountId: widget.arguments["accountId"],
+              refreshData: true,
+              date: date,
+              selectedDays: selectedDays,
+              updateView: updateView,
+              updateDate: updateDate),
+
+          BloodPressureMoreInfoButton(
+            accountId: widget.arguments["accountId"],
+            nickname: widget.arguments["nickname"],
+          ),
+
           /* bloodPressureGraphtWidget,
 
           const SizedBox(

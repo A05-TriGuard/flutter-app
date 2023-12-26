@@ -457,7 +457,7 @@ class _MemberWidgetState extends State<MemberWidget> {
             style: const TextStyle(
               fontFamily: 'BalooBhai',
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              //fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
