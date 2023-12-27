@@ -21,7 +21,6 @@ import '../homePage/bloodFat/bloodFatMoreData.dart';
 // 活动
 import '../homePage/activity/activityEdit.dart';
 import '../homePage/activity/activityDetails.dart';
-import '../homePage/activity/activityMoreData.dart';
 
 // 监护模块
 import '../supervisor/guardianGroup.dart';
@@ -37,6 +36,7 @@ import '../articles/prevention.dart';
 import '../articles/collection.dart';
 // 饮食模块
 import '../fooddiary/fooddiary.dart';
+import '../user/nutritiontarget.dart';
 // 动态模块
 import '../moment/moment.dart';
 
@@ -85,9 +85,6 @@ Map routes = {
       ActivityEdit(arguments: arguments),
   '/homePage/Activity/Details': (context, {arguments}) =>
       ActivityDetails(arguments: arguments),
-  // 血压更多数据
-  'homePage/Activity/MoreData': (context, {arguments}) =>
-      ActivityMoreData(arguments: arguments),
 
   // 监护模块
   '/supervisor': (context) => const Supervisor(),
@@ -105,6 +102,7 @@ Map routes = {
   '/moment': (context) => const Moment(),
   // ==================== 饮食模块 ====================
   '/homePage/fooddiary/Details': (context) => const FoodDiary(),
+  '/user/nutritiontarget': (context) => const NutritionTarget(),
   // ==================== 科普模块 ====================
   '/articles': (context) => const Article(),
   '/articles/science': (context) => const Science(),

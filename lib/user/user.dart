@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../component/header/header.dart';
 import '../account/token.dart';
@@ -19,6 +20,7 @@ Widget getButtonSet(String IconPath, String text) {
           height: 30,
           width: 30,
         ),
+        const SizedBox(height: 5),
         Text(
           text,
           style: TextStyle(
@@ -73,6 +75,10 @@ class _UserInfoState extends State<UserInfo> {
   String username = "admin";
   String id = "12345678900";
   String email = "admin@qq.com";
+  String selectedImagePath = "";
+  String latestProfilePic =
+      "https://png.pngtree.com/png-vector/20220705/ourmid/pngtree-loading-icon-vector-transparent-png-image_5687537.png";
+  XFile? pickedImage;
 
   Future<void> getUserInfo() async {
     // 提取登录获取的token
@@ -88,15 +94,47 @@ class _UserInfoState extends State<UserInfo> {
       username = response.data["data"]["username"];
       id = (response.data["data"]["id"]).toString();
       email = response.data["data"]["email"];
+      latestProfilePic = response.data["data"]["profile"] == null
+          ? "https://static.vecteezy.com/system/resources/previews/020/765/399/non_2x/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
+          : "http://43.138.75.58:8080/static/${response.data["data"]["profile"]}";
       //print("username: $username id: $id email: $email ");
     } else {
       print("获取用户信息失败");
     }
   }
 
+  // Moment API
+  Future<void> changeProfilePic() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      Map<String, dynamic> map = {};
+      map['profile'] = await MultipartFile.fromFile(pickedImage!.path);
+
+      FormData formData = FormData.fromMap(map);
+
+      final response = await dio.post(
+        'http://43.138.75.58:8080/api/account/set-profile',
+        data: formData,
+        options: Options(headers: headers),
+        onSendProgress: (count, total) {
+          print("当前进度 $count, 总进度 $total");
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {});
+      }
+    } catch (e) {/**/}
+  }
+
   @override
   Widget build(BuildContext context) {
-    getUserInfo();
+    //getUserInfo();
     return FutureBuilder(
         future: getUserInfo(),
         builder: (context, snapshot) {
@@ -113,26 +151,24 @@ class _UserInfoState extends State<UserInfo> {
                       alignment: Alignment.bottomRight,
                       children: [
                         //头像
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            //borderRadius: BorderRadius.circular(15),
-                            shape: BoxShape.circle,
-                            image: const DecorationImage(
-                              image: AssetImage("assets/images/loginBg1.png"),
-                              fit: BoxFit.cover,
-                            ),
-                            border: Border.all(
-                              color: const Color.fromARGB(74, 104, 103, 103),
-                              width: 1,
-                            ),
-                          ),
-                        ),
+                        CircleAvatar(
+                            radius: 40,
+                            backgroundColor: Colors.black45,
+                            child: CircleAvatar(
+                              radius: 39,
+                              backgroundColor: Colors.white,
+                              backgroundImage: NetworkImage(latestProfilePic),
+                            )),
                         //更换头像
                         GestureDetector(
-                          onTap: () {
+                          onTap: () async {
                             print("更换头像");
+                            pickedImage = await ImagePicker()
+                                .pickImage(source: ImageSource.gallery);
+                            setState(() {
+                              selectedImagePath = pickedImage!.path;
+                            });
+                            changeProfilePic();
                           },
                           child: Container(
                             width: 25,
@@ -239,9 +275,10 @@ class _UserWidget1State extends State<UserWidget1> {
             children: [
               GestureDetector(
                 onTap: () {
-                  print("我的资料");
+                  print("饮食目标");
+                  Navigator.pushNamed(context, '/user/nutritiontarget');
                 },
-                child: getButtonSet("assets/icons/user.png", "我的资料"),
+                child: getButtonSet("assets/icons/foodTarget.png", "饮食目标"),
               ),
               GestureDetector(
                 onTap: () {
@@ -736,18 +773,20 @@ class _UserState extends State<User> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: returnLogin,
-      onPopInvoked: (bool didPop) {
-        if (didPop) {
-          return;
-        }
-        print("确定退出？");
-        _showBackDialog();
-        // TODO: 弹出确认退出的对话框
-      },
-      child: Scaffold(
-        /* appBar: AppBar(
+    return
+        // PopScope(
+        //   canPop: returnLogin,
+        //   onPopInvoked: (bool didPop) {
+        //     if (didPop) {
+        //       return;
+        //     }
+        //     print("确定退出？");
+        //     _showBackDialog();
+        //     // TODO: 弹出确认退出的对话框
+        //   },
+        //   child:
+        Scaffold(
+      /* appBar: AppBar(
           title: const Text(
             "我的",
             style: TextStyle(
@@ -788,7 +827,7 @@ class _UserState extends State<User> {
             ),
           ],
         ), */
-        /*
+      /*
           // ==================== 别删 =============================
          body: Center(
           child: Column(
@@ -811,49 +850,49 @@ class _UserState extends State<User> {
             ],
           ),
         ), */
-        appBar: getAppBar(0, false, "TriGuard"),
-        body: Container(
-          color: Colors.white,
-          constraints:
-              BoxConstraints(minHeight: MediaQuery.of(context).size.height),
-          child: ListView(shrinkWrap: true, children: [
-            // 标题组件
-            UnconstrainedBox(
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                alignment: Alignment.center,
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    //SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    UserInfo(),
-                    SizedBox(
-                      height: 25,
-                    ),
-                    UserWidget1(),
-                    SizedBox(
-                      height: 25,
-                    ),
-                    UserWidget2(),
-                    SizedBox(
-                      height: 25,
-                    ),
-                    TriGuardReminder(),
-                    SizedBox(
-                      height: 25,
-                    ),
-                  ],
-                ),
+      appBar: getAppBar(0, false, "TriGuard"),
+      body: Container(
+        color: Colors.white,
+        constraints:
+            BoxConstraints(minHeight: MediaQuery.of(context).size.height),
+        child: ListView(shrinkWrap: true, children: [
+          // 标题组件
+          UnconstrainedBox(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.85,
+              alignment: Alignment.center,
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  //SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  UserInfo(),
+                  SizedBox(
+                    height: 25,
+                  ),
+                  UserWidget1(),
+                  SizedBox(
+                    height: 25,
+                  ),
+                  UserWidget2(),
+                  SizedBox(
+                    height: 25,
+                  ),
+                  TriGuardReminder(),
+                  SizedBox(
+                    height: 25,
+                  ),
+                ],
               ),
             ),
-            // 过滤器
-          ]),
-        ),
+          ),
+          // 过滤器
+        ]),
       ),
+      //),
     );
   }
 }
