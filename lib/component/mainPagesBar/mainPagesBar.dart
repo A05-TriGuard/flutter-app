@@ -41,6 +41,10 @@ class _MainPagesState extends State<MainPages> {
       setState(() {
         _currentIndex = 1;
       });
+    } else if (widget.arguments.containsKey('setToUserPage')) {
+      setState(() {
+        _currentIndex = 4;
+      });
     }
     print(widget.arguments);
   }
