@@ -1070,183 +1070,301 @@ class MyActivities extends StatefulWidget {
 }
 
 class _MyActivitiesState extends State<MyActivities> {
+  List<dynamic> data = [];
+  // 显示的数据
+  List<int> dayData = [];
+  List<int> monthData = [];
+  List<int> exercisingData = [];
+  List<int> stepCountData = [];
+  List<int> durationData = [];
+  int exercisingMins = 0;
+
+  // 获取运动与步数数据
+  Future<void> getDataFromServer() async {
+    String requestStartDate = getFormattedDate(widget.date);
+    String requestEndDate = getFormattedDate(widget.date);
+    // 提取登录获取的token
+    var token = await storage.read(key: 'token');
+
+    //从后端获取数据
+    final dio = Dio();
+    Response response;
+    dio.options.headers["Authorization"] = "Bearer $token";
+    var arguments = {
+      "startDate": requestStartDate,
+      "endDate": requestEndDate,
+    };
+
+    if (widget.accountId >= 0) {
+      arguments["accountId"] = (widget.accountId).toString();
+    }
+
+    response = await dio.get(
+      "http://43.138.75.58:8080/api/sports/info",
+      queryParameters: arguments,
+    );
+    if (response.data["code"] == 200) {
+      data = response.data["data"];
+    } else {
+      print(response);
+      data = [];
+    }
+
+    //print("======================图表数据=====================");
+    //print(data);
+
+    stepCountData = [];
+    exercisingData = [];
+    dayData = [];
+    monthData = [];
+
+    for (int i = 0; i < data.length; i++) {
+      String date_ = data[i]["date"];
+      int month_ = int.parse(date_.split("-")[1]);
+      int day_ = int.parse(date_.split("-")[2]);
+
+      stepCountData.add(data[i]["steps"]);
+      exercisingData.add(data[i]["duration"]);
+      exercisingMins = data[i]["duration"];
+      dayData.add(day_);
+      monthData.add(month_);
+    }
+  }
+
   void refreshData() {
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      MyTitle(
-        title: "今日活动",
-        icon: "assets/icons/exercising.png",
-        value: widget.value,
-        unit: "分钟",
-        route: "/homePage/Activity/Edit",
-        arguments: {
-          "accountId": widget.accountId >= 0 ? widget.accountId : -1,
-          "nickname": widget.accountId >= 0 ? widget.nickname : "TriGuard",
-          "date": widget.date,
-          "activityDataId": -1,
-        },
-        refreshData: refreshData,
-      ), //TODO
-
-      const SizedBox(
-        height: 5,
-      ),
-
-      // 活动图表
-      Stack(alignment: Alignment.centerRight, children: [
-        UnconstrainedBox(
-          child: Container(
-            alignment: Alignment.centerRight,
-            width: MediaQuery.of(context).size.width * 0.85,
-            height: MediaQuery.of(context).size.height * 0.25,
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              borderRadius: const BorderRadius.all(Radius.circular(15)),
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.2),
+    return FutureBuilder(
+        future: getDataFromServer(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Column(children: [
+              MyTitle(
+                title: "今日活动",
+                icon: "assets/icons/exercising.png",
+                value: exercisingMins.toString(),
+                unit: "分钟",
+                route: "/homePage/Activity/Edit",
+                arguments: {
+                  "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                  "nickname":
+                      widget.accountId >= 0 ? widget.nickname : "TriGuard",
+                  "date": widget.date,
+                  "activityDataId": -1,
+                },
+                refreshData: refreshData,
               ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
-                ),
-              ],
-            ),
-            child: Echarts(
-              option: '''
-             {
 
-   title: {
-    text: '活动',
-    top:'5%',
-    left:'2%',
-  },
+              const SizedBox(
+                height: 5,
+              ),
 
-  tooltip: {
-    trigger: 'axis',
-    axisPointer: {
-      type: 'cross',
-      crossStyle: {
-        color: '#999'
-      }
-    }
-  },
+              // 活动图表
+              Stack(alignment: Alignment.centerRight, children: [
+                UnconstrainedBox(
+                  child: Container(
+                    alignment: Alignment.centerRight,
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    height: MediaQuery.of(context).size.height * 0.3,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                      borderRadius: const BorderRadius.all(Radius.circular(15)),
+                      border: Border.all(
+                        color: const Color.fromRGBO(0, 0, 0, 0.2),
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(120, 151, 151, 151),
+                          offset: Offset(0, 5),
+                          blurRadius: 5.0,
+                          spreadRadius: 0.0,
+                        ),
+                      ],
+                    ),
+                    child: Echarts(
+                      extraScript: '''
+                  var month = $monthData;
+                  var day = $dayData;
+                  
+''',
+                      option: '''
+              {
+                animation:false,
 
-  legend: {
-    data: ['步数', '运动时长'],
-    top : '5%',
-    //left: '20%',
-  },
+                title: {
+                  text: '活动',
+                  top:'5%',
+                  left:'10',
+                },
 
-  grid: {
-                //top: '15%',
-                left: '3%',
-                right: '4%',
-                bottom: '5%',
-                containLabel: true
+                legend: {
+                  data: ['步数', '运动时长'],
+                  top:'6%',
+                  left:'70',
+                },
+
+                  grid: {
+                  left: '3%',
+                  right: '4%',
+                  bottom: '5%',
+                  top: '30%',
+                  containLabel: true,
+                },
+
+               tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                  type: 'cross',
+                  crossStyle: {
+                    color: '#999'
+                  }
+                }
               },
-  xAxis: [
-    {
-      type: 'category',
-      data: ['8/11', '9/11', '10/11','11/11'],
-      axisPointer: {
-        type: 'shadow'
-      }
-    }
-  ],
-  yAxis: [
-    {
-      type: 'value',
-      name: '步数',
-      nameGap: 10, 
-      axisLabel: {
-        formatter: '{value}'
-      }
-    },
-    {
-      type: 'value',
-      name: '运动时长',
-      nameGap: 10,
-      axisLabel: {
-        formatter: '{value}'
-      },
 
-      splitLine:{       //y轴刻度线
-          show:false
-        },
-    }
-  ],
-  series: [
-    {
-      name: '步数',
-      type: 'bar',
-      tooltip: {
-        valueFormatter: function (value) {
-          return value + ' 步';
-        }
-      },
-      data: [837, 1063, 1543, 1400]
-    },
-    {
-      name: '运动时长',
-      type: 'line',
-      yAxisIndex: 1,
-      tooltip: {
-        valueFormatter: function (value) {
-          return value + ' 分钟';
-        }
-      },
-      data: [30,  70,120,45  ]
-    }
-  ]
-}
+                xAxis: {
+                  type: 'category',
+                  boundaryGap: true,
+                  axisLabel: {
+                   interval: 0,
+                   textStyle: {
+                      color: '#000000'
+                  },
+                   formatter: function(index) {
+                        // 自定义显示格式
+                         return day[index] + '/' + month[index]; // 取日期的第一部分
+                   }
+                  },
+
+                },
+
+                yAxis:[
+                  { 
+                    type: 'value',
+                    name: '运动时长',
+                    axisLabel:{
+                      textStyle: {
+                          color: '#000000'
+                      },
+                    },
+                    splitLine:{       //y轴刻度线
+                      show:false
+                    }, 
+                  },
+
+                  {
+                    type: 'value',
+                    name: '步数',
+                    
+                    axisLabel:{
+                      textStyle: {
+                          color: '#000000'
+                      },
+                    },
+                  },
+                ],
+
+                series: [{
+                  name: '步数',
+                  data: $stepCountData,
+                  type: 'bar',
+                  //barWidth: '25%',
+                  barWidth: ${stepCountData.length} < 4? 50 : '60%',
+                  //barGap: '20%',
+                  yAxisIndex: 1,
+                  smooth: true,
+                  tooltip: {
+                    valueFormatter: function (value) {
+                      return value + ' 步';
+                    }
+                  },
+                },
+                {
+                  name: '运动时长',
+                  data: $exercisingData,
+                  type: 'line',
+                 
+                  yAxisIndex: 0,
+                  tooltip: {
+                    valueFormatter: function (value) {
+                      return value + ' 分钟';
+                    }
+                  },
+                  smooth: true
+                },
+                ]
+              }
             ''',
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            //Navigator.pushNamed(context, "/homePage/Activity/Details");
-
-            var args = {
-              "accountId": widget.accountId,
-              "nickname": widget.nickname,
-              "date": widget.date,
-            };
-            Navigator.pushNamed(context, "/homePage/Activity/Details",
-                    arguments: args)
-                .then((value) => refreshData());
-          },
-          child: Container(
-            height: 30,
-            width: 30,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 255, 225, 225),
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            child: const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 20,
-            ),
-          ),
-        ),
-      ]),
-    ]);
+                GestureDetector(
+                  onTap: () {
+                    //Navigator.pushNamed(context, "/homePage/Activity/Details");
+
+                    var args = {
+                      "accountId": widget.accountId,
+                      "nickname": widget.nickname,
+                      "date": widget.date,
+                    };
+                    Navigator.pushNamed(context, "/homePage/Activity/Details",
+                            arguments: args)
+                        .then((value) => refreshData());
+                  },
+                  child: Container(
+                    height: 30,
+                    width: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 225, 225),
+                      borderRadius: BorderRadius.circular(5),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(120, 151, 151, 151),
+                          offset: Offset(0, 5),
+                          blurRadius: 5.0,
+                          spreadRadius: 0.0,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ]),
+            ]);
+          } else {
+            return Column(children: [
+              MyTitle(
+                title: "今日活动",
+                icon: "assets/icons/exercising.png",
+                value: "-",
+                unit: "分钟",
+                route: "/homePage/Activity/Edit",
+                arguments: {
+                  "accountId": widget.accountId >= 0 ? widget.accountId : -1,
+                  "nickname":
+                      widget.accountId >= 0 ? widget.nickname : "TriGuard",
+                  "date": widget.date,
+                  "activityDataId": -1,
+                },
+                refreshData: refreshData,
+              ), //TODO
+
+              const SizedBox(
+                height: 5,
+              ),
+              Center(
+                child: LoadingAnimationWidget.staggeredDotsWave(
+                    color: Colors.pink, size: 25),
+              ),
+            ]);
+          }
+        });
   }
 }
 

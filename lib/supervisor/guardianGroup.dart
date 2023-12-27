@@ -331,14 +331,20 @@ class _MemberWidgetState extends State<MemberWidget> {
     // 生成监护人列表
     for (int i = 0; i < wardInfos.length; i++) {
       if (wardInfos[i] != null) {
+        String imageUrl =
+            "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png";
+
+        if (wardInfos[i]["image"] != null) {
+          imageUrl = "http://43.138.75.58:8080/static/${wardInfos[i]["image"]}";
+        }
+
         isExpanded[wardInfos[i]["id"]] = false;
         wardInfoWidgets.add(getGroupMemberWidget(
           wardInfos[i]["id"],
           wardInfos[i]["username"],
           wardInfos[i]["email"],
           wardInfos[i]["nickname"],
-          wardInfos[i]["image"] ??
-              "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+          imageUrl,
         ));
       }
     }
@@ -426,7 +432,7 @@ class _MemberWidgetState extends State<MemberWidget> {
       children: [
         //Image.asset("assets/icons/exercising.png", width: 20, height: 20),
         // 头像
-        Container(
+        /* Container(
           constraints: const BoxConstraints(
             maxHeight: 30,
             maxWidth: 40,
@@ -437,14 +443,17 @@ class _MemberWidgetState extends State<MemberWidget> {
               color: const Color.fromRGBO(0, 0, 0, 0.2),
             ),
           ),
-          child: Image.network(
-            image,
-            //width: 30,
-            //height: 30,
-            fit: BoxFit.cover,
+          child: CircleAvatar(
+            radius: 18,
+            backgroundImage: NetworkImage(image),
           ),
+        ), */
+
+        CircleAvatar(
+          radius: 18,
+          backgroundImage: NetworkImage(image),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 2),
         // 昵称
         Container(
           constraints: BoxConstraints(
@@ -1003,14 +1012,21 @@ class _MemberWidgetState extends State<MemberWidget> {
     if (!widget.refresh[1]) {
       wardInfoWidgets.clear();
       for (int i = 0; i < wardInfos.length; i++) {
+        String imageUrl =
+            "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png";
+
         if (wardInfos[i] != null) {
+          if (wardInfos[i]["image"] != null) {
+            imageUrl = wardInfos[i]["image"];
+          }
+          print("成员头像：$imageUrl");
+
           wardInfoWidgets.add(getGroupMemberWidget(
             wardInfos[i]["id"],
             wardInfos[i]["username"],
             wardInfos[i]["email"],
             wardInfos[i]["nickname"],
-            wardInfos[i]["image"] ??
-                "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+            imageUrl,
           ));
         }
       }

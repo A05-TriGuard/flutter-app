@@ -1233,6 +1233,7 @@ class BloodPressureStaticGraph extends StatefulWidget {
   final String seriesName;
   final UpdateDateCallback updateDate;
   final List<int> dataTimes;
+  final int type;
   const BloodPressureStaticGraph({
     Key? key,
     required this.date,
@@ -1240,6 +1241,7 @@ class BloodPressureStaticGraph extends StatefulWidget {
     required this.updateDate,
     required this.dataTimes,
     required this.seriesName,
+    required this.type,
   }) : super(key: key);
 
   @override
@@ -1248,7 +1250,11 @@ class BloodPressureStaticGraph extends StatefulWidget {
 }
 
 class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
+  List<String> labelExercising = ["少于30", "30-60", "60-120", "大于120"];
+  List<String> labelSteps = ["少于500", "500-1000", "1000-3000", "大于3000"];
+
   Future<Widget> getEchart() async {
+    List<String> label = widget.type == 0 ? labelExercising : labelSteps;
     return Echarts(option: '''
         {
 
@@ -1257,7 +1263,7 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
           },
           legend: {
             orient: 'vertical',
-            left: '10%',
+            left: '2%',
             top: '20%'
           },
           series: [
@@ -1267,10 +1273,14 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
               radius: '60%',
               center: ['65%', '50%'], //第一个是左右，第二个上下
               data: [
-                { value:  ${widget.dataTimes[0]}, name: '偏高' },
-                { value:  ${widget.dataTimes[1]}, name: '正常' },
-                { value:  ${widget.dataTimes[2]}, name: '偏低' },
-                { value:  ${widget.dataTimes[3]}, name: '异常' },
+               // { value:  ${widget.dataTimes[0]}, name: '偏高' },
+              //  { value:  ${widget.dataTimes[1]}, name: '正常' },
+               // { value:  ${widget.dataTimes[2]}, name: '偏低' },
+               // { value:  ${widget.dataTimes[3]}, name: '异常' },
+               { value:  ${widget.dataTimes[0]}, name: '${label[0]}' },
+                { value:  ${widget.dataTimes[1]}, name:  '${label[1]}'  },
+                { value:  ${widget.dataTimes[2]}, name:  '${label[2]}' },
+                { value:  ${widget.dataTimes[3]}, name:  '${label[3]}'  },
               ],
               emphasis: {
                 itemStyle: {
@@ -1407,7 +1417,8 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
     //return;
 
-    //print(data);
+    print("================================================================");
+    print(data);
 
     stepTimes = [];
     exerciseTimes = [];
@@ -1859,11 +1870,13 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
         // 血压/心率图表
         BloodPressureStaticGraph(
-            date: widget.date,
-            selectedDays: widget.selectedDays,
-            seriesName: seriesName[pageNum],
-            dataTimes: getTypeData(pageNum),
-            updateDate: widget.updateDate),
+          date: widget.date,
+          selectedDays: widget.selectedDays,
+          seriesName: seriesName[pageNum],
+          dataTimes: getTypeData(pageNum),
+          updateDate: widget.updateDate,
+          type: pageNum,
+        ),
       ],
     );
   }
@@ -2152,7 +2165,7 @@ class _BloodPressureMoreInfoButtonState
                   height: 35,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 156, 248, 243),
+                    color: const Color.fromARGB(255, 156, 248, 243),
                     border: Border.all(
                       color: const Color.fromRGBO(0, 0, 0, 0.2),
                     ),
@@ -2874,6 +2887,10 @@ class _TodayActivitiesState extends State<TodayActivities> {
 
   // 结束运动
   Future<bool> endExercising() async {
+    if (isPause) {
+      await continueExercising();
+    }
+
     var token = await storage.read(key: 'token');
     final dio = Dio();
     Response response;
@@ -2885,6 +2902,10 @@ class _TodayActivitiesState extends State<TodayActivities> {
       "feelings": feelings,
       "remark": remarksController.text,
     };
+
+    if (remarksController.text == "") {
+      arguments.remove("remark");
+    }
 
     if (widget.accountId >= 0) {
       arguments["accountId"] = widget.accountId;

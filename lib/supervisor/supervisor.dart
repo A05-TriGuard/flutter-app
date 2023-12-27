@@ -227,8 +227,8 @@ class _GuardianWidgetState extends State<GuardianWidget> {
               "nickname": result.first["nickname"],
               //"image": result.first["image"] ??
               //"https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
-              "image":
-                  "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+              "image": image,
+              //"https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
             };
             print("arguments(supervisor):$arguments");
             Navigator.pushNamed(context, '/supervisor/person',
@@ -275,15 +275,16 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                     children: [
                       Row(
                         children: [
-                          // 群组头像
+                          // 个人头像
                           Container(
                             width: 30,
                             height: 30,
                             decoration: BoxDecoration(
                               //borderRadius: BorderRadius.circular(15),
                               shape: BoxShape.circle,
-                              image: const DecorationImage(
-                                image: AssetImage("assets/images/loginBg1.png"),
+                              image: DecorationImage(
+                                //image: AssetImage("assets/images/2278.jpg"),
+                                image: NetworkImage(image),
                                 fit: BoxFit.cover,
                               ),
                               border: Border.all(
@@ -397,7 +398,7 @@ class _GuardianWidgetState extends State<GuardianWidget> {
           // height: 50,
           constraints: const BoxConstraints(minHeight: 50),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color.fromARGB(255, 240, 253, 255),
             border: const Border(
               bottom: BorderSide(
                 color: Color.fromRGBO(0, 0, 0, 0.2),
@@ -423,7 +424,8 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                               //borderRadius: BorderRadius.circular(15),
                               shape: BoxShape.circle,
                               image: const DecorationImage(
-                                image: AssetImage("assets/images/loginBg1.png"),
+                                image: AssetImage("assets/icons/group2.png"),
+                                //image: NetworkImage(image),
                                 fit: BoxFit.cover,
                               ),
                               border: Border.all(
@@ -485,13 +487,27 @@ class _GuardianWidgetState extends State<GuardianWidget> {
   Future<void> getWardedListWidget() async {
     wardedListWidget = [];
     for (int i = 0; i < wardList.length; i++) {
-      wardedListWidget.add(getGuardianPersonWidget(wardList[i]["accountId"],
-          wardList[i]["nickname"], "assets/images/loginBg1.png"));
+      String imageUrl =
+          "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png";
+      if (wardList[i]["image"] != null) {
+        imageUrl = "http://43.138.75.58:8080/static/";
+        imageUrl += wardList[i]["image"];
+        // print("监护人头像：$imageUrl");
+      }
+      wardedListWidget.add(getGuardianPersonWidget(
+          wardList[i]["accountId"], wardList[i]["nickname"], imageUrl));
     }
 
     for (int i = 0; i < groupList.length; i++) {
-      wardedListWidget.add(getGuardianGroupWidget(groupList[i]["groupId"],
-          groupList[i]["groupName"], "assets/images/loginBg1.png"));
+      String imageUrl =
+          "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png";
+      /* if (wardList[i]["image"] != null) {
+        imageUrl = "http://43.138.75.58:8080/static/";
+        imageUrl += groupList[i]["image"];
+        //print("监护人头像：$imageUrl");
+      } */
+      wardedListWidget.add(getGuardianGroupWidget(
+          groupList[i]["groupId"], groupList[i]["groupName"], imageUrl));
     }
 
     /* return Column(
@@ -860,440 +876,6 @@ class _GuardianWidgetState extends State<GuardianWidget> {
 
 // ====================关爱模式============================
 
-// 监护人列表
-class EachGuardianWidget extends StatefulWidget {
-  final int count;
-  final int accountId;
-  final String image;
-  final String username;
-  final String nickname;
-  final String email;
-  bool refreshData;
-  final UpdateViewCallback updateView;
-  final VoidCallback update;
-  final TextEditingController nicknameController;
-  Map<int, bool> isExpanded = <int, bool>{};
-
-  EachGuardianWidget({
-    Key? key,
-    required this.count,
-    required this.accountId,
-    required this.image,
-    required this.username,
-    required this.nickname,
-    required this.email,
-    required this.refreshData,
-    required this.updateView,
-    required this.update,
-    required this.isExpanded,
-    required this.nicknameController,
-  }) : super(key: key);
-
-  @override
-  State<EachGuardianWidget> createState() => _EachGuardianWidgetState();
-}
-
-class _EachGuardianWidgetState extends State<EachGuardianWidget> {
-  bool editNickname = false;
-  @override
-  Widget build(BuildContext context) {
-    //// TextEditingController nicknameController = TextEditingController(
-    //  text: widget.nickname.isEmpty ? widget.username : widget.nickname);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          MediaQuery.of(context).size.width * 0.15 * 0.5,
-          0,
-          MediaQuery.of(context).size.width * 0.15 * 0.5,
-          0),
-      child: GestureDetector(
-        onTap: () {
-          print(widget.accountId);
-          widget.refreshData = false;
-          widget.updateView(widget.accountId);
-          setState(() {});
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-          width: MediaQuery.of(context).size.width * 0.85,
-          height: widget.isExpanded[widget.accountId] == true ? 110 : 50,
-          constraints: const BoxConstraints(
-            minHeight: 50,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: const Border(
-              bottom: BorderSide(
-                color: Color.fromRGBO(0, 0, 0, 0.2),
-              ),
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-            child: widget.isExpanded[widget.accountId] == true
-                ?
-                //展开式
-                SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // 昵称与编辑昵称
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                          child: Container(
-                            constraints: const BoxConstraints(
-                              minHeight: 30,
-                            ),
-                            //color: Colors.greenAccent,
-                            child: editNickname == false
-                                // 不编辑时
-                                ? Row(
-                                    children: [
-                                      Row(children: [
-                                        // 头像
-                                        Container(
-                                          width: 30,
-                                          height: 30,
-                                          decoration: BoxDecoration(
-                                            //borderRadius: BorderRadius.circular(15),
-                                            shape: BoxShape.circle,
-                                            image: const DecorationImage(
-                                              image: AssetImage(
-                                                  "assets/images/loginBg1.png"),
-                                              fit: BoxFit.cover,
-                                            ),
-                                            border: Border.all(
-                                              color: const Color.fromARGB(
-                                                  74, 104, 103, 103),
-                                              width: 1,
-                                            ),
-                                          ),
-                                        ),
-                                        // “昵称：”
-                                        Container(
-                                          constraints: const BoxConstraints(
-                                            minHeight: 30,
-                                          ),
-                                          //  color: Colors.yellow,
-                                          alignment: Alignment.center,
-                                          child: const Text(
-                                            " 昵称：",
-                                            textAlign: TextAlign.left,
-                                            style: TextStyle(
-                                              fontFamily: 'BalooBhai',
-                                              fontSize: 16,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ]),
-                                      // 昵称
-                                      Container(
-                                        constraints: BoxConstraints(
-                                          minHeight: 30,
-                                          maxWidth: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.55,
-                                        ),
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          widget.nickname,
-                                          textAlign: TextAlign.start,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontFamily: "BalooBhai",
-                                          ),
-                                        ),
-                                      ),
-
-                                      // 编辑昵称按钮
-                                      GestureDetector(
-                                        onTap: () {
-                                          print("编辑监护人昵称");
-                                          editNickname = !editNickname;
-                                          widget.refreshData = false;
-                                          setState(() {});
-                                        },
-                                        child: Container(
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                          ),
-                                          alignment: Alignment.bottomCenter,
-                                          child: const Icon(
-                                            Icons.edit,
-                                            size: 20,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                // 编辑时
-                                : Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      // 编辑昵称
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 30,
-                                            height: 30,
-                                            decoration: BoxDecoration(
-                                              //borderRadius: BorderRadius.circular(15),
-                                              shape: BoxShape.circle,
-                                              image: const DecorationImage(
-                                                image: AssetImage(
-                                                    "assets/images/loginBg1.png"),
-                                                fit: BoxFit.cover,
-                                              ),
-                                              border: Border.all(
-                                                color: const Color.fromARGB(
-                                                    74, 104, 103, 103),
-                                                width: 1,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 3,
-                                          ),
-                                          SizedBox(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.45,
-                                            height: 30,
-                                            child: TextFormField(
-                                              controller:
-                                                  widget.nicknameController,
-                                              decoration: InputDecoration(
-                                                isCollapsed: true,
-                                                border: UnderlineInputBorder(),
-                                                hintText: widget.nickname,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      /* const SizedBox(
-                                      width: 5,
-                                    ), */
-
-                                      // 确认与取消编辑昵称按钮
-                                      Row(
-                                        children: [
-                                          // 取消
-                                          GestureDetector(
-                                            onTap: () {
-                                              print("编辑监护人昵称");
-                                              widget.refreshData = false;
-                                              setState(() {
-                                                widget.nicknameController.text =
-                                                    widget.nickname;
-                                                editNickname = !editNickname;
-                                              });
-                                            },
-                                            child: Container(
-                                              decoration: const BoxDecoration(
-                                                shape: BoxShape.circle,
-                                              ),
-                                              alignment: Alignment.bottomCenter,
-                                              child: Image.asset(
-                                                  "assets/icons/cancel.png",
-                                                  width: 20,
-                                                  height: 20),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 5,
-                                          ),
-                                          //确认
-                                          GestureDetector(
-                                            onTap: () {
-                                              print("编辑监护人昵称");
-                                              widget.refreshData = true;
-                                              widget.update();
-                                              setState(() {
-                                                /*  widget.nickname =
-                                                    nicknameController.text;
-                                                print("新昵称：$ {widget.nickname}"); */
-                                                editNickname = !editNickname;
-                                              });
-                                            },
-                                            child: Container(
-                                              decoration: const BoxDecoration(
-                                                shape: BoxShape.circle,
-                                              ),
-                                              alignment: Alignment.bottomCenter,
-                                              child: Image.asset(
-                                                  "assets/icons/confirm.png",
-                                                  width: 24,
-                                                  height: 24),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                        ),
-
-                        // 用户名
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  constraints: const BoxConstraints(
-                                    minHeight: 30,
-                                  ),
-                                  //  color: Colors.yellow,
-                                  alignment: Alignment.center,
-                                  child: const Text(
-                                    "   用户名：",
-                                    textAlign: TextAlign.left,
-                                    style: TextStyle(
-                                      fontFamily: 'BalooBhai',
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  constraints: const BoxConstraints(
-                                    minHeight: 30,
-                                  ),
-                                  alignment: Alignment.centerLeft,
-                                  // color: Colors.blueAccent,
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.55,
-                                  child: Text(
-                                    widget.username,
-                                    textAlign: TextAlign.start,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: "BalooBhai",
-                                    ),
-                                  ),
-                                ),
-                              ]),
-                        ),
-
-                        // 邮箱与删除
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 0, 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Container(
-                                constraints: const BoxConstraints(
-                                  minHeight: 30,
-                                ),
-                                //color: Colors.yellow,
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  "   邮箱：",
-                                  textAlign: TextAlign.left,
-                                  style: TextStyle(
-                                    fontFamily: 'BalooBhai',
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-
-                              Container(
-                                constraints: const BoxConstraints(
-                                  minHeight: 30,
-                                ),
-                                alignment: Alignment.centerLeft,
-                                //color: Colors.yellowAccent,
-                                width: MediaQuery.of(context).size.width * 0.55,
-                                child: Text(
-                                  widget.email,
-                                  textAlign: TextAlign.start,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontFamily: "BalooBhai",
-                                  ),
-                                ),
-                              ),
-                              //删除
-                              GestureDetector(
-                                onTap: () {
-                                  print("删除监护人");
-                                  widget.refreshData = true;
-                                  setState(() {});
-                                },
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                  ),
-                                  alignment: Alignment.bottomCenter,
-                                  child: Image.asset("assets/icons/delete2.png",
-                                      width: 25, height: 25),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-                // 不展开时
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // 头像(图片)
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          //borderRadius: BorderRadius.circular(15),
-                          shape: BoxShape.circle,
-                          image: const DecorationImage(
-                            image: AssetImage("assets/images/loginBg1.png"),
-                            fit: BoxFit.cover,
-                          ),
-                          border: Border.all(
-                            color: Color.fromARGB(74, 104, 103, 103),
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        constraints: BoxConstraints(
-                          //minHeight: 30,
-                          maxWidth: MediaQuery.of(context).size.width * 0.75,
-                        ),
-                        height: 30,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "  ${widget.nickname}",
-                          textAlign: TextAlign.left,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontFamily: "BalooBhai",
-                            //fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 // 被监护页面
 // ignore: must_be_immutable
 class UnderGuardianshipWidget extends StatefulWidget {
@@ -1552,8 +1134,7 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
   // 每一个监护人的widget
   Widget getGuardianWidget(int count, int accountId, String image,
       String username, String nickname, String email) {
-    //TextEditingController nicknameController =
-    //TextEditingController(text: nickname.isEmpty ? username : nickname);
+    print("？？？？？？？？？？监护人的头像 $image");
     return Padding(
       padding: EdgeInsets.fromLTRB(
           MediaQuery.of(context).size.width * 0.15 * 0.5,
@@ -1613,9 +1194,11 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
                                           decoration: BoxDecoration(
                                             //borderRadius: BorderRadius.circular(15),
                                             shape: BoxShape.circle,
-                                            image: const DecorationImage(
-                                              image: AssetImage(
-                                                  "assets/images/loginBg1.png"),
+                                            image: DecorationImage(
+                                              //image: AssetImage(
+                                              //    "assets/images/loginBg1.png"),
+                                              image: NetworkImage(image),
+                                              // ####
                                               fit: BoxFit.cover,
                                             ),
                                             border: Border.all(
@@ -1700,9 +1283,10 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
                                             decoration: BoxDecoration(
                                               //borderRadius: BorderRadius.circular(15),
                                               shape: BoxShape.circle,
-                                              image: const DecorationImage(
-                                                image: AssetImage(
-                                                    "assets/images/loginBg1.png"),
+                                              image: DecorationImage(
+                                                //image: AssetImage(
+                                                //    "assets/images/loginBg1.png"),
+                                                image: NetworkImage(image),
                                                 fit: BoxFit.cover,
                                               ),
                                               border: Border.all(
@@ -1927,8 +1511,9 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
                         decoration: BoxDecoration(
                           //borderRadius: BorderRadius.circular(15),
                           shape: BoxShape.circle,
-                          image: const DecorationImage(
-                            image: AssetImage("assets/images/loginBg1.png"),
+                          image: DecorationImage(
+                            //image: AssetImage("assets/images/loginBg1.png"),
+                            image: NetworkImage(image),
                             fit: BoxFit.cover,
                           ),
                           border: Border.all(
@@ -1968,44 +1553,31 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
     List<Widget> allGuardianWidget = [];
 
     for (int i = 0; i < guardianList.length; i++) {
+      //print("guardian : $i ${guardianList[i]}");
+
+      String imageUrl =
+          "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png";
+      if (guardianList[i]["image"] != null) {
+        imageUrl = "http://43.138.75.58:8080/static/";
+        imageUrl += guardianList[i]["image"];
+      }
+
       allGuardianWidget.add(getGuardianWidget(
           i,
           guardianList[i]["accountId"],
-          /*   guardianList[i]["image"] == "null"
-              ? "assets/images/loginBg1.png"
-              : guardianList[i]["image"], */
-          "assets/images/loginBg1.png",
+          // guardianList[i]["image"] == "null"
+          //     ? "assets/images/loginBg1.png"
+          //    : guardianList[i]["image"],
+          //"assets/images/loginBg1.png",
+          imageUrl,
           guardianList[i]["username"],
           guardianList[i]["nickname"],
-          guardianList[i]["email"]
-          /*    "ashdjsakdasjkiqeiowqewqeqweqw",
-        "qwejwqe98172hfdjksdfjskjkaf",
-        "dsfjkfsdkfsd892347839fjkfsfs", */
-          ));
+          guardianList[i]["email"]));
       // all no expanded
       isExpanded[i] = false;
     }
 
     //print("getAllGuardianWidget()");
-
-    /*  for (int i = 0; i < guardianList.length; i++) {
-      allGuardianWidget.add(EachGuardianWidget(
-        count: i,
-        accountId: i,
-        image: "assets/images/loginBg1.png",
-        username: guardianList[i]["username"],
-        nickname: guardianList[i]["nickname"],
-        email: guardianList[i]["email"],
-        refreshData: refreshData,
-        updateView: updateView,
-        update: update,
-        isExpanded: isExpanded,
-        nicknameController: nicknameController,
-      ));
-      if (isExpanded[i] == null) {
-        isExpanded[i] = false;
-      }
-    } */
 
     return allGuardianWidget;
   }
@@ -2324,225 +1896,6 @@ class _UnderGuardianshipWidgetState extends State<UnderGuardianshipWidget> {
             );
           }
         });
-  }
-}
-
-// -----------------------邀请监护人--------------------------
-class InviteGuardian extends StatefulWidget {
-  const InviteGuardian({Key? key}) : super(key: key);
-
-  @override
-  State<InviteGuardian> createState() => _InviteGuardianState();
-}
-
-class _InviteGuardianState extends State<InviteGuardian> {
-  TextEditingController usernameController = TextEditingController();
-  int inviteStatus = 0;
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Material(
-          color: Colors.transparent,
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            //olor: Color.fromRGBO(255, 255, 255, 0.8),
-            //color: Colors.white,
-            child: GestureDetector(
-              onTap: () {
-                // 点击Overlay时移除它
-                //overlayEntry?.remove();
-              },
-              child: Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  height: 200,
-                  // color: Colors.white,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        offset: Offset(0, 2),
-                        blurRadius: 10.0,
-                        spreadRadius: 2.0,
-                      ),
-                    ],
-                  ),
-
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        //标题
-                        Stack(
-                          alignment: Alignment.topRight,
-                          children: [
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.7,
-                              height: 40,
-                              alignment: Alignment.center,
-                              //color: Colors.green,
-                              child: const Text(
-                                "邀请监护人",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontFamily: "BalooBhai",
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-
-                            // 关闭
-                            Container(
-                              width: 30,
-                              height: 40,
-                              //color: Colors.blueAccent,
-                              alignment: Alignment.center,
-                              child: GestureDetector(
-                                onTap: () {
-                                  //widget.onClose();
-                                },
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Image.asset("assets/icons/cancel.png",
-                                      width: 25, height: 25),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(
-                          height: 5,
-                        ),
-
-                        // 输入邮箱
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "邮箱: ",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontFamily: "BalooBhai",
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 5,
-                            ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.50,
-                              child: TextFormField(
-                                controller: usernameController,
-                                maxLines: 1,
-                                textAlign: TextAlign.left,
-                                textAlignVertical: TextAlignVertical.center,
-                                cursorColor: Colors.black38,
-                                style: const TextStyle(
-                                    color: Colors.black, fontSize: 16),
-                                decoration: InputDecoration(
-                                  //取消奇怪的高度
-                                  isCollapsed: true,
-                                  contentPadding:
-                                      const EdgeInsets.fromLTRB(10, 10, 15, 10),
-                                  counterStyle:
-                                      const TextStyle(color: Colors.black38),
-
-                                  labelText: '邮箱',
-                                  labelStyle: const TextStyle(
-                                    color: Color.fromARGB(96, 104, 104, 104),
-                                  ),
-                                  //fillColor: Color.fromARGB(190, 255, 255, 255),
-                                  fillColor:
-                                      const Color.fromARGB(187, 250, 250, 250),
-                                  filled: true,
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                    borderSide: const BorderSide(
-                                        color: Color.fromRGBO(0, 0, 0, 0.2)),
-                                    //borderSide: BorderSide.none
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                    borderSide: const BorderSide(
-                                      color: Color.fromARGB(179, 145, 145, 145),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // 邀请失败提示
-                        inviteStatus > 0
-                            ? Center(
-                                child: Text(
-                                  inviteStatus == 1
-                                      ? "发送邀请成功"
-                                      : "邀请失败，邮箱不存在或已被邀请过",
-                                  style: TextStyle(
-                                    color: inviteStatus == 1
-                                        ? Colors.greenAccent
-                                        : Colors.redAccent,
-                                  ),
-                                ),
-                              )
-                            : const SizedBox(),
-
-                        // 取消，确定
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                // 在这里添加Overlay上按钮的操作
-                                // 关闭
-                                //widget.onClose();
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
-                                    const Color.fromARGB(255, 118, 246, 255)),
-                              ),
-                              child: Text('取消'),
-                            ),
-                            const SizedBox(
-                              width: 5,
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                // 在这里添加Overlay上按钮的操作
-                                //overlayEntry?.remove();
-                                inviteStatus++;
-                                inviteStatus %= 3;
-                                setState(() {});
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
-                                    Colors.greenAccent),
-                              ),
-                              child: Text('确定'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }
 

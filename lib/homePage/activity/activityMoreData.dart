@@ -171,29 +171,12 @@ class BloodPressureRecordWidget extends StatefulWidget {
 
 class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   List<Map<dynamic, dynamic>> filteredData = [];
-  // [最小值，最大值，平均值，偏低次数，正常次数，偏高次数，异常次数，总次数]
-  /* 收缩压sbp（高压）：
-    偏低： 少于90 mmHg
-    正常： 90-120 mmHg
-    偏高： 121-139 mmHg
-    异常（高血压）： 140 mmHg及以上
 
-    舒张压dbp（低压）：
-    偏低： 少于60 mmHg
-    正常： 60-80 mmHg
-    偏高： 81-89 mmHg
-    异常（高血压）： 90 mmHg及以上
-    心率：
-
-    偏低pulse（脉搏过缓）： 少于60 次/分钟
-    正常： 60-100 次/分钟
-    偏高（脉搏过快）： 101-120 次/分钟
-    异常： 120 次/分钟及以上
- */
   List<int> sbpList = [0, 0, 0, 0, 0, 0, 0, 0]; //
   List<int> dbpList = [0, 0, 0, 0, 0, 0, 0, 0];
   List<int> heartRateList = [0, 0, 0, 0, 0, 0, 0, 0];
   List<dynamic> recordData = [];
+  List<dynamic> recordStepData = [];
   List<dynamic> statisticData = [];
 
   // 更新excel表格
@@ -223,7 +206,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
 
     // 获取文件夹路径
     var dir = await getApplicationSupportDirectory();
-    var folderPath = Directory("${dir.path}/bloodPressure");
+    var folderPath = Directory("${dir.path}/sportsActivity");
 
     print("folderPath: ${folderPath.path}");
 
@@ -233,25 +216,18 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     }
 
     // 获取文件路径
-    var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
+    var fileNamePath = "${folderPath.path}/sportsActivity.xlsx";
 
     //创建文件
     var excel = ExcelPackage.Excel.createExcel();
 
+    // **********************运动数据记录************************
+
     // 2. 添加工作表
-    var sheet1 = excel['数据记录'];
+    var sheet1 = excel['运动数据记录'];
 
     // 3. 添加数据
-    List<String> columnNames = [
-      "日期",
-      "时间",
-      "收缩压",
-      "舒张压",
-      "心率",
-      "手臂",
-      "感觉",
-      "备注"
-    ];
+    List<String> columnNames = ["开始时间", "结束时间", "运动时长", "类型", "感觉", "备注"];
 
     // bold
     ExcelPackage.CellStyle headerCellStyle = ExcelPackage.CellStyle(
@@ -276,24 +252,21 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
 
     sheet1.appendRow(columnNames);
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < columnNames.length; i++) {
       var cell = sheet1.cell(
           ExcelPackage.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
       cell.cellStyle = headerCellStyle;
     }
 
-    List<String> armsText = ["左手", "右手", "不选"];
-    List<String> feelingsText = ["较好", "还好", "较差"];
+    List<String> feelingsText = ["开心", "还好", "不好"];
 
     for (int i = 0; i < recordData.length; i++) {
       List<String> dataCell = [];
-      dataCell.add(recordData[i]["date"]);
-      dataCell.add(recordData[i]["time"]);
-      dataCell.add(recordData[i]["sbp"].toString());
-      dataCell.add(recordData[i]["dbp"].toString());
-      dataCell.add(recordData[i]["heartRate"].toString());
-      dataCell.add(armsText[recordData[i]["arm"]]);
-      dataCell.add(feelingsText[recordData[i]["feeling"]]);
+      dataCell.add(recordData[i]["startTime"]);
+      dataCell.add(recordData[i]["endTime"]);
+      dataCell.add(recordData[i]["duration"].toString());
+      dataCell.add(items[recordData[i]["type"]]);
+      dataCell.add(feelingsText[recordData[i]["feelings"]]);
       dataCell.add((recordData[i]["remark"].toString()) == "null"
           ? "暂无备注"
           : recordData[i]["remark"].toString());
@@ -301,7 +274,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       sheet1.appendRow(dataCell);
     }
 
-    sheet1.setColumnWidth(0, 15);
+    //sheet1.setColumnWidth(0, 15);
 
     ExcelPackage.CellStyle dataCellStyle = ExcelPackage.CellStyle(
       textWrapping: ExcelPackage.TextWrapping.WrapText,
@@ -321,59 +294,156 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     );
 
     for (int i = 1; i <= recordData.length; i++) {
-      for (int j = 0; j < 7; j++) {
+      for (int j = 0; j < columnNames.length; j++) {
         var cell = sheet1.cell(ExcelPackage.CellIndex.indexByColumnRow(
             columnIndex: j, rowIndex: i));
         cell.cellStyle = dataCellStyle;
       }
     }
 
-    // Sheet2 =============================================================
-    var sheet2 = excel['统计记录'];
-    List<String> columnNames2 = [
-      "-",
-      "最低值",
-      "最高值",
-      "平均值",
-      "偏低(次)",
-      "正常(次)",
-      "偏高(次)",
-      "异常(次)",
-      "总次数",
-    ];
+    // **********************步数数据记录************************
 
-    sheet2.appendRow(columnNames2);
-    for (int i = 0; i < 9; i++) {
+    var sheet2 = excel['步数数据记录'];
+
+    // 3. 添加数据
+    columnNames = ["日期", "步数"];
+
+    // bold
+    headerCellStyle = ExcelPackage.CellStyle(
+      bold: true,
+      textWrapping: ExcelPackage.TextWrapping.WrapText,
+      fontFamily:
+          ExcelPackage.getFontFamily(ExcelPackage.FontFamily.Comic_Sans_MS),
+      rotation: 0,
+      bottomBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      topBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      leftBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      rightBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+    );
+
+    sheet2.appendRow(columnNames);
+
+    for (int i = 0; i < columnNames.length; i++) {
       var cell = sheet2.cell(
           ExcelPackage.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
       cell.cellStyle = headerCellStyle;
     }
 
-    List<String> names = ["收缩压", "舒张压", "心率"];
-    for (int i = 0; i < statisticData.length; i++) {
+    for (int i = 0; i < recordStepData.length; i++) {
       List<String> dataCell = [];
-      dataCell.add(names[i]);
-      dataCell.add((statisticData[i]["min"].toString()) == "null"
-          ? "0"
-          : statisticData[i]["min"].toString());
-      dataCell.add((statisticData[i]["max"].toString()) == "null"
-          ? "0"
-          : statisticData[i]["max"].toString());
-      dataCell.add(statisticData[i]["avg"].toString());
-      dataCell.add(statisticData[i]["high"].toString());
-      dataCell.add(statisticData[i]["medium"].toString());
-      dataCell.add(statisticData[i]["low"].toString());
-      dataCell.add(statisticData[i]["abnormal"].toString());
-      dataCell.add(statisticData[i]["count"].toString());
+      dataCell.add(recordStepData[i]["date"]);
+      dataCell.add(recordStepData[i]["steps"].toString());
       sheet2.appendRow(dataCell);
     }
 
-    for (int i = 1; i <= statisticData.length; i++) {
-      for (int j = 0; j < columnNames2.length; j++) {
+    dataCellStyle = ExcelPackage.CellStyle(
+      textWrapping: ExcelPackage.TextWrapping.WrapText,
+      rotation: 0,
+      bottomBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      topBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      leftBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+      rightBorder: ExcelPackage.Border(
+        borderStyle: ExcelPackage.BorderStyle.Thin,
+      ),
+    );
+
+    for (int i = 1; i <= recordStepData.length; i++) {
+      for (int j = 0; j < columnNames.length; j++) {
         var cell = sheet2.cell(ExcelPackage.CellIndex.indexByColumnRow(
             columnIndex: j, rowIndex: i));
         cell.cellStyle = dataCellStyle;
       }
+    }
+
+    // **********************运动统计记录************************
+    var sheet3 = excel['运动统计记录'];
+    List<String> columnNames2 = [
+      "运动(天)",
+      "少于30分钟",
+      "30至60分钟",
+      "60至120分钟",
+      "120分钟以上",
+      "总天数"
+    ];
+
+    sheet3.appendRow(columnNames2);
+    for (int i = 0; i < columnNames2.length; i++) {
+      var cell = sheet3.cell(
+          ExcelPackage.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+      cell.cellStyle = headerCellStyle;
+    }
+
+    for (int i = 0; i < statisticData.length; i++) {
+      if (statisticData[i]["name"] != "exercise") {
+        continue;
+      }
+      int count_ = statisticData[i]["less"] +
+          statisticData[i]["fewer"] +
+          statisticData[i]["medium"] +
+          statisticData[i]["more"];
+      List<String> dataCell = [];
+      dataCell.add("运动");
+      dataCell.add(statisticData[i]["less"].toString());
+      dataCell.add(statisticData[i]["fewer"].toString());
+      dataCell.add(statisticData[i]["medium"].toString());
+      dataCell.add(statisticData[i]["more"].toString());
+      dataCell.add(count_.toString());
+      sheet3.appendRow(dataCell);
+    }
+
+    for (int j = 0; j < columnNames2.length; j++) {
+      var cell = sheet3.cell(
+          ExcelPackage.CellIndex.indexByColumnRow(columnIndex: j, rowIndex: 1));
+      cell.cellStyle = dataCellStyle;
+    }
+
+    // **********************步数统计记录************************
+    var sheet4 = excel['步数统计记录'];
+    columnNames2 = ["步数(天)", "少于500", "500至1000", "1000至3000", "3000以上", "总天数"];
+
+    sheet4.appendRow(columnNames2);
+    for (int i = 0; i < columnNames2.length; i++) {
+      var cell = sheet4.cell(
+          ExcelPackage.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+      cell.cellStyle = headerCellStyle;
+    }
+
+    for (int i = 0; i < statisticData.length; i++) {
+      if (statisticData[i]["name"] != "steps") {
+        continue;
+      }
+      int count_ = statisticData[i]["less"] +
+          statisticData[i]["fewer"] +
+          statisticData[i]["medium"] +
+          statisticData[i]["more"];
+      List<String> dataCell = [];
+      dataCell.add("步数");
+      dataCell.add(statisticData[i]["less"].toString());
+      dataCell.add(statisticData[i]["fewer"].toString());
+      dataCell.add(statisticData[i]["medium"].toString());
+      dataCell.add(statisticData[i]["more"].toString());
+      dataCell.add(count_.toString());
+      sheet4.appendRow(dataCell);
+    }
+
+    for (int j = 0; j < columnNames2.length; j++) {
+      var cell = sheet4.cell(
+          ExcelPackage.CellIndex.indexByColumnRow(columnIndex: j, rowIndex: 1));
+      cell.cellStyle = dataCellStyle;
     }
 
     excel.delete('Sheet1');
@@ -421,8 +491,10 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       feelingBool[0] == true ? feeling += "1" : feeling += "0";
       feelingBool[1] == true ? feeling += "1" : feeling += "0";
       feelingBool[2] == true ? feeling += "1" : feeling += "0";
-      filterParam["feeling"] = feeling;
+      filterParam["feelings"] = feeling;
     }
+
+    //print("feeling: ${filterParam["feeling"]} ");
 
     if (remarkBool[2] == false) {
       remarkBool[0] == true ? remark += "1" : remark += "0";
@@ -450,19 +522,22 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       if (response.data["code"] == 200) {
         //print("获取血压数据成功 按条件筛选");
         recordData = response.data["data"]["exerciseList"];
+        recordStepData = response.data["data"]["stepsList"];
         statisticData = response.data["data"]["countedDataList"];
       } else {
         print(response);
         recordData = [];
+        recordStepData = [];
         statisticData = [];
       }
     } catch (e) {
       print(e);
       recordData = [];
+      recordStepData = [];
       statisticData = [];
     }
 
-    //await createExportFile();
+    await createExportFile();
     // TODO ####
   }
 
@@ -474,7 +549,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       "开始时间",
       "结束时间",
       "运动时长",
-      //"步数",
       "类型",
       "感觉",
       "备注",
@@ -567,7 +641,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   List<DataColumn> getStatisticsDataColumns() {
     List<DataColumn> dataColumn = [];
     List<String> columnNames = [
-      "运动/步数 (天)",
       "少于30分钟",
       "30至60分钟",
       "60至120分钟",
@@ -600,28 +673,15 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     List<String> names = ["运动", "步数"];
 
     for (int i = 0; i < statisticData.length; i++) {
+      if (statisticData[i]["name"] != "exercise") {
+        continue;
+      }
       int count_ = statisticData[i]["less"] +
           statisticData[i]["fewer"] +
           statisticData[i]["medium"] +
           statisticData[i]["more"];
       dataRow.add(DataRow(
         cells: <DataCell>[
-          DataCell(Center(
-            child: Text(names[i]),
-          )),
-          /* DataCell(Center(
-            child: Text((statisticData[i]["min"].toString()) == "null"
-                ? "0"
-                : statisticData[i]["min"].toString()),
-          )),
-          DataCell(Center(
-            child: Text((statisticData[i]["max"].toString()) == "null"
-                ? "0"
-                : statisticData[i]["max"].toString()),
-          )),
-          DataCell(Center(
-            child: Text(statisticData[i]["avg"].toString()),
-          )), */
           DataCell(Center(
             child: Text(statisticData[i]["less"].toString()),
           )),
@@ -672,7 +732,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                 ),
                 Row(
                   children: [
-                    const Text("数据表",
+                    const Text("运动数据表",
                         style: TextStyle(
                             fontSize: 18,
                             fontFamily: "BalooBhai",
@@ -730,13 +790,13 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         UnconstrainedBox(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.85,
-            height: 230,
+            height: 155,
             alignment: Alignment.center,
             child: Column(
               children: [
                 Row(
                   children: [
-                    const Text("统计表",
+                    const Text("运动统计表",
                         style: TextStyle(
                             fontSize: 18,
                             fontFamily: "BalooBhai",
@@ -755,7 +815,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                 UnconstrainedBox(
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
-                    height: 155,
+                    height: 105,
                     //height: MediaQuery.of(context).size.height * 0.5,
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -835,7 +895,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                     ),
                     Row(
                       children: [
-                        const Text("数据表",
+                        const Text("运动数据表",
                             style: TextStyle(
                                 fontSize: 18,
                                 fontFamily: "BalooBhai",
@@ -857,7 +917,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                     ),
                     Row(
                       children: [
-                        const Text("统计表",
+                        const Text("运动统计表",
                             style: TextStyle(
                                 fontSize: 18,
                                 fontFamily: "BalooBhai",
@@ -917,203 +977,6 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
   List<int> heartRateList = [0, 0, 0, 0, 0, 0, 0, 0];
   List<dynamic> recordData = [];
   List<dynamic> statisticData = [];
-
-  // 更新excel表格
-  Future<void> createExportFile() async {
-    var status = await Permission.storage.status.isGranted;
-    var status1 = await Permission.storage.request().isGranted;
-    var status2 = await Permission.manageExternalStorage.status.isGranted;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
-
-    if (!status) {
-      await Permission.storage.request();
-    }
-
-    // if (!await Permission.storage.request().isGranted) {
-    if (!status1) {
-      await Permission.manageExternalStorage.status;
-    }
-
-    if (!status2) {
-      await Permission.manageExternalStorage.request();
-    }
-
-    // if (!await Permission.manageExternalStorage.request().isGranted) {
-    if (!status3) {
-      await Permission.manageExternalStorage.status;
-    }
-
-    // 获取文件夹路径
-    var dir = await getApplicationSupportDirectory();
-    var folderPath = Directory("${dir.path}/bloodPressure");
-
-    print("folderPath: ${folderPath.path}");
-
-    // 判断文件夹是否存在，不存在则创建
-    if (await folderPath.exists() == false) {
-      folderPath.create();
-    }
-
-    // 获取文件路径
-    var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
-
-    //创建文件
-    var excel = ExcelPackage.Excel.createExcel();
-
-    // 2. 添加工作表
-    var sheet1 = excel['数据记录'];
-
-    // 3. 添加数据
-    List<String> columnNames = [
-      "日期",
-      "时间",
-      "收缩压",
-      "舒张压",
-      "心率",
-      "手臂",
-      "感觉",
-      "备注"
-    ];
-
-    // bold
-    ExcelPackage.CellStyle headerCellStyle = ExcelPackage.CellStyle(
-      bold: true,
-      textWrapping: ExcelPackage.TextWrapping.WrapText,
-      fontFamily:
-          ExcelPackage.getFontFamily(ExcelPackage.FontFamily.Comic_Sans_MS),
-      rotation: 0,
-      bottomBorder: ExcelPackage.Border(
-        borderStyle: ExcelPackage.BorderStyle.Thin,
-      ),
-      topBorder: ExcelPackage.Border(
-        borderStyle: ExcelPackage.BorderStyle.Thin,
-      ),
-      leftBorder: ExcelPackage.Border(
-        borderStyle: ExcelPackage.BorderStyle.Thin,
-      ),
-      rightBorder: ExcelPackage.Border(
-        borderStyle: ExcelPackage.BorderStyle.Thin,
-      ),
-    );
-
-    sheet1.appendRow(columnNames);
-
-    for (int i = 0; i < 8; i++) {
-      var cell = sheet1.cell(
-          ExcelPackage.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
-      cell.cellStyle = headerCellStyle;
-    }
-
-    List<String> armsText = ["左手", "右手", "不选"];
-    List<String> feelingsText = ["较好", "还好", "较差"];
-
-    for (int i = 0; i < recordData.length; i++) {
-      List<String> dataCell = [];
-      dataCell.add(recordData[i]["date"]);
-      dataCell.add(recordData[i]["time"]);
-      dataCell.add(recordData[i]["sbp"].toString());
-      dataCell.add(recordData[i]["dbp"].toString());
-      dataCell.add(recordData[i]["heartRate"].toString());
-      dataCell.add(armsText[recordData[i]["arm"]]);
-      dataCell.add(feelingsText[recordData[i]["feeling"]]);
-      dataCell.add((recordData[i]["remark"].toString()) == "null"
-          ? "暂无备注"
-          : recordData[i]["remark"].toString());
-
-      sheet1.appendRow(dataCell);
-    }
-
-    sheet1.setColumnWidth(0, 15);
-
-    ExcelPackage.CellStyle dataCellStyle = ExcelPackage.CellStyle(
-      textWrapping: ExcelPackage.TextWrapping.WrapText,
-      rotation: 0,
-      bottomBorder: ExcelPackage.Border(
-        borderStyle: ExcelPackage.BorderStyle.Thin,
-      ),
-      topBorder: ExcelPackage.Border(
-        borderStyle: ExcelPackage.BorderStyle.Thin,
-      ),
-      leftBorder: ExcelPackage.Border(
-        borderStyle: ExcelPackage.BorderStyle.Thin,
-      ),
-      rightBorder: ExcelPackage.Border(
-        borderStyle: ExcelPackage.BorderStyle.Thin,
-      ),
-    );
-
-    for (int i = 1; i <= recordData.length; i++) {
-      for (int j = 0; j < 7; j++) {
-        var cell = sheet1.cell(ExcelPackage.CellIndex.indexByColumnRow(
-            columnIndex: j, rowIndex: i));
-        cell.cellStyle = dataCellStyle;
-      }
-    }
-
-    // Sheet2 =============================================================
-    var sheet2 = excel['统计记录'];
-    List<String> columnNames2 = [
-      "-",
-      "最低值",
-      "最高值",
-      "平均值",
-      "偏低(次)",
-      "正常(次)",
-      "偏高(次)",
-      "异常(次)",
-      "总次数",
-    ];
-
-    sheet2.appendRow(columnNames2);
-    for (int i = 0; i < 9; i++) {
-      var cell = sheet2.cell(
-          ExcelPackage.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
-      cell.cellStyle = headerCellStyle;
-    }
-
-    List<String> names = ["收缩压", "舒张压", "心率"];
-    for (int i = 0; i < statisticData.length; i++) {
-      List<String> dataCell = [];
-      dataCell.add(names[i]);
-      dataCell.add((statisticData[i]["min"].toString()) == "null"
-          ? "0"
-          : statisticData[i]["min"].toString());
-      dataCell.add((statisticData[i]["max"].toString()) == "null"
-          ? "0"
-          : statisticData[i]["max"].toString());
-      dataCell.add(statisticData[i]["avg"].toString());
-      dataCell.add(statisticData[i]["high"].toString());
-      dataCell.add(statisticData[i]["medium"].toString());
-      dataCell.add(statisticData[i]["low"].toString());
-      dataCell.add(statisticData[i]["abnormal"].toString());
-      dataCell.add(statisticData[i]["count"].toString());
-      sheet2.appendRow(dataCell);
-    }
-
-    for (int i = 1; i <= statisticData.length; i++) {
-      for (int j = 0; j < columnNames2.length; j++) {
-        var cell = sheet2.cell(ExcelPackage.CellIndex.indexByColumnRow(
-            columnIndex: j, rowIndex: i));
-        cell.cellStyle = dataCellStyle;
-      }
-    }
-
-    excel.delete('Sheet1');
-    //var downloadFolderPath = '/storage/emulated/0/Download/bp.xlsx';
-
-    // 保存
-    List<int>? fileBytes = excel.save();
-    if (fileBytes != null) {
-      File(join(fileNamePath))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
-
-    //检测文件是否存在
-    if (await File(fileNamePath).exists()) {
-      print("excel export ok");
-    }
-  }
 
   // 从后端请求数据
   Future<void> getDataFromServer() async {
@@ -1189,8 +1052,8 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
     // TODO ####
   }
 
-  // 记录表格的标题 "日期 时间 收缩压 舒张压 心率 手臂 感觉 备注"
-  List<DataColumn> getDataColumns() {
+  // 记录表格的标题 "日期 步数"
+  List<DataColumn> getDataColumns(double width) {
     //using the filteredData to generate the table
     List<DataColumn> dataColumn = [];
     List<String> columnNames = ["日期", "步数"];
@@ -1198,13 +1061,16 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
     for (int i = 0; i < columnNames.length; i++) {
       dataColumn.add(DataColumn(
         label: Expanded(
-          child: Center(
-            child: Text(
-              columnNames[i],
-              style: const TextStyle(
-                  fontFamily: "BalooBhai",
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold),
+          child: Container(
+            width: width, //MediaQuery.of(context).size.width * 0.85 * 0.5,
+            child: Center(
+              child: Text(
+                columnNames[i],
+                style: const TextStyle(
+                    fontFamily: "BalooBhai",
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ),
@@ -1247,7 +1113,6 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
   List<DataColumn> getStatisticsDataColumns() {
     List<DataColumn> dataColumn = [];
     List<String> columnNames = [
-      "步数 (天)",
       "0至500",
       "500至1000",
       "1000至3000",
@@ -1287,9 +1152,9 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
           statisticData[i]["more"];
       dataRow.add(DataRow(
         cells: <DataCell>[
-          DataCell(Center(
+          /* DataCell(Center(
             child: Text(names[i]),
-          )),
+          )), */
           DataCell(Center(
             child: Text(statisticData[i]["less"].toString()),
           )),
@@ -1340,7 +1205,7 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
                 ),
                 Row(
                   children: [
-                    const Text("数据表",
+                    const Text("步数数据表",
                         style: TextStyle(
                             fontSize: 18,
                             fontFamily: "BalooBhai",
@@ -1377,7 +1242,8 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
                       child: SingleChildScrollView(
                         scrollDirection: Axis.vertical,
                         child: DataTable(
-                          columns: getDataColumns(),
+                          columns: getDataColumns(
+                              MediaQuery.of(context).size.width * 0.85 * 0.4),
                           rows: getDataRows(),
                           headingRowColor: MaterialStateColor.resolveWith(
                               (states) =>
@@ -1404,7 +1270,7 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
               children: [
                 Row(
                   children: [
-                    const Text("统计表",
+                    const Text("步数统计表",
                         style: TextStyle(
                             fontSize: 18,
                             fontFamily: "BalooBhai",
@@ -1503,7 +1369,7 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
                     ),
                     Row(
                       children: [
-                        const Text("数据表",
+                        const Text("步数数据表",
                             style: TextStyle(
                                 fontSize: 18,
                                 fontFamily: "BalooBhai",
@@ -1525,7 +1391,7 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
                     ),
                     Row(
                       children: [
-                        const Text("统计表",
+                        const Text("步数统计表",
                             style: TextStyle(
                                 fontSize: 18,
                                 fontFamily: "BalooBhai",
@@ -2205,7 +2071,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
           AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             width: MediaQuery.of(context).size.width * 0.85,
-            height: isExpanded ? 440 : 50,
+            height: isExpanded ? 300 : 50,
             decoration: BoxDecoration(
               border: Border.all(
                 color: const Color.fromARGB(255, 196, 195, 195),
@@ -2348,109 +2214,19 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
 }
 
 class ExportExcelWiget extends StatefulWidget {
-  const ExportExcelWiget({super.key});
+  final int accountId;
+  final String nickname;
+  const ExportExcelWiget(
+      {Key? key, required this.accountId, required this.nickname})
+      : super(key: key);
 
   @override
   State<ExportExcelWiget> createState() => _ExportExcelWigetState();
 }
 
 class _ExportExcelWigetState extends State<ExportExcelWiget> {
-  Future<String> createFolder(String cow) async {
-    final folderName = cow;
-    final path = Directory("storage/emulated/0/$folderName");
-    var status = await Permission.storage.status;
-    var status1 = await Permission.storage.request().isGranted;
-    var status2 = await Permission.manageExternalStorage.status;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
-
-    if (!status.isGranted) {
-      await Permission.storage.request();
-    }
-
-    if (!status2.isGranted) {
-      await Permission.manageExternalStorage.request();
-    }
-
-    if (!status1) {
-      print("no permission1");
-    } else {
-      print("permission1 ok");
-    }
-
-    if (!status3) {
-      print("no permission3");
-    } else {
-      print("permission3 ok");
-    }
-
-    var dir = await getApplicationDocumentsDirectory();
-    var dir2 = await getApplicationSupportDirectory();
-    print(dir.path);
-    print(dir2.path);
-    var newpath =
-        Directory("/data/user/0/com.example.triguard/app_flutter/ahbeytest");
-    var newpath2 =
-        Directory('/data/user/0/com.example.triguard/files/ahbeytest2');
-    print(newpath.path);
-    //create folder
-
-    if (await newpath2.exists()) {
-      print("ok");
-    } else {
-      print("no");
-      newpath2.create();
-    }
-
-    var filename =
-        "/data/user/0/com.example.triguard/app_flutter/ahbeytest/test.txt";
-    var filename2 =
-        "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt";
-    var excel = ExcelPackage.Excel.createExcel();
-
-    // 2. 添加工作表
-    var sheet = excel['Sheet1'];
-
-    // 3. 添加数据
-    sheet.appendRow(['Name', 'Age', 'City']);
-    sheet.appendRow(['John Doe???', 25, 'New York']);
-    sheet.appendRow(['Jane Smith?', 30, 'Los Angeles']);
-    sheet.appendRow(['Bob Johnson?', 28, 'Chicago']);
-
-    // 4. 保存 Excel 文件
-/*     List<int>? fileBytes = excel.save();
-    //print('saving executed in ${stopwatch.elapsed}');
-    if (fileBytes != null) {
-      File(join(filename))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
- */
-    File fileDef = File(filename2);
-    try {
-      await fileDef.create();
-    } catch (e) {
-      print(e);
-    }
-
-    if (await File(
-            "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt")
-        .exists()) {
-      print("test2 txt ok");
-    }
-
-    // open the file
-    RandomAccessFile file2 = await fileDef.open(mode: FileMode.write);
-    // write to the file
-    await file2.writeString("??Hello World?????????");
-    // close the file
-    await file2.close();
-
-    //Open the file on the phone
-    OpenFile.open(filename2);
-
-    return "";
-  }
-
+  String exportTime = "";
+  String exportPath = "";
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
     var status1 = await Permission.storage.request().isGranted;
@@ -2467,7 +2243,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     // 获取文件夹路径
     var dir = await getApplicationSupportDirectory();
-    var folderPath = Directory("${dir.path}/bloodPressure");
+    var folderPath = Directory("${dir.path}/sportsActivity");
 
     print("folderPath: ${folderPath.path}");
 
@@ -2477,39 +2253,32 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     }
 
     // 获取文件路径
-    var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
+    var fileNamePath = "${folderPath.path}/sportsActivity.xlsx";
+    exportTime =
+        "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}_${DateTime.now().hour}-${DateTime.now().minute}-${DateTime.now().second}";
+
+    String nickname = widget.accountId == -1 ? "" : widget.nickname;
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
       var downloadPath = await getDownloadsDirectory();
-      await File(fileNamePath)
-          //.copy('/storage/emulated/0/Download/bloodPressure.xlsx');
-          .copy('${downloadPath!.path}/bloodPressure.xlsx');
+
+      await File(fileNamePath).copy(
+          '${downloadPath!.path}/sportsActivity_${nickname}_${exportTime}.xlsx');
       // 检测文件是否存在
-      //if (await File('/storage/emulated/0/Download/bloodPressure.xlsx')
-      if (await File('${downloadPath?.path}/bloodPressure.xlsx').exists()) {
-        print("export bloodPressure.xlsx successfully");
+      print(
+          '${downloadPath.path}/sportsActivity_${nickname}_${exportTime}.xlsx');
+      if (await File(
+              '${downloadPath!.path}/sportsActivity_${nickname}_${exportTime}.xlsx')
+          .exists()) {
+        exportPath =
+            '${downloadPath.path}/sportsActivity_${nickname}_${exportTime}.xlsx';
+        print("export sportsActivity.xlsx successfully");
         return true;
       }
     }
 
     return false;
-
-    // var downloadFolderPath = Directory('sdcard/Download');
-/* 
-    var downloadFolderPath = Directory('/storage/emulated/0/Download/');
-    if (await downloadFolderPath.exists()) {
-      print("downloadFolderPath exist");
-      print("!!");
-      //await File(fileNamePath).copy('sdcard/Download/bp.xlsx');
-      await File(fileNamePath).copy('/storage/emulated/0/Download/bp.xlsx');
-      print("???");
-      if (await File('/storage/emulated/0/Download/bp.xlsx').exists()) {
-        print("copy to DOWNLOAD ok");
-      } else {
-        print("downloadFolderPath not exist");
-      }
-    } */
   }
 
   @override
@@ -2528,7 +2297,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(exportStatus
-                        ? '导出成功，请查看"Android/data/com.example.triguard/files/downloads/bloodPressure.xlsx"'
+                        ? '导出成功，请查看$exportPath'
                         : '导出失败，请检查文件夹权限和重试'),
                     duration: const Duration(seconds: 3),
                   ),
@@ -2733,7 +2502,10 @@ class _ActivityMoreDataState extends State<ActivityMoreData> {
               updateGraph: updateGraph,
             ),
 
-            ExportExcelWiget(),
+            ExportExcelWiget(
+              accountId: widget.arguments["accountId"],
+              nickname: widget.arguments["nickname"],
+            ),
 
             const SizedBox(
               height: 50,

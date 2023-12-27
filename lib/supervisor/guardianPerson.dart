@@ -381,8 +381,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
   }
 
   // 显示更多
-  Widget getGroupMemberWidgetMore(
-      int accountID, String username, String email, String nickname) {
+  Widget getGroupMemberWidgetMore() {
     return UnconstrainedBox(
       alignment: Alignment.center,
       child: Container(
@@ -454,7 +453,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                             //width: MediaQuery.of(context).size.width * 0.55,
                             //color: Colors.yellow,
                             child: Text(
-                              nickname,
+                              widget.arguments["nickname"],
                               textAlign: TextAlign.left,
                               style: const TextStyle(
                                 fontFamily: 'BalooBhai',
@@ -529,7 +528,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                     isCollapsed: true,
                                     border: const UnderlineInputBorder(),
                                     counterText: "",
-                                    hintText: nickname,
+                                    hintText: widget.arguments["nickname"],
                                     hintStyle: const TextStyle(
                                       fontFamily: 'BalooBhai',
                                       fontSize: 18,
@@ -782,8 +781,8 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                         "nickname": widget.arguments["nickname"],
                         "groupName": "",
                       };
-                      Navigator.pushNamed(context, '/homePage', arguments: args);
-                          
+                      Navigator.pushNamed(context, '/homePage',
+                          arguments: args);
                     },
                     child: Container(
                       width: 120,
@@ -844,8 +843,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
           // 昵称标题
           getNicknameTitle(),
           const SizedBox(height: 10),
-          getGroupMemberWidgetMore(1, "admin使得房价快速了解2就进了进了2金额开零就2零",
-              "beyzhex@gmail.com额废物废物废物34234323", widget.arguments["nickname"]),
+          getGroupMemberWidgetMore(),
           const SizedBox(height: 10),
           TodayActivities(
             accountId: widget.arguments["accountId"],
