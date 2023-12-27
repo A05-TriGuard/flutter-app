@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:triguard/component/titleDate/titleDate.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+//import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:dio/dio.dart';
 
 import '../../component/header/header.dart';
@@ -1766,12 +1766,18 @@ class _ActivityEditState extends State<ActivityEdit> {
   // 确定结束运动dialog
   // 获取当前是否有在运动
   Future<void> getCurrentExercising() async {
-    // print('getCurrentExercising');
+    print('getCurrentExercising');
     var token = await storage.read(key: 'token');
 
     final dio = Dio();
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
+
+    if (widget.arguments["accountId"] >= 0) {
+      print(
+          "http://43.138.75.58:8080/api/sports/exercise/current?accountId=${widget.arguments["accountId"]}");
+    } else
+      print("http://43.138.75.58:8080/api/sports/exercise/current");
 
     response = await dio.get(
       widget.arguments["accountId"] >= 0
@@ -1779,7 +1785,7 @@ class _ActivityEditState extends State<ActivityEdit> {
           : "http://43.138.75.58:8080/api/sports/exercise/current",
     );
     if (response.data["code"] == 200) {
-      //print(response.data["data"]);
+      print(response.data["data"]);
       if (response.data["data"] != null) {
         isExercising = response.data["data"]["isExercising"];
         isPause = response.data["data"]["isPausing"];
@@ -1794,6 +1800,7 @@ class _ActivityEditState extends State<ActivityEdit> {
     } else {
       print(response);
     }
+    print("=============================");
   }
 
   //开始运动
@@ -1918,6 +1925,10 @@ class _ActivityEditState extends State<ActivityEdit> {
 
   // 结束运动
   Future<bool> endExercising() async {
+    if (isPause) {
+      await continueExercising();
+    }
+
     var token = await storage.read(key: 'token');
     final dio = Dio();
     Response response;
@@ -2401,6 +2412,7 @@ class _ActivityEditState extends State<ActivityEdit> {
                     updateView();
                     overlayEntry?.markNeedsBuild();
                     overlayEntry?.remove(); */
+                    print("开始运动");
                     bool status = await startExercising();
                     if (status) {
                       //print("开始运动成功");
@@ -2472,8 +2484,8 @@ class _ActivityEditState extends State<ActivityEdit> {
           : "http://43.138.75.58:8080/api/sports/steps",
     );
     if (response.data["code"] == 200) {
-      //print("========================");
-      //print("${response.data}");
+      print("========================");
+      print("${response.data}");
       steps = response.data["data"][0]["steps"];
     } else {
       print(response);
@@ -2870,7 +2882,7 @@ class _ActivityEditState extends State<ActivityEdit> {
       ),
     );
 
-    return FutureBuilder(
+    /* return FutureBuilder(
         // Replace getDataFromServer with the Future you want to wait for
         future: getDataFromServer(),
         builder: (context, snapshot) {
@@ -2942,5 +2954,6 @@ class _ActivityEditState extends State<ActivityEdit> {
             );
           }
         });
+   */
   }
 }

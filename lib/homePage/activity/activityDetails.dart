@@ -555,7 +555,7 @@ class _BloodPressureDataState extends State<BloodPressureData> {
   Widget getInfoPage() {
     return Container(
       height: 180,
-      width: MediaQuery.of(context).size.width * 0.85,
+      width: MediaQuery.of(context).size.width * 0.8,
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
@@ -667,7 +667,7 @@ class _BloodPressureDataState extends State<BloodPressureData> {
   Widget getRemarkPage() {
     return Container(
       height: 180,
-      width: MediaQuery.of(context).size.width * 0.85,
+      width: MediaQuery.of(context).size.width * 0.8,
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
@@ -766,11 +766,19 @@ class _BloodPressureDataState extends State<BloodPressureData> {
                         duration: const Duration(milliseconds: 300),
                         firstChild: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          child: infoPage,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: infoPage,
+                          ),
+                          //child: infoPage,
                         ),
                         secondChild: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          child: getRemarkPage(),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: getRemarkPage(),
+                          ),
+                          //child: getRemarkPage(),
                         ),
                         crossFadeState: showRemark
                             ? CrossFadeState.showSecond
@@ -810,21 +818,6 @@ class _BloodPressureDataState extends State<BloodPressureData> {
                 //print("哈哈哈");
                 widget.updateData();
               });
-              /*  Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Edit(
-                    arguments: {
-                      "bpDataId": widget.id,
-                      "date": widget.date,
-                      "prevPage": 1,
-                    },
-                  ),
-                ),
-              ).then((_) {
-                //print("哈哈哈");
-                widget.updateData();
-              }); */
             },
             child: Container(
               child: Image.asset(
@@ -1066,8 +1059,8 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        "-----------------------------------------------------------------------");
+    //print(
+    //   "-----------------------------------------------------------------------");
 
     return FutureBuilder(
       future: getDataFromServer(),
@@ -1077,7 +1070,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 
           return AnimatedContainer(
             duration: const Duration(milliseconds: 1500),
-            height: length == 1 ? 195 : 195.0 * length,
+            height: length == 1 ? 200 : 200.0 * length,
             curve: Curves.easeInOut,
             child: SingleChildScrollView(
               child: Column(
@@ -1450,7 +1443,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
         exerciseTimes.add(data[i]["more"]);
       }
     }
-
+    totalTimes = 0;
     for (int i = 0; i < stepTimes.length; i++) {
       totalTimes += stepTimes[i];
     }
@@ -2620,7 +2613,10 @@ class _StepCountWidgetState extends State<StepCountWidget> {
 // 今日活动
 class TodayActivities extends StatefulWidget {
   final int accountId;
-  const TodayActivities({Key? key, required this.accountId}) : super(key: key);
+  final VoidCallback updateData;
+  const TodayActivities(
+      {Key? key, required this.accountId, required this.updateData})
+      : super(key: key);
 
   @override
   State<TodayActivities> createState() => _TodayActivitiesState();
@@ -2911,8 +2907,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
       arguments["accountId"] = widget.accountId;
     }
 
-    print("=========endExercising===========");
-    print(arguments);
+    // print("=========endExercising===========");
+    // print(arguments);
 
     try {
       response = await dio.post(
@@ -3440,7 +3436,9 @@ class _TodayActivitiesState extends State<TodayActivities> {
                         isExercising = false;
                         isPause = false;
                         overlayEntry?.remove();
-                        setState(() {});
+                        //setState(() {});
+                        widget.updateData();
+
                         Navigator.pop(context);
                       } else {
                         print("结束运动失败");
@@ -4016,6 +4014,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
 
           TodayActivities(
             accountId: widget.arguments["accountId"],
+            updateData: updateData,
           ),
 
           const SizedBox(

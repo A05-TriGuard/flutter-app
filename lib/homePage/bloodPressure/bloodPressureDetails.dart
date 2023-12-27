@@ -10,7 +10,6 @@ import '../../account/token.dart';
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/other.dart';
-import './bloodPressureEdit.dart' hide armButtonTypes, feelingButtonTypes;
 
 const List<String> method = <String>['手机号', '邮箱'];
 typedef UpdateDateCallback = void Function(DateTime newDate);
@@ -192,7 +191,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
     heartRateData = [];
 
     for (int i = data.length - 1; i >= 0; i--) {
-      int id_ = data[i]["id"];
+      //int id_ = data[i]["id"];
       String date_ = data[i]["date"];
       int month_ = int.parse(date_.split("-")[1]);
       int day_ = int.parse(date_.split("-")[2]);
@@ -1037,7 +1036,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       String timeStr = data[i]["time"];
       int hour_ = int.parse(timeStr.split(":")[0]);
       int minute_ = int.parse(timeStr.split(":")[1]);
-      DateTime time_ = DateTime(2023, 01, 01, hour_, minute_);
+      //  DateTime time_ = DateTime(2023, 01, 01, hour_, minute_);
       int sbp_ = data[i]["sbp"];
       int dbp_ = data[i]["dbp"];
       int heartRate_ = data[i]["heartRate"];

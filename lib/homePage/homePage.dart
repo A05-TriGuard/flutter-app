@@ -1132,7 +1132,9 @@ class _MyActivitiesState extends State<MyActivities> {
   }
 
   void refreshData() {
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -1729,8 +1731,9 @@ class _HomePageState extends State<HomePage> {
 
     // 群内成员
     for (int i = 0; i < allWardInfo.length; i++) {
+      print("image: ${allWardInfo[i].image}");
       allWardInfoWidgets.add(ListTile(
-        leading: Container(
+        /*  leading: Container(
           constraints: const BoxConstraints(
             maxHeight: 30,
             maxWidth: 40,
@@ -1746,6 +1749,31 @@ class _HomePageState extends State<HomePage> {
             //width: 40,
             //height: 30,
             fit: BoxFit.cover,
+          ),
+        ), */
+        /* leading: CircleAvatar(
+          backgroundImage: NetworkImage(
+              'http://43.138.75.58:8080/static/${allWardInfo[i].image}'),
+          radius: 20,
+        ), */
+        leading: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            //borderRadius: BorderRadius.circular(15),
+            shape: BoxShape.circle,
+            image: DecorationImage(
+              //image: AssetImage(
+              //    "assets/images/loginBg1.png"),
+              image: NetworkImage(
+                  'http://43.138.75.58:8080/static/${allWardInfo[i].image}'),
+              // ####
+              fit: BoxFit.cover,
+            ),
+            border: Border.all(
+              color: const Color.fromARGB(74, 104, 103, 103),
+              width: 1,
+            ),
           ),
         ),
         title: Text(allWardInfo[i].nickname),

@@ -2091,7 +2091,7 @@ class _BloodFatEditState extends State<BloodFatEdit> {
 
     for (int i = 0; i < data.length; i++) {
       int id_ = data[i]["id"];
-      String date_ = data[i]["date"];
+      // String date_ = data[i]["date"];
       String timeStr = data[i]["time"];
       int hour = int.parse(timeStr.split(":")[0]);
       int minute = int.parse(timeStr.split(":")[1]);

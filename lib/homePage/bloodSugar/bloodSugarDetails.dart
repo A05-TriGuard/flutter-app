@@ -175,7 +175,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
     bloodSugarData = [];
 
     for (int i = data.length - 1; i >= 0; i--) {
-      int id_ = data[i]["id"];
+      // int id_ = data[i]["id"];
       String date_ = data[i]["date"];
       int month_ = int.parse(date_.split("-")[1]);
       int day_ = int.parse(date_.split("-")[2]);
@@ -934,7 +934,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       String timeStr = data[i]["time"];
       int hour_ = int.parse(timeStr.split(":")[0]);
       int minute_ = int.parse(timeStr.split(":")[1]);
-      DateTime time_ = DateTime(2023, 01, 01, hour_, minute_);
+      // DateTime time_ = DateTime(2023, 01, 01, hour_, minute_);
       double bloodSugar_ = data[i]["bs"];
       int meal_ = data[i]["meal"];
       int feeling_ = data[i]["feeling"];

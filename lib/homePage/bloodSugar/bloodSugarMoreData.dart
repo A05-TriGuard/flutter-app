@@ -1,9 +1,6 @@
 import 'dart:io';
-import 'package:open_file/open_file.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:excel/excel.dart' as ExcelPackage;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,14 +8,11 @@ import 'package:permission_handler/permission_handler.dart';
 //import 'package:syncfusion_flutter_xlsio/xlsio.dart'
 //    hide Column, Row, Border, Stack;
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:triguard/account/token.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:triguard/homePage/bloodFat/bloodFatEdit.dart';
 
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
-import '../../other/gradientBorder/gradient_borders.dart';
 import '../../other/other.dart';
 
 //typedef UpdateDateCallback = void Function(DateTime newDate);
@@ -205,9 +199,9 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
 
   Future<void> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    var status1 = await Permission.storage.request().isGranted;
+    // var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
+    // var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -1561,8 +1555,6 @@ class OKCancelButtonsWidget extends StatefulWidget {
 }
 
 class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
-  List<bool> _localPrevArmsSelected = [false, false, false, true];
-  List<bool> _localPrevFeelingsSelected = [false, false, false, true];
   List<String> invalidParamType = [
     "",
     "日期设置有误",
@@ -1576,9 +1568,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
   @override
   void initState() {
     super.initState();
-    // resetLocalPrevSelected();
-    _localPrevArmsSelected = [false, false, false, true];
-    _localPrevFeelingsSelected = [false, false, false, true];
   }
 
   @override
@@ -1950,18 +1939,25 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
 }
 
 class ExportExcelWiget extends StatefulWidget {
-  const ExportExcelWiget({super.key});
+  final int accountId;
+  final String nickname;
+  const ExportExcelWiget(
+      {Key? key, required this.accountId, required this.nickname})
+      : super(key: key);
 
   @override
   State<ExportExcelWiget> createState() => _ExportExcelWigetState();
 }
 
 class _ExportExcelWigetState extends State<ExportExcelWiget> {
+  String exportTime = "";
+  String exportPath = "";
+
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    var status1 = await Permission.storage.request().isGranted;
+    //  var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
+    // var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -1984,12 +1980,21 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     // 获取文件路径
     var fileNamePath = "${folderPath.path}/bloodSugar.xlsx";
+    exportTime =
+        "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}_${DateTime.now().hour}-${DateTime.now().minute}-${DateTime.now().second}";
+
+    String nickname = widget.accountId == -1 ? "" : widget.nickname;
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
       var downloadPath = await getDownloadsDirectory();
-      await File(fileNamePath).copy('${downloadPath!.path}/bloodSugar.xlsx');
-      if (await File('${downloadPath.path}/bloodSugar.xlsx').exists()) {
+      await File(fileNamePath).copy(
+          '${downloadPath!.path}/bloodSugar_${nickname}_${exportTime}.xlsx');
+      if (await File(
+              '${downloadPath.path}/bloodSugar_${nickname}_${exportTime}.xlsx')
+          .exists()) {
+        exportPath =
+            '${downloadPath.path}/bloodSugar_${nickname}_${exportTime}.xlsx';
         return true;
       }
     }
@@ -2013,7 +2018,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(exportStatus
-                        ? '导出成功，请查看"Android/data/com.example.triguard/files/downloads/bloodSugar.xlsx"'
+                        ? '导出成功，请查看$exportPath'
                         : '导出失败，请检查文件夹权限和重试'),
                     duration: const Duration(seconds: 3),
                   ),
@@ -2221,7 +2226,10 @@ class _BloodSugarMoreDataState extends State<BloodSugarMoreData> {
               updateGraph: updateGraph,
             ),
 
-            ExportExcelWiget(),
+            ExportExcelWiget(
+              accountId: widget.arguments["accountId"],
+              nickname: widget.arguments["nickname"],
+            ),
 
             const SizedBox(
               height: 20,

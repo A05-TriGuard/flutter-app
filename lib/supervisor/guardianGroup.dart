@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:filter_list/filter_list.dart';
@@ -1017,7 +1015,8 @@ class _MemberWidgetState extends State<MemberWidget> {
 
         if (wardInfos[i] != null) {
           if (wardInfos[i]["image"] != null) {
-            imageUrl = wardInfos[i]["image"];
+            imageUrl =
+                "http://43.138.75.58:8080/static/${wardInfos[i]["image"]}";
           }
           print("成员头像：$imageUrl");
 
@@ -1791,7 +1790,7 @@ class _GuardianGroupPageState extends State<GuardianGroupPage> {
   // 添加成员
   void showOverlay(BuildContext context) {
     OverlayEntry? overlayEntry;
-    TextEditingController usernameController = TextEditingController();
+    //TextEditingController usernameController = TextEditingController();
 
     overlayEntry = OverlayEntry(
       builder: (context) => Positioned(

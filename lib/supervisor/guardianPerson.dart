@@ -9,6 +9,7 @@ import '../component/titleDate/titleDate.dart';
 import '../account/token.dart';
 
 // -------------今日记录模块--------------------
+// ignore: must_be_immutable
 class TodayActivities extends StatefulWidget {
   final int accountId;
   bool refreshActivitiesData;
@@ -356,7 +357,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
             backgroundImage: NetworkImage(widget.arguments["image"]),
           ),
           //
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
 
           // 昵称
           Container(

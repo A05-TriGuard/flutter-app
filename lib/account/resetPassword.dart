@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import '../component/header/header.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
 
@@ -142,9 +143,9 @@ class ResetPassword extends StatefulWidget {
 }
 
 class _ResetPasswordState extends State<ResetPassword> {
-  String methodLabelText = "手机号";
-  String methodIconPath = "assets/icons/smartphone.png";
-  String methodPrexifText = "+86";
+  String methodLabelText = "邮箱";
+  String methodIconPath = "assets/icons/email.png";
+  String methodPrexifText = "";
   String validCodeSentHintText = "验证码已经发送";
 
   final TextEditingController userController = TextEditingController();
@@ -187,9 +188,7 @@ class _ResetPasswordState extends State<ResetPassword> {
               ],
             ),
           ),
-          content: const Center(
-            child: Text("重置密码成功！赶紧去登录吧！"),
-          ),
+          content: const Text("重置密码成功！赶紧去登录吧！"),
 
           // 立即登录按钮
           actions: <Widget>[
@@ -200,12 +199,12 @@ class _ResetPasswordState extends State<ResetPassword> {
                 Navigator.pushNamed(context, '/');
               },
               style: FilledButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 211, 211, 211),
+                backgroundColor: const Color.fromARGB(255, 211, 211, 211),
                 textStyle: const TextStyle(
                   fontSize: 16.0,
                 ),
               ),
-              child: Container(
+              child: SizedBox(
                 width: 90,
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -238,7 +237,7 @@ class _ResetPasswordState extends State<ResetPassword> {
   }
 
   // 忘记/重置密码函数
-  void resetPassword() async {
+  Future<void> resetPassword() async {
     // 获取用户所输入的内容
     final user = userController.text;
     final validCode = validCodeController.text;
@@ -288,7 +287,7 @@ class _ResetPasswordState extends State<ResetPassword> {
     }
   }
 
-  void getValidCode() async {
+  Future<void> getValidCode() async {
     print("获取验证码");
 
     final String email = userController.text;
@@ -326,13 +325,7 @@ class _ResetPasswordState extends State<ResetPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "TriGuard",
-          style: TextStyle(
-              fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-        ),
-      ),
+      appBar: getAppBar(0, true, "TriGuard"),
       resizeToAvoidBottomInset: false,
       body: Container(
         constraints: const BoxConstraints.expand(),
@@ -374,10 +367,10 @@ class _ResetPasswordState extends State<ResetPassword> {
               ],
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          const SizedBox(height: 20),
 
           //下拉菜单 选择 “手机号”或“邮箱”
-          Container(
+          /*  Container(
             decoration: BoxDecoration(
                 color: const Color.fromARGB(187, 250, 250, 250),
                 borderRadius: const BorderRadius.all(Radius.circular(25)),
@@ -401,10 +394,9 @@ class _ResetPasswordState extends State<ResetPassword> {
               },
             ),
           ),
+ */
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
-
-          // 手机号输入
+          //邮箱输入
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.75,
             child: TextField(
@@ -430,7 +422,6 @@ class _ResetPasswordState extends State<ResetPassword> {
                 prefixStyle: const TextStyle(
                   color: Colors.black38,
                   fontSize: 16,
-                  //fontFamily: 'Blinker',
                 ),
                 prefixIconConstraints: const BoxConstraints(minWidth: 60),
                 labelText: methodLabelText,
@@ -452,8 +443,7 @@ class _ResetPasswordState extends State<ResetPassword> {
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
-
+          const SizedBox(height: 20),
           // 新密码输入
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.75,
@@ -502,7 +492,7 @@ class _ResetPasswordState extends State<ResetPassword> {
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          const SizedBox(height: 20),
 
           // 验证码
           Stack(alignment: Alignment.centerRight, children: <Widget>[
@@ -552,8 +542,8 @@ class _ResetPasswordState extends State<ResetPassword> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
                 child: FilledButton(
-                  onPressed: () {
-                    getValidCode();
+                  onPressed: () async {
+                    await getValidCode();
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color.fromRGBO(219, 219, 219, 1),
@@ -605,8 +595,8 @@ class _ResetPasswordState extends State<ResetPassword> {
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.75,
               child: FilledButton(
-                onPressed: () {
-                  resetPassword();
+                onPressed: () async {
+                  await resetPassword();
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 255, 132, 176),

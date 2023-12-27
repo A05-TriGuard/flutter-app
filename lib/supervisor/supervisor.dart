@@ -5,8 +5,6 @@ import 'package:filter_list/filter_list.dart';
 
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
-import './guardianPerson.dart';
-import './guardianGroup.dart';
 import '../account/token.dart';
 
 //import 'package:flutter_echarts/flutter_echarts.dart';
@@ -377,32 +375,20 @@ class _GuardianWidgetState extends State<GuardianWidget> {
           0),
       child: GestureDetector(
         onTap: () {
-          // OK
-          /* Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => GuardianGroupPage(
-                groupId: wardId,
-                groupName: name,
-              ),
-            ),
-          ).then((value) => setState(() {})); */
-
           var args = {"groupId": wardId, "groupName": name};
-          //Navigator.pushNamed(context, '/supervisor/group', arguments: args);
           Navigator.pushNamed(context, '/supervisor/group', arguments: args)
               .then((value) => setState(() {}));
         },
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
-          // height: 50,
           constraints: const BoxConstraints(minHeight: 50),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 240, 253, 255),
+//color: const Color.fromARGB(255, 240, 253, 255),
+            color: Colors.white,
             border: const Border(
               bottom: BorderSide(
-                color: Color.fromRGBO(0, 0, 0, 0.2),
-              ),
+                  //color: Color.fromRGBO(0, 0, 0, 0.2),
+                  color: Color.fromARGB(255, 143, 216, 250)),
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -501,11 +487,7 @@ class _GuardianWidgetState extends State<GuardianWidget> {
     for (int i = 0; i < groupList.length; i++) {
       String imageUrl =
           "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png";
-      /* if (wardList[i]["image"] != null) {
-        imageUrl = "http://43.138.75.58:8080/static/";
-        imageUrl += groupList[i]["image"];
-        //print("监护人头像：$imageUrl");
-      } */
+
       wardedListWidget.add(getGuardianGroupWidget(
           groupList[i]["groupId"], groupList[i]["groupName"], imageUrl));
     }
@@ -748,20 +730,6 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                     ],
                   ),
                 ),
-
-                /*  Padding(
-              padding: EdgeInsets.fromLTRB(
-                  MediaQuery.of(context).size.width * 0.15 * 0.5,
-                  0,
-                  MediaQuery.of(context).size.width * 0.15 * 0.5,
-                  0),
-              child: const PageTitle(
-                title: "监护对象",
-                icons: "assets/icons/audience.png",
-                fontSize: 18,
-              ),
-            ), */
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -780,20 +748,6 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                     ),
                   ],
                 ),
-
-                // add
-
-                /*  Column(
-                  children: wardedListWidget,
-                ), */
-                /*  ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: wardedListWidget.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return wardedListWidget[index];
-                  },
-                ), */
                 Container(
                   constraints: BoxConstraints(
                     minHeight: 50,
@@ -806,7 +760,6 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                     ),
                   ),
                 ),
-
                 const SizedBox(
                   height: 30,
                 ),
@@ -2772,7 +2725,8 @@ class _SupervisorState extends State<Supervisor> {
                                 //inviteStatus %= 3;
                                 // print(
                                 //     "创建群组：${groupNameController.text} $selectedWardList");
-                                bool status = await createWardGroup();
+                                //bool status = await createWardGroup();
+                                await createWardGroup();
                                 setState(() {});
                                 overlayEntry?.remove();
                                 Navigator.pop(context);
@@ -2818,8 +2772,7 @@ class _SupervisorState extends State<Supervisor> {
               invitationList[i]["invitationId"],
               invitationList[i]["wardId"],
               invitationList[i]["wardName"],
-              "2023-12-6",
-              //invitationList[i]["date"], // TODO 日期格式不对
+              invitationList[i]["invitationTime"], // TODO 日期格式不对
             ));
           }
 
@@ -2850,7 +2803,7 @@ class _SupervisorState extends State<Supervisor> {
       int invitationId, int guardianId, String username, String date) {
     //username = "admin";
     //date = "2023-11-11";
-    bool count = false;
+    //bool count = false;
 
     // 从后端获取数据
     return Column(

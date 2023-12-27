@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:open_file/open_file.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart' as ExcelPackage;
@@ -670,7 +669,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   // 统计表格的内容
   List<DataRow> getStatisticsDataRows() {
     List<DataRow> dataRow = [];
-    List<String> names = ["运动", "步数"];
 
     for (int i = 0; i < statisticData.length; i++) {
       if (statisticData[i]["name"] != "exercise") {
@@ -1142,7 +1140,6 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
   // 统计表格的内容
   List<DataRow> getStatisticsDataRows() {
     List<DataRow> dataRow = [];
-    List<String> names = ["运动", "步数"];
 
     for (int i = 0; i < statisticData.length; i++) {
       if (statisticData[i]["name"] != "steps") continue;
@@ -1471,7 +1468,7 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
           }
         });
       },
-      child: Container(
+      child: SizedBox(
         child: Row(children: [
           Container(
             height: 40,
@@ -1604,7 +1601,7 @@ class _DurationFilterWidgetState extends State<DurationFilterWidget> {
           ),
           const SizedBox(width: 2),
           const Text(
-            "mmHg",
+            "分钟",
             style: TextStyle(fontSize: 16, fontFamily: "Blinker"),
           ),
         ],
@@ -1646,7 +1643,7 @@ class _TimeFilterWidget2State extends State<TimeFilterWidget2> {
           const SizedBox(width: 5),
           const Text(
             "至",
-            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
+            style: TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
           const SizedBox(width: 5),
           TimePicker(time: widget.endTime, updateTime: widget.updateEndTime),
@@ -1765,18 +1762,19 @@ class _RemarksButtonsWidgetState extends State<RemarksButtonsWidget> {
           }
         });
       },
-      child: Container(
+      child: SizedBox(
         child: Row(children: [
           Container(
             height: 40,
             width: 68,
-            padding: EdgeInsets.all(0.0),
+            padding: const EdgeInsets.all(0.0),
             decoration: BoxDecoration(
               color: widget.isSelected[index] == true
                   ? const Color.fromRGBO(253, 134, 255, 0.66)
-                  : Color.fromRGBO(218, 218, 218, 0.66),
+                  : const Color.fromRGBO(218, 218, 218, 0.66),
               borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+              border:
+                  Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
             ),
             alignment: Alignment.center,
             child: Center(
@@ -1784,8 +1782,8 @@ class _RemarksButtonsWidgetState extends State<RemarksButtonsWidget> {
                 buttonText[index],
                 style: TextStyle(
                   color: widget.isSelected[index] == true
-                      ? Color.fromRGBO(66, 9, 119, 0.773)
-                      : Color.fromRGBO(94, 68, 68, 100),
+                      ? const Color.fromRGBO(66, 9, 119, 0.773)
+                      : const Color.fromRGBO(94, 68, 68, 100),
                   fontSize: 16.0,
                   fontFamily: 'Blinker',
                 ),
@@ -1843,8 +1841,6 @@ class OKCancelButtonsWidget extends StatefulWidget {
 }
 
 class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
-  List<bool> _localPrevArmsSelected = [false, false, false, true];
-  List<bool> _localPrevFeelingsSelected = [false, false, false, true];
   List<String> invalidParamType = [
     "",
     "日期设置有误",
@@ -1856,9 +1852,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
   @override
   void initState() {
     super.initState();
-    // resetLocalPrevSelected();
-    _localPrevArmsSelected = [false, false, false, true];
-    _localPrevFeelingsSelected = [false, false, false, true];
   }
 
   @override
@@ -1869,14 +1862,12 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
         Container(
           width: MediaQuery.of(context).size.width * 0.85,
           alignment: Alignment.center,
-          //child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 重置按钮
               GestureDetector(
                 onTap: () {
-                  print("重置");
                   widget.filterParam.reset();
                   invalidParam = 0;
 
@@ -1887,7 +1878,7 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
                   width: 50,
                   padding: const EdgeInsets.all(0.0),
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 209, 212, 212),
+                    color: const Color.fromARGB(255, 209, 212, 212),
                     borderRadius: BorderRadius.circular(10.0),
                     border: Border.all(
                         color: const Color.fromRGBO(122, 119, 119, 0.43)),
@@ -1913,7 +1904,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
               // 确定按钮
               GestureDetector(
                 onTap: () {
-                  print("确定");
                   // 进行数据表的刷新
                   widget.filterParam.refresh = true;
 
@@ -2013,11 +2003,11 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
     return Column(
       children: [
         Text(
-          "${TitleChn}",
+          TitleChn,
           style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
         ),
         Text(
-          "${TitleEng}",
+          TitleEng,
           style: const TextStyle(
               fontSize: 14,
               fontFamily: "Blinker",
@@ -2229,9 +2219,9 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
   String exportPath = "";
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    var status1 = await Permission.storage.request().isGranted;
+    //var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
+    // var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -2269,7 +2259,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
       print(
           '${downloadPath.path}/sportsActivity_${nickname}_${exportTime}.xlsx');
       if (await File(
-              '${downloadPath!.path}/sportsActivity_${nickname}_${exportTime}.xlsx')
+              '${downloadPath.path}/sportsActivity_${nickname}_${exportTime}.xlsx')
           .exists()) {
         exportPath =
             '${downloadPath.path}/sportsActivity_${nickname}_${exportTime}.xlsx';

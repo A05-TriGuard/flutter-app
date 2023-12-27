@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import '../component/header/header.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
 
@@ -175,9 +176,9 @@ class RegisterAccount extends StatefulWidget {
 }
 
 class _RegisterAccountState extends State<RegisterAccount> {
-  String methodLabelText = "手机号";
-  String methodIconPath = "assets/icons/smartphone.png";
-  String methodPrexifText = "+86";
+  String methodLabelText = "邮箱";
+  String methodIconPath = "assets/icons/email.png";
+  String methodPrexifText = "";
   String validCodeSentHintText = "验证码已经发送";
 
   final TextEditingController userController = TextEditingController();
@@ -270,7 +271,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
   }
 
   // 注册函数
-  void signUp() async {
+  Future<void> signUp() async {
     // 获取用户所输入的内容
     final user = userController.text;
     final validCode = validCodeController.text;
@@ -323,27 +324,9 @@ class _RegisterAccountState extends State<RegisterAccount> {
         showFailSignUpDialog("注册失败！");
       }
     }
-
-    /* if (user == "1111" &&
-        validCode == "1111" &&
-        username == "1111" &&
-        password == "1111") {
-      setState(() {
-        isSignedUp = true;
-      });
-
-      //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
-      //弹出注册成功的对话框
-
-      print("signup ok");
-      showSuccessSignUpDialog();
-    } else {
-      //"你可能已经注册过，或者验证码不正确，用户名密码格式不正确！"
-      showFailSignUpDialog("你可能已经注册过，或者验证码不正确，用户名密码格式不正确！");
-    }*/
   }
 
-  void getValidCode() async {
+  Future<void> getValidCode() async {
     print("获取验证码");
     final String email = userController.text;
     final String emailGetValidCodeApi =
@@ -372,16 +355,8 @@ class _RegisterAccountState extends State<RegisterAccount> {
 
   @override
   Widget build(BuildContext context) {
-    final bool enabled = true;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "TriGuard",
-          style: TextStyle(
-              fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-        ),
-      ),
+      appBar: getAppBar(0, true, "TriGuard"),
       resizeToAvoidBottomInset: false,
       body: Container(
         constraints: const BoxConstraints.expand(),
@@ -423,9 +398,9 @@ class _RegisterAccountState extends State<RegisterAccount> {
               ],
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          const SizedBox(height: 20),
 
-          //下拉菜单 选择 “手机号”或“邮箱”
+          /* //下拉菜单 选择 “手机号”或“邮箱”
           Container(
             decoration: BoxDecoration(
                 color: const Color.fromARGB(187, 250, 250, 250),
@@ -451,7 +426,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          SizedBox(height: MediaQuery.of(context).size.width * 0.05), */
 
           // 手机号输入
           SizedBox(
@@ -501,7 +476,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          const SizedBox(height: 20),
 
           // 用户名输入
           SizedBox(
@@ -551,7 +526,8 @@ class _RegisterAccountState extends State<RegisterAccount> {
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          const Text("谨慎填写，用户名不可再修改!", style: TextStyle(color: Colors.red)),
+          const SizedBox(height: 10),
 
           // 密码输入
           SizedBox(
@@ -601,7 +577,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05),
+          const SizedBox(height: 20),
 
           // 验证码
           Stack(alignment: Alignment.centerRight, children: <Widget>[
@@ -651,8 +627,8 @@ class _RegisterAccountState extends State<RegisterAccount> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
                 child: FilledButton(
-                  onPressed: () {
-                    getValidCode();
+                  onPressed: () async {
+                    await getValidCode();
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color.fromRGBO(219, 219, 219, 1),
@@ -704,8 +680,8 @@ class _RegisterAccountState extends State<RegisterAccount> {
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.75,
               child: FilledButton(
-                onPressed: () {
-                  signUp();
+                onPressed: () async {
+                  await signUp();
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 255, 132, 176),

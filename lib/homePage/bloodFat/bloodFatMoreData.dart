@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:open_file/open_file.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart' as ExcelPackage;
@@ -270,9 +269,9 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
 
   Future<void> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    var status1 = await Permission.storage.request().isGranted;
+    //  var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
+    //  var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -1897,18 +1896,25 @@ class _BloodFatFilterWidgetState extends State<BloodFatFilterWidget> {
 
 // 导出excel文件
 class ExportExcelWiget extends StatefulWidget {
-  const ExportExcelWiget({super.key});
+  final int accountId;
+  final String nickname;
+  const ExportExcelWiget(
+      {Key? key, required this.accountId, required this.nickname})
+      : super(key: key);
 
   @override
   State<ExportExcelWiget> createState() => _ExportExcelWigetState();
 }
 
 class _ExportExcelWigetState extends State<ExportExcelWiget> {
+  String exportTime = "";
+  String exportPath = "";
+
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    var status1 = await Permission.storage.request().isGranted;
+    // var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
+    //var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -1931,13 +1937,20 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     // 获取文件路径
     var fileNamePath = "${folderPath.path}/bloodLipids.xlsx";
+    exportTime =
+        "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}_${DateTime.now().hour}-${DateTime.now().minute}-${DateTime.now().second}";
+
+    String nickname = widget.accountId == -1 ? "" : widget.nickname;
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
       var downloadPath = await getDownloadsDirectory();
-      await File(fileNamePath).copy('${downloadPath!.path}/bloodLipids.xlsx');
+      await File(fileNamePath).copy(
+          '${downloadPath!.path}/bloodLipids_${nickname}_${exportTime}.xlsx');
       // 检测文件是否存在
       if (await File('${downloadPath.path}/bloodLipids.xlsx').exists()) {
+        exportPath =
+            '${downloadPath.path}/bloodLipids_${nickname}_${exportTime}.xlsx';
         return true;
       }
     }
@@ -1948,7 +1961,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
   @override
   Widget build(BuildContext context) {
     return UnconstrainedBox(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
         //alignment: Alignment.center,
         child: Row(
@@ -1961,7 +1974,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(exportStatus
-                        ? '导出成功，请查看"Android/data/com.example.triguard/files/downloads/bloodLipids.xlsx"'
+                        ? '导出成功，请查看$exportPath'
                         : '导出失败，请检查文件夹权限和重试'),
                     duration: const Duration(seconds: 3),
                   ),
@@ -2092,25 +2105,14 @@ class _BloodFatMoreDataState extends State<BloodFatMoreData> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    //print("血压数据页面rebuild===========================");
     return PopScope(
       //canPop: false,
       child: Scaffold(
-        /*  appBar: AppBar(
-          title: const Text(
-            "TriGuard",
-            style: TextStyle(
-                fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-          ),
-          flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-              (MediaQuery.of(context).size.height * 0.1 + 11)),
-        ), */
         appBar: widget.arguments["accountId"] < 0
             ? getAppBar(0, true, "TriGuard")
             : getAppBar(1, true, widget.arguments["nickname"]),
@@ -2174,7 +2176,10 @@ class _BloodFatMoreDataState extends State<BloodFatMoreData> {
               updateGraph: updateGraph,
             ),
 
-            ExportExcelWiget(),
+            ExportExcelWiget(
+              accountId: widget.arguments["accountId"],
+              nickname: widget.arguments["nickname"],
+            ),
 
             const SizedBox(
               height: 20,

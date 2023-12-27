@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:open_file/open_file.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart' as ExcelPackage;
@@ -689,7 +688,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   List<DataRow> getStatisticsDataRows() {
     List<DataRow> dataRow = [];
     List<String> names = ["收缩压", "舒张压", "心率"];
-    List<List<int>> data = [sbpList, dbpList, heartRateList];
 
     for (int i = 0; i < statisticData.length; i++) {
       dataRow.add(DataRow(
@@ -1800,8 +1798,6 @@ class OKCancelButtonsWidget extends StatefulWidget {
 }
 
 class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
-  List<bool> _localPrevArmsSelected = [false, false, false, true];
-  List<bool> _localPrevFeelingsSelected = [false, false, false, true];
   List<String> invalidParamType = [
     "",
     "日期设置有误",
@@ -1815,9 +1811,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
   @override
   void initState() {
     super.initState();
-    // resetLocalPrevSelected();
-    _localPrevArmsSelected = [false, false, false, true];
-    _localPrevFeelingsSelected = [false, false, false, true];
   }
 
   @override
@@ -2231,206 +2224,24 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
 }
 
 class ExportExcelWiget extends StatefulWidget {
-  const ExportExcelWiget({super.key});
+  final int accountId;
+  final String nickname;
+  const ExportExcelWiget(
+      {Key? key, required this.accountId, required this.nickname})
+      : super(key: key);
 
   @override
   State<ExportExcelWiget> createState() => _ExportExcelWigetState();
 }
 
 class _ExportExcelWigetState extends State<ExportExcelWiget> {
-  void exportExcel() async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      // If not we will ask for permission first
-      await Permission.storage.request();
-    }
-
-    /*  final Workbook workbook = Workbook();
-    final List<int> bytes = workbook.saveAsStream();
-    workbook.dispose();
-
-    final String path = (await getApplicationSupportDirectory()).path;
-    final String fileName = '$path/Output.xlsx';
-    final Directory _prjDir = Directory('$path/Output.xlsx');
-    final File file = File(fileName);
-    await file.writeAsBytes(bytes, flush: true);
-    print(fileName);
-    //OpenFile.open(fileName);
-
-    if (await _prjDir.exists()) {
-      print('Project Dir Exist');
-    } */
-
-    /* Directory _directory = Directory("");
-    if (Platform.isAndroid) {
-      // Redirects it to download folder in android
-      _directory = Directory("/storage/emulated/0/Download");
-    } else {
-      _directory = await getApplicationDocumentsDirectory();
-    } */
-
-    /* Directory appDocDir = await getApplicationDocumentsDirectory();
-    String appDocPath = appDocDir.path;
-    print(appDocPath); */
-
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    String appDocPath = appDocDir.path;
-
-    // Directory appDocDir = await ExtStorage.getExternalStoragePublicDirectory(
-    //    ExtStorage.DIRECTORY_DOWNLOADS);
-
-    //String filePath = (await getApplicationSupportDirectory()).path;
-    String filePath = (await getApplicationDocumentsDirectory()).path;
-    String filename = "$filePath/example.xlsx";
-    final Directory _prjDir = Directory('$filePath/example.xlsx');
-    print('supportPath: $filename');
-
-    // 1. 创建 Excel 文档
-    var excel = ExcelPackage.Excel.createExcel();
-
-    // 2. 添加工作表
-    var sheet = excel['Sheet1'];
-
-    // 3. 添加数据
-    sheet.appendRow(['Name', 'Age', 'City']);
-    sheet.appendRow(['John Doe???', 25, 'New York']);
-    sheet.appendRow(['Jane Smith?', 30, 'Los Angeles']);
-    sheet.appendRow(['Bob Johnson?', 28, 'Chicago']);
-
-    // 4. 保存 Excel 文件
-    List<int>? fileBytes = excel.save();
-    //print('saving executed in ${stopwatch.elapsed}');
-    if (fileBytes != null) {
-      File(join(filename))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
-
-    if (await _prjDir.exists()) {
-      print('Project Dir Exist');
-    }
-    /* File fileDef = File(filename);
-    await fileDef.create(recursive: true);
-
-    if (await _prjDir.exists()) {
-      print('Project Dir Exist');
-    } */
-    //OpenFile.open(filename);
-
-    //var file = 'path/to/your/excel/file.xlsx';
-    var file = join(appDocPath, 'example1.xlsx');
-    await File(file).writeAsBytes(excel.encode()!);
-    await Directory(appDocPath).create(recursive: true);
-    //print('Excel file created at: $file');
-
-    // final exPath = _directory.path;
-    //print("Saved Path: $exPath");
-    //await Directory(exPath).create(recursive: true);
-    //await Directory(appDocPath).create(recursive: true);
-    //OpenFile.open('$exPath/example.xlsx');
-  }
-
-  Future<String> createFolder(String cow) async {
-    final folderName = cow;
-    final path = Directory("storage/emulated/0/$folderName");
-    var status = await Permission.storage.status;
-    var status1 = await Permission.storage.request().isGranted;
-    var status2 = await Permission.manageExternalStorage.status;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
-
-    if (!status.isGranted) {
-      await Permission.storage.request();
-    }
-
-    if (!status2.isGranted) {
-      await Permission.manageExternalStorage.request();
-    }
-
-    if (!status1) {
-      print("no permission1");
-    } else {
-      print("permission1 ok");
-    }
-
-    if (!status3) {
-      print("no permission3");
-    } else {
-      print("permission3 ok");
-    }
-
-    var dir = await getApplicationDocumentsDirectory();
-    var dir2 = await getApplicationSupportDirectory();
-    print(dir.path);
-    print(dir2.path);
-    var newpath =
-        Directory("/data/user/0/com.example.triguard/app_flutter/ahbeytest");
-    var newpath2 =
-        Directory('/data/user/0/com.example.triguard/files/ahbeytest2');
-    print(newpath.path);
-    //create folder
-
-    if (await newpath2.exists()) {
-      print("ok");
-    } else {
-      print("no");
-      newpath2.create();
-    }
-
-    var filename =
-        "/data/user/0/com.example.triguard/app_flutter/ahbeytest/test.txt";
-    var filename2 =
-        "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt";
-    var excel = ExcelPackage.Excel.createExcel();
-
-    // 2. 添加工作表
-    var sheet = excel['Sheet1'];
-
-    // 3. 添加数据
-    sheet.appendRow(['Name', 'Age', 'City']);
-    sheet.appendRow(['John Doe???', 25, 'New York']);
-    sheet.appendRow(['Jane Smith?', 30, 'Los Angeles']);
-    sheet.appendRow(['Bob Johnson?', 28, 'Chicago']);
-
-    // 4. 保存 Excel 文件
-/*     List<int>? fileBytes = excel.save();
-    //print('saving executed in ${stopwatch.elapsed}');
-    if (fileBytes != null) {
-      File(join(filename))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
- */
-    File fileDef = File(filename2);
-    try {
-      await fileDef.create();
-    } catch (e) {
-      print(e);
-    }
-
-    if (await File(
-            "/data/user/0/com.example.triguard/files/ahbeytest2/test2.txt")
-        .exists()) {
-      print("test2 txt ok");
-    }
-
-    // open the file
-    RandomAccessFile file2 = await fileDef.open(mode: FileMode.write);
-    // write to the file
-    await file2.writeString("??Hello World?????????");
-    // close the file
-    await file2.close();
-
-    //Open the file on the phone
-    OpenFile.open(filename2);
-
-    return "";
-  }
-
+  String exportTime = "";
+  String exportPath = "";
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    var status1 = await Permission.storage.request().isGranted;
+    //var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    var status3 = await Permission.manageExternalStorage.request().isGranted;
+    //var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -2453,38 +2264,31 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
     // 获取文件路径
     var fileNamePath = "${folderPath.path}/bloodPressure.xlsx";
+    exportTime =
+        "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}_${DateTime.now().hour}-${DateTime.now().minute}-${DateTime.now().second}";
+
+    String nickname = widget.accountId == -1 ? "" : widget.nickname;
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
       var downloadPath = await getDownloadsDirectory();
       await File(fileNamePath)
           //.copy('/storage/emulated/0/Download/bloodPressure.xlsx');
-          .copy('${downloadPath!.path}/bloodPressure.xlsx');
+          .copy(
+              '${downloadPath!.path}/bloodPressure_${nickname}_${exportTime}.xlsx');
       // 检测文件是否存在
       //if (await File('/storage/emulated/0/Download/bloodPressure.xlsx')
-      if (await File('${downloadPath?.path}/bloodPressure.xlsx').exists()) {
+      if (await File(
+              '${downloadPath.path}/bloodPressure_${nickname}_${exportTime}.xlsx')
+          .exists()) {
+        exportPath =
+            '${downloadPath.path}/bloodPressure_${nickname}_${exportTime}.xlsx';
         print("export bloodPressure.xlsx successfully");
         return true;
       }
     }
 
     return false;
-
-    // var downloadFolderPath = Directory('sdcard/Download');
-/* 
-    var downloadFolderPath = Directory('/storage/emulated/0/Download/');
-    if (await downloadFolderPath.exists()) {
-      print("downloadFolderPath exist");
-      print("!!");
-      //await File(fileNamePath).copy('sdcard/Download/bp.xlsx');
-      await File(fileNamePath).copy('/storage/emulated/0/Download/bp.xlsx');
-      print("???");
-      if (await File('/storage/emulated/0/Download/bp.xlsx').exists()) {
-        print("copy to DOWNLOAD ok");
-      } else {
-        print("downloadFolderPath not exist");
-      }
-    } */
   }
 
   @override
@@ -2503,7 +2307,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(exportStatus
-                        ? '导出成功，请查看"Android/data/com.example.triguard/files/downloads/bloodPressure.xlsx"'
+                        ? '导出成功，请查看$exportPath'
                         : '导出失败，请检查文件夹权限和重试'),
                     duration: const Duration(seconds: 3),
                   ),
@@ -2643,15 +2447,6 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
     return PopScope(
       //canPop: false,
       child: Scaffold(
-        /* appBar: AppBar(
-          title: const Text(
-            "TriGuard",
-            style: TextStyle(
-                fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-          ),
-          flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-              (MediaQuery.of(context).size.height * 0.1 + 11)),
-        ), */
         appBar: widget.arguments["accountId"] < 0
             ? getAppBar(0, true, "TriGuard")
             : getAppBar(1, true, widget.arguments["nickname"]),
@@ -2720,7 +2515,10 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
               updateGraph: updateGraph,
             ),
 
-            ExportExcelWiget(),
+            ExportExcelWiget(
+              accountId: widget.arguments["accountId"],
+              nickname: widget.arguments["nickname"],
+            ),
 
             const SizedBox(
               height: 50,
