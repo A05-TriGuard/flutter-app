@@ -271,7 +271,7 @@ class _UserWidget1State extends State<UserWidget1> {
         child: Padding(
           padding: const EdgeInsets.all(15),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
                 onTap: () {
@@ -280,7 +280,16 @@ class _UserWidget1State extends State<UserWidget1> {
                 },
                 child: getButtonSet("assets/icons/foodTarget.png", "饮食目标"),
               ),
+              const SizedBox(
+                width: 20,
+              ),
               GestureDetector(
+                onTap: () {
+                  print("我的资料");
+                },
+                child: getButtonSet("assets/icons/user.png", "我的资料"),
+              ),
+              /* GestureDetector(
                 onTap: () {
                   print("我的资料");
                 },
@@ -291,13 +300,7 @@ class _UserWidget1State extends State<UserWidget1> {
                   print("我的资料");
                 },
                 child: getButtonSet("assets/icons/user.png", "我的资料"),
-              ),
-              GestureDetector(
-                onTap: () {
-                  print("我的资料");
-                },
-                child: getButtonSet("assets/icons/user.png", "我的资料"),
-              ),
+              ), */
             ],
           ),
         ),
@@ -637,7 +640,9 @@ class _UserWidget2State extends State<UserWidget2> {
                       onTap: () async {
                         print("我的资料");
                         await storage.write(key: "accountId", value: "-1");
-                        Navigator.pop(context);
+                        //Navigator.pop(context);
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, '/', (route) => false);
                       },
                       child: getButtonSet("assets/icons/logout.png", "退出登录"),
                     ),
