@@ -233,61 +233,64 @@ class _MedicinePageState extends State<MedicinePage> {
                   icon: addedCollection ? MyIcons().starr() : MyIcons().star()),
               const SizedBox(height: 20),
               Container(
-                height: screenHeight * 0.6,
+                height: screenHeight * 0.7,
                 width: screenWidth,
                 padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-                child: ListView(children: [
-                  // 图片
-                  medicineInfo["image"] != null
-                      ? Image.network(
-                          medicineInfo["image"],
-                          height: 150,
-                        )
-                      : Container(),
-                  const SizedBox(height: 30),
-                  // 药品名称
-                  medicineInfo["name"] != null
-                      ? MedicineContent(
-                          title: "药品名称", content: medicineInfo["name"])
-                      : Container(),
-                  // 主要成分
-                  medicineInfo["component"] != null
-                      ? MedicineContent(
-                          title: "主要成分", content: medicineInfo["component"])
-                      : Container(),
-                  // 用法用量
-                  medicineInfo["usage"] != null
-                      ? MedicineContent(
-                          title: "用法用量", content: medicineInfo["usage"])
-                      : Container(),
-                  // 注意事项
-                  medicineInfo["caution"] != null
-                      ? MedicineContent(
-                          title: "注意事项", content: medicineInfo["caution"])
-                      : Container(),
-                  // 不良反应
-                  medicineInfo["sideEffect"] != null
-                      ? MedicineContent(
-                          title: "不良反应", content: medicineInfo["sideEffect"])
-                      : Container(),
-                  // 相互作用
-                  medicineInfo["interaction"] != null
-                      ? MedicineContent(
-                          title: "相互作用", content: medicineInfo["interaction"])
-                      : Container(),
-                  // 有效期
-                  medicineInfo["expiry"] != null
-                      ? MedicineContent(
-                          title: "有效期", content: medicineInfo["expiry"])
-                      : Container(),
-                  // 贮存条件
-                  medicineInfo["condition"] != null
-                      ? MedicineContent(
-                          title: "贮存条件", content: medicineInfo["condition"])
-                      : Container()
-                ]),
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    // 图片
+                    medicineInfo["image"] != null
+                        ? Image.network(
+                            medicineInfo["image"],
+                            height: 150,
+                          )
+                        : Container(),
+                    const SizedBox(height: 30),
+                    // 药品名称
+                    medicineInfo["name"] != null
+                        ? MedicineContent(
+                            title: "药品名称", content: medicineInfo["name"])
+                        : Container(),
+                    // 主要成分
+                    medicineInfo["component"] != null
+                        ? MedicineContent(
+                            title: "主要成分", content: medicineInfo["component"])
+                        : Container(),
+                    // 用法用量
+                    medicineInfo["usage"] != null
+                        ? MedicineContent(
+                            title: "用法用量", content: medicineInfo["usage"])
+                        : Container(),
+                    // 注意事项
+                    medicineInfo["caution"] != null
+                        ? MedicineContent(
+                            title: "注意事项", content: medicineInfo["caution"])
+                        : Container(),
+                    // 不良反应
+                    medicineInfo["sideEffect"] != null
+                        ? MedicineContent(
+                            title: "不良反应", content: medicineInfo["sideEffect"])
+                        : Container(),
+                    // 相互作用
+                    medicineInfo["interaction"] != null
+                        ? MedicineContent(
+                            title: "相互作用", content: medicineInfo["interaction"])
+                        : Container(),
+                    // 有效期
+                    medicineInfo["expiry"] != null
+                        ? MedicineContent(
+                            title: "有效期", content: medicineInfo["expiry"])
+                        : Container(),
+                    // 贮存条件
+                    medicineInfo["condition"] != null
+                        ? MedicineContent(
+                            title: "贮存条件", content: medicineInfo["condition"])
+                        : Container()
+                  ],
+                ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 50),
             ],
           )),
         ),

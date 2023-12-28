@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:dio/dio.dart';
+import '../account/token.dart';
 import '../component/icons.dart';
 
 // TOIMPROVE: 在appbar右侧可以增加 ？作为使用说明
@@ -18,7 +21,6 @@ class FoodDiary extends StatefulWidget {
   State<FoodDiary> createState() => _FoodDiaryState();
 }
 
-// TOINTERACT: 变量基本上都需要从后端获取数据
 class _FoodDiaryState extends State<FoodDiary> {
   var haveRecord = <bool>[false, false, false, false];
   var breakfastRecord = <FoodInfo>[
@@ -29,6 +31,8 @@ class _FoodDiaryState extends State<FoodDiary> {
     FoodInfo(name: "披萨", weight: "500克", calorie: "1322千卡"),
     FoodInfo(name: "可乐", weight: "400克", calorie: "655千卡")
   ];
+  //var breakfastRecord = <FoodInfo>[];
+  //var lunchRecord = <FoodInfo>[];
   var dinnerRecord = <FoodInfo>[];
   var otherRecord = <FoodInfo>[];
   var breakfastRowList = <FoodRow>[];
@@ -38,9 +42,151 @@ class _FoodDiaryState extends State<FoodDiary> {
   var classSelected = <bool>[true, false, false, false, false];
   int curSelected = 0;
   var nutritionName = <String>["卡路里", "碳水化合物", "胆固醇", "纤维素", "蛋白质", "脂肪", "钠"];
-  var nutritionTgt = <double>[1852, 256, 100, 25, 93, 52, 2000];
+  var indToNut = [
+    "calories",
+    "carbohydrates",
+    "cholesterol",
+    "fiber",
+    "proteins",
+    "lipids",
+    "sodium"
+  ];
   var nutritionCur = <double>[414, 57.5, 648, 2, 19.4, 12.2, 195.5];
-  var nutritionUni = <String>["千卡", "毫克", "毫克", "克", "克", "克", "毫克"];
+  var nutritionUni = <String>["千卡", "克", "毫克", "克", "克", "克", "克"];
+  DateTime selectedDate = DateTime.now();
+  var weekDay = ["", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
+  bool expandNutrition = false;
+  var mealTarget = {};
+  var mealCur = {};
+  var mealList = [];
+  var allMealInfo = {};
+  var dataFilter = ["全天", "早餐", "午餐", "晚餐", "其他"];
+
+  // Meal API
+  void getMealTarget() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/meal/get-goal',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          mealTarget = response.data["data"];
+          print(mealTarget);
+        });
+      } else {/**/}
+    } catch (e) {/**/}
+  }
+
+  // Meal API
+  void getMealInfo() async {
+    var token = await storage.read(key: 'token');
+    var curDate = getFormattedDate(selectedDate);
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=${dataFilter[curSelected]}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          allMealInfo = response.data["data"];
+        });
+      } else {/**/}
+    } catch (e) {/**/}
+  }
+
+  void preset() {
+    mealList = allMealInfo["mealList"] ?? [];
+    mealCur["carbohydrates"] = allMealInfo["carbohydrates"];
+    mealCur["calories"] = allMealInfo["calories"];
+    mealCur["lipids"] = allMealInfo["lipids"];
+    mealCur["cholesterol"] = allMealInfo["cholesterol"];
+    mealCur["proteins"] = allMealInfo["proteins"];
+    mealCur["fiber"] = allMealInfo["fiber"];
+    mealCur["sodium"] = allMealInfo["sodium"];
+  }
+
+  void classifyMeal() {
+    int len = mealList.length;
+    for (int i = 0; i < len; ++i) {
+      var curMeal = mealList[i];
+      FoodInfo curFoodInfo = FoodInfo(
+          name: curMeal["food"],
+          weight: curMeal["weight"],
+          calorie: curMeal["calories"]);
+
+      switch (curMeal["category"]) {
+        case "早餐":
+          breakfastRecord.add(curFoodInfo);
+          break;
+
+        case "午餐":
+          lunchRecord.add(curFoodInfo);
+          break;
+
+        case "晚餐":
+          dinnerRecord.add(curFoodInfo);
+          break;
+
+        default:
+          otherRecord.add(curFoodInfo);
+          break;
+      }
+    }
+  }
+
+  // 获取格式化后的日期 2023-8-1 => 2023-08-01
+  String getFormattedDate(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
+
+  // 选择日期弹窗
+  Future<void> selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary:
+                  Color.fromARGB(178, 250, 151, 205), // header background color
+              onPrimary: Colors.black, // header text color
+              onSurface: Color.fromARGB(255, 43, 43, 43), // body text color
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor:
+                    const Color.fromARGB(255, 58, 58, 58), // button text color
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+        print(getFormattedDate(selectedDate));
+      });
+      getMealInfo();
+    }
+  }
 
   List<FoodRow> createRecordRowList(List info, double totalwidth) {
     var tempList = <FoodRow>[];
@@ -58,7 +204,7 @@ class _FoodDiaryState extends State<FoodDiary> {
       tempList.add(NutritionRow(
           nutritionType: nutritionName[ind],
           barWidth: width,
-          total: nutritionTgt[ind],
+          total: mealTarget[indToNut[ind]] ?? 0,
           current: nutritionCur[ind],
           unit: nutritionUni[ind]));
     }
@@ -108,12 +254,22 @@ class _FoodDiaryState extends State<FoodDiary> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    getMealTarget();
+    //getMealInfo();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
     breakfastRowList = createRecordRowList(breakfastRecord, screenWidth * 0.6);
     lunchRowList = createRecordRowList(lunchRecord, screenWidth * 0.6);
-    var calorieDiff = nutritionTgt[0] - nutritionCur[0];
+    var calorieDiff = mealTarget[indToNut[0]] ?? 0 - nutritionCur[0];
+
+    //preset();
+    //classifyMeal();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -137,6 +293,112 @@ class _FoodDiaryState extends State<FoodDiary> {
               color: Colors.black,
               size: 30,
             )),
+        actions: [
+          IconButton(
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text(
+                          "使用说明",
+                          textAlign: TextAlign.center,
+                        ),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 5, 10, 10),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    boxShadow: const [
+                                      BoxShadow(
+                                          offset: Offset(1, 1),
+                                          color: Colors.black38,
+                                          blurRadius: 2),
+                                    ],
+                                    borderRadius: BorderRadius.circular(15)),
+                                child: const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "在页面上方，可更改日期并添加进食记录。",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text("1. 点击【日期按钮】=> 自定义目标日期。"),
+                                    Text("2. 长按【分类按钮】=> 添加该时间段的进食记录。"),
+                                    Text("3. 点击【分类按钮】=> 查看该时间段的进食记录。")
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 5, 10, 10),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    boxShadow: const [
+                                      BoxShadow(
+                                          offset: Offset(1, 1),
+                                          color: Colors.black38,
+                                          blurRadius: 2),
+                                    ],
+                                    borderRadius: BorderRadius.circular(15)),
+                                child: const Column(
+                                  children: [
+                                    Text(
+                                      "在页面中部，可筛选查看指定时间段内所摄入的营养成分含量。",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text("1. 点击【时段按钮】=> 筛选指定时间段的记录。")
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 5, 10, 10),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    boxShadow: const [
+                                      BoxShadow(
+                                          offset: Offset(1, 1),
+                                          color: Colors.black38,
+                                          blurRadius: 2),
+                                    ],
+                                    borderRadius: BorderRadius.circular(15)),
+                                child: const Column(
+                                  children: [
+                                    Text(
+                                      "在页面下方，可查看选择的时间段中详细的进食记录。",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text("1. 点击【删除按钮】=> 删除对应的进食记录。")
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    });
+              },
+              icon: const Icon(
+                Icons.question_mark_rounded,
+                color: Colors.redAccent,
+                size: 25,
+              ))
+        ],
         flexibleSpace: Container(
           decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -151,21 +413,22 @@ class _FoodDiaryState extends State<FoodDiary> {
       ),
 
       // 主体内容
-      body: ListView(shrinkWrap: true, children: [
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              const SizedBox(
-                height: 15,
-              ),
-              // 上面那栏
-              Container(
-                width: screenWidth * 0.9,
-                //height: screenHeight * 0.15,
-                height: 125,
-                padding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
-                decoration: BoxDecoration(
+      body: ListView(
+        shrinkWrap: true,
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                const SizedBox(
+                  height: 15,
+                ),
+                // 上面那栏
+                Container(
+                  width: screenWidth * 0.9,
+                  height: 125,
+                  padding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
+                  decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(color: Colors.black, width: 0),
                     borderRadius: BorderRadius.circular(20),
@@ -175,44 +438,57 @@ class _FoodDiaryState extends State<FoodDiary> {
                           offset: Offset(0, 3),
                           spreadRadius: 0.5,
                           blurRadius: 7)
-                    ]),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Container(
-                          padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
-                          decoration: BoxDecoration(
-                              color: Colors.black12,
-                              border:
-                                  Border.all(color: Colors.black, width: 1.5),
-                              borderRadius: BorderRadius.circular(20)),
-                          child: const Center(
-                              child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                Text(
-                                  "2023年11月",
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      letterSpacing: 2,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                                Text(
-                                  "20",
-                                  style: TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.w900),
-                                ),
-                                Text(
-                                  "星期一",
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      letterSpacing: 5,
-                                      fontWeight: FontWeight.w600),
-                                )
-                              ]))),
-                      Column(
+                    ],
+                  ),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            selectDate(context);
+                          },
+                          child: Container(
+                              width: screenWidth * 0.9 * 0.3,
+                              decoration: BoxDecoration(
+                                  color: Colors.black12,
+                                  border: Border.all(
+                                      color: Colors.black, width: 1.5),
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: Center(
+                                  child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                    SizedBox(
+                                      width: screenWidth * 0.9 * 0.3,
+                                      child: AutoSizeText(
+                                        selectedDate.month > 9
+                                            ? "${selectedDate.year}年${selectedDate.month}月"
+                                            : "${selectedDate.year}年0${selectedDate.month}月",
+                                        style: const TextStyle(
+                                            letterSpacing: 2,
+                                            fontWeight: FontWeight.w600),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    AutoSizeText(
+                                      selectedDate.day < 10
+                                          ? "0${selectedDate.day}"
+                                          : "${selectedDate.day}",
+                                      style: const TextStyle(
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.w900),
+                                    ),
+                                    AutoSizeText(
+                                      weekDay[selectedDate.weekday],
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          letterSpacing: 5,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ]))),
+                        ),
+                        Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             InkWell(
@@ -225,6 +501,7 @@ class _FoodDiaryState extends State<FoodDiary> {
                                   showAddFoodDialog(context, "早餐");
                                 },
                                 child: FoodButton(
+                                    width: screenWidth * 0.9 * 0.26,
                                     haveRecord: haveRecord[0],
                                     title: "  早餐",
                                     color: MyIcons().breakfastColor(),
@@ -239,13 +516,15 @@ class _FoodDiaryState extends State<FoodDiary> {
                                 showAddFoodDialog(context, "晚餐");
                               },
                               child: FoodButton(
+                                  width: screenWidth * 0.9 * 0.26,
                                   haveRecord: haveRecord[2],
                                   title: "  晚餐",
                                   color: MyIcons().dinnerColor(),
                                   bnw: MyIcons().dinnerBnW()),
                             )
-                          ]),
-                      Column(
+                          ],
+                        ),
+                        Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             InkWell(
@@ -258,6 +537,7 @@ class _FoodDiaryState extends State<FoodDiary> {
                                   showAddFoodDialog(context, "晚餐");
                                 },
                                 child: FoodButton(
+                                    width: screenWidth * 0.9 * 0.26,
                                     haveRecord: haveRecord[1],
                                     title: "  午餐",
                                     color: MyIcons().lunchColor(),
@@ -272,24 +552,24 @@ class _FoodDiaryState extends State<FoodDiary> {
                                 showAddFoodDialog(context, "其他");
                               },
                               child: FoodButton(
+                                  width: screenWidth * 0.9 * 0.26,
                                   haveRecord: haveRecord[3],
                                   title: "  其他",
                                   color: MyIcons().snackColor(),
                                   bnw: MyIcons().snackBnW()),
                             )
-                          ])
-                    ]),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              // 中间那栏
-              Container(
-                width: screenWidth * 0.9,
-                //height: screenHeight * 0.33,
-                height: 250,
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-                decoration: BoxDecoration(
+                          ],
+                        )
+                      ]),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                // 中间那栏
+                Container(
+                  width: screenWidth * 0.9,
+                  padding: const EdgeInsets.fromLTRB(0, 5, 0, 15),
+                  decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(color: Colors.black, width: 0),
                     borderRadius: BorderRadius.circular(20),
@@ -299,164 +579,187 @@ class _FoodDiaryState extends State<FoodDiary> {
                           offset: Offset(0, 3),
                           spreadRadius: 0.5,
                           blurRadius: 7)
-                    ]),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // 切换按钮
-                      ToggleButtons(
-                          fillColor: const Color.fromARGB(255, 250, 209, 252),
-                          textStyle: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          color: Colors.black38,
-                          selectedColor: Colors.black,
-                          borderRadius: BorderRadius.circular(15),
-                          constraints: BoxConstraints.expand(
-                              width: screenWidth * 0.8 * 0.2, height: 25),
-                          isSelected: classSelected,
-                          children: const [
-                            Text("全天"),
-                            Text("早餐"),
-                            Text("午餐"),
-                            Text("晚餐"),
-                            Text("其他")
-                          ],
-                          onPressed: (index) {
-                            setState(() {
-                              classSelected[curSelected] = false;
-                              classSelected[index] = true;
-                              curSelected = index;
-                              // TOINTERACT: 获取数据更新显示内容
-                            });
-                          }),
-
-                      // 卡路里圈
-                      CircularPercentIndicator(
-                        radius: 55,
-                        lineWidth: 4,
-                        percent: 0.75,
-                        center: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text("还可摄入", textAlign: TextAlign.center),
-                            Text(
-                              "$calorieDiff",
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.bold),
-                            ),
-                            const Text("千卡", textAlign: TextAlign.center),
-                          ],
-                        ),
-                        progressColor: const Color.fromARGB(255, 24, 165, 247),
-                      ),
-
-                      // 营养成分
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: createNutritionRowList(
-                                1, 3, screenWidth * 0.25),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: createNutritionRowList(
-                                4, 3, screenWidth * 0.25),
-                          )
-                        ],
-                      ),
-                    ]),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              // 下面那栏
-              Container(
-                  width: screenWidth * 0.9,
-                  height: screenHeight * 0.4,
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black, width: 0),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: const [
-                        BoxShadow(
-                            color: Colors.black38,
-                            offset: Offset(0, 3),
-                            spreadRadius: 0.5,
-                            blurRadius: 7)
-                      ]),
-                  child: ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
+                    ],
+                  ),
+                  child: Column(
+                      //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Center(
-                          child: Text(
-                            "今日进食记录",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
+                        // 切换按钮
+                        ToggleButtons(
+                            fillColor: const Color.fromARGB(255, 250, 209, 252),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            color: Colors.black38,
+                            selectedColor: Colors.black,
+                            borderRadius: BorderRadius.circular(15),
+                            constraints: BoxConstraints.expand(
+                                width: screenWidth * 0.8 * 0.2, height: 25),
+                            isSelected: classSelected,
+                            children: const [
+                              Text("全天"),
+                              Text("早餐"),
+                              Text("午餐"),
+                              Text("晚餐"),
+                              Text("其他")
+                            ],
+                            onPressed: (index) {
+                              setState(() {
+                                classSelected[curSelected] = false;
+                                classSelected[index] = true;
+                                curSelected = index;
+                                // TOINTERACT: 获取数据更新显示内容
+                              });
+                            }),
+                        const SizedBox(height: 10),
+                        // 卡路里圈
+                        CircularPercentIndicator(
+                          radius: 55,
+                          lineWidth: 4,
+                          percent: 0.75,
+                          center: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text("还可摄入", textAlign: TextAlign.center),
+                              Text(
+                                "$calorieDiff",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                              const Text("千卡", textAlign: TextAlign.center),
+                            ],
+                          ),
+                          progressColor:
+                              const Color.fromARGB(255, 24, 165, 247),
+                        ),
+                        const SizedBox(height: 20),
+                        // 营养成分
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              expandNutrition = !expandNutrition;
+                            });
+                          },
+                          child: Container(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    expandNutrition
+                                        ? Icons.arrow_drop_down
+                                        : Icons.arrow_right,
+                                    size: 40,
+                                  ),
+                                  const Text(
+                                    "营养成分",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 2),
+                                  ),
+                                ],
+                              )),
+                        ),
+                        Visibility(
+                          visible: expandNutrition,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children:
+                                createNutritionRowList(1, 6, screenWidth * 0.5),
                           ),
                         ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Visibility(
-                            visible: haveRecord[0],
-                            child: FoodHeader(
-                                text: "   早餐 Breakfast",
-                                icon: MyIcons().breakfastColorBig())),
-                        Visibility(
-                            visible: haveRecord[0],
-                            child: Column(children: breakfastRowList)),
-                        Visibility(
-                            visible: haveRecord[0] && haveRecord[1],
-                            child: const Divider(thickness: 2)),
-                        Visibility(
-                            visible: haveRecord[1],
-                            child: FoodHeader(
-                                text: "   午餐 Lunch",
-                                icon: MyIcons().lunchColorBig())),
-                        Visibility(
-                            visible: haveRecord[1],
-                            child: Column(children: lunchRowList)),
-                        Visibility(
-                            visible: haveRecord[2] &&
-                                (haveRecord[1] || haveRecord[0]),
-                            child: const Divider(thickness: 2)),
-                        Visibility(
-                            visible: haveRecord[2],
-                            child: FoodHeader(
-                                text: "   晚餐 Dinner",
-                                icon: MyIcons().dinnerColorBig())),
-                        Visibility(
-                            visible: haveRecord[3] &&
-                                (haveRecord[2] ||
-                                    haveRecord[1] ||
-                                    haveRecord[0]),
-                            child: const Divider(thickness: 2)),
-                        Visibility(
-                            visible: haveRecord[3],
-                            child: FoodHeader(
-                                text: "   其他 Others",
-                                icon: MyIcons().snackColorBig())),
-                      ])),
-              const SizedBox(
-                height: 20,
-              ),
-            ],
+                      ]),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                // 下面那栏
+                Container(
+                    width: screenWidth * 0.9,
+                    height: screenHeight * 0.4,
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black, width: 0),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                              color: Colors.black38,
+                              offset: Offset(0, 3),
+                              spreadRadius: 0.5,
+                              blurRadius: 7)
+                        ]),
+                    child: ListView(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        children: [
+                          const Center(
+                            child: Text(
+                              "今日进食记录",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Visibility(
+                              visible: haveRecord[0],
+                              child: FoodHeader(
+                                  text: "   早餐 Breakfast",
+                                  icon: MyIcons().breakfastColorBig())),
+                          Visibility(
+                              visible: haveRecord[0],
+                              child: Column(children: breakfastRowList)),
+                          Visibility(
+                              visible: haveRecord[0] && haveRecord[1],
+                              child: const Divider(thickness: 2)),
+                          Visibility(
+                              visible: haveRecord[1],
+                              child: FoodHeader(
+                                  text: "   午餐 Lunch",
+                                  icon: MyIcons().lunchColorBig())),
+                          Visibility(
+                              visible: haveRecord[1],
+                              child: Column(children: lunchRowList)),
+                          Visibility(
+                              visible: haveRecord[2] &&
+                                  (haveRecord[1] || haveRecord[0]),
+                              child: const Divider(thickness: 2)),
+                          Visibility(
+                              visible: haveRecord[2],
+                              child: FoodHeader(
+                                  text: "   晚餐 Dinner",
+                                  icon: MyIcons().dinnerColorBig())),
+                          Visibility(
+                              visible: haveRecord[3] &&
+                                  (haveRecord[2] ||
+                                      haveRecord[1] ||
+                                      haveRecord[0]),
+                              child: const Divider(thickness: 2)),
+                          Visibility(
+                              visible: haveRecord[3],
+                              child: FoodHeader(
+                                  text: "   其他 Others",
+                                  icon: MyIcons().snackColorBig())),
+                        ])),
+                const SizedBox(
+                  height: 20,
+                ),
+              ],
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
       // 下方导航栏
     );
   }
 }
 
 class FoodButton extends StatefulWidget {
+  final double width;
   final bool haveRecord;
   final String title;
   final Image color;
@@ -464,6 +767,7 @@ class FoodButton extends StatefulWidget {
 
   const FoodButton(
       {super.key,
+      required this.width,
       required this.haveRecord,
       required this.title,
       required this.color,
@@ -477,6 +781,7 @@ class _FoodButtonState extends State<FoodButton> {
   @override
   Widget build(BuildContext context) {
     return Container(
+        width: widget.width,
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
             color: widget.haveRecord
@@ -484,7 +789,7 @@ class _FoodButtonState extends State<FoodButton> {
                 : Colors.transparent,
             border: Border.all(color: Colors.black, width: 1.5),
             borderRadius: BorderRadius.circular(15)),
-        child: Row(children: [
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           widget.haveRecord ? widget.color : widget.bnw,
           Text(
             widget.title,
@@ -580,7 +885,7 @@ class FoodRow extends StatelessWidget {
 class NutritionRow extends StatefulWidget {
   final String nutritionType;
   final double barWidth;
-  final double total;
+  final int total;
   final double current;
   final String unit;
   const NutritionRow(
@@ -603,26 +908,38 @@ class _NutritionRowState extends State<NutritionRow> {
     var per = cur / tot;
     var uni = widget.unit;
 
-    return Row(
+    return Column(
       children: [
-        Column(children: [
-          Text(
-            "$cur/$tot$uni",
-            style: const TextStyle(fontSize: 9),
-            textAlign: TextAlign.left,
-          ),
-          LinearPercentIndicator(
-            width: widget.barWidth - 5,
-            lineHeight: 5,
-            percent: per > 1 ? 1 : per,
-            backgroundColor: Colors.black12,
-            progressColor: const Color.fromARGB(255, 163, 123, 228),
-          )
-        ]),
-        Text(
-          widget.nutritionType,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Column(children: [
+              Text(
+                "$cur/$tot$uni",
+                style: const TextStyle(fontSize: 12),
+                textAlign: TextAlign.left,
+              ),
+              LinearPercentIndicator(
+                width: widget.barWidth - 5,
+                lineHeight: 7,
+                percent: per > 1 ? 1 : per,
+                backgroundColor: Colors.black12,
+                progressColor: const Color.fromARGB(255, 163, 123, 228),
+              )
+            ]),
+            SizedBox(
+              width: widget.barWidth * 0.6,
+              child: Text(
+                widget.nutritionType,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
         ),
+        const SizedBox(
+          height: 3,
+        )
       ],
     );
   }

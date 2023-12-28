@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../account/token.dart';
@@ -164,8 +165,11 @@ class _CommentDialogState extends State<CommentDialog> {
                   child: CircleAvatar(
                     radius: 20,
                     backgroundColor: Colors.white,
-                    backgroundImage: NetworkImage(commentList[i]["profile"] ??
-                        "https://static.vecteezy.com/system/resources/previews/020/765/399/non_2x/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"),
+                    backgroundImage: commentList[i]["profile"] != null
+                        ? CachedNetworkImageProvider(
+                            "http://43.138.75.58:8080/static/${commentList[i]["profile"]}")
+                        : const CachedNetworkImageProvider(
+                            "https://static.vecteezy.com/system/resources/previews/020/765/399/non_2x/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"),
                   ),
                 ),
                 const SizedBox(
