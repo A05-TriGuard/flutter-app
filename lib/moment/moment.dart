@@ -544,6 +544,7 @@ class _MomentState extends State<Moment> {
                                               setState(() {
                                                 selectedFilter = value!;
                                                 lastPosition = 0.0;
+                                                isLoading = true;
                                               });
                                               fetchNShowPostList();
                                             },
@@ -675,174 +676,6 @@ class _MomentState extends State<Moment> {
     );
   }
 }
-
-/*
-class PostList extends StatefulWidget {
-  final double width;
-  final bool toUpdate;
-  final Function(int) getSelectedProperty;
-  final Function(bool) setChange;
-  const PostList(
-      {super.key,
-      required this.width,
-      required this.toUpdate,
-      required this.getSelectedProperty,
-      required this.setChange});
-
-  @override
-  State<PostList> createState() => _PostListState();
-}
-
-class _PostListState extends State<PostList> {
-  var curClass = "高血脂";
-  var curCategory = "饮食";
-  var curFilter = "最新发布";
-  var curPostList = [];
-  var postTileList = [];
-  var userFollowMap = {};
-  var curUserId = 0;
-  bool isLoading = false;
-  bool needUpdate = false;
-
-/*
-  // Moment API
-  void getAccountId() async {
-    var token = await storage.read(key: 'token');
-
-    try {
-      final dio = Dio(); // Create Dio instance
-      final headers = {
-        'Authorization': 'Bearer $token',
-      };
-      final response = await dio.get(
-          'http://43.138.75.58:8080/api/account/info',
-          options: Options(headers: headers));
-
-      if (response.statusCode == 200) {
-        //print(response.data);
-        curUserId = response.data["data"]["id"];
-        fetchNShowPostList();
-      }
-    } catch (e) {/**/}
-  }
-
-  // Moment API
-  void fetchNShowPostList() async {
-    setState(() {
-      isLoading = true;
-    });
-    curPostList.clear();
-
-    curClass = widget.getSelectedProperty(0);
-    curCategory = widget.getSelectedProperty(1);
-    curFilter = widget.getSelectedProperty(2);
-
-    var token = await storage.read(key: 'token');
-
-    try {
-      final dio = Dio();
-      final headers = {
-        'Authorization': 'Bearer $token',
-      };
-      final response = await dio.get(
-          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter',
-          options: Options(headers: headers));
-
-      if (response.statusCode == 200) {
-        if (!widget.toUpdate) {
-          setState(() {
-            curPostList = response.data["data"];
-            isLoading = false;
-          });
-        } else {
-          curPostList = response.data["data"];
-          widget.setChange(false);
-        }
-      }
-    } catch (e) {/**/}
-  }
-*/
-
-  void addUserFollowPair(int userId, bool isFollow) {
-    setState(() {
-      userFollowMap[userId.toString()] = isFollow;
-    });
-    fetchNShowPostList();
-  }
-
-  bool getUserFollowCond(int userId) {
-    return userFollowMap[userId.toString()];
-  }
-
-  void updatePostList(List newPostList) {
-    setState(() {
-      curPostList = newPostList;
-    });
-  }
-
-  void createPostTileList(double width) {
-    postTileList.clear();
-
-    for (int i = 0; i < curPostList.length; ++i) {
-      var tmp = curPostList[i]["accountId"].toString();
-      if (!userFollowMap.containsKey(tmp)) {
-        userFollowMap[tmp] = curPostList[i]["isFollow"];
-      }
-
-      postTileList.add(PostTile(
-        width: width,
-        curPost: curPostList[i],
-        curUserId: curUserId,
-        updatePostList: updatePostList,
-        getSelectedProperty: widget.getSelectedProperty,
-        updateUserFollowMap: addUserFollowPair,
-        getFollowCond: getUserFollowCond,
-      ));
-    }
-  }
-
-  void preprocess() {
-    curClass = widget.getSelectedProperty(0);
-    curCategory = widget.getSelectedProperty(1);
-    curFilter = widget.getSelectedProperty(2);
-    print("curClass:$curClass  curCategory:$curCategory  curFilter:$curFilter");
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    needUpdate = widget.toUpdate;
-    //getAccountId();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    //widget.setChange(false);
-    //preprocess();
-    //createPostTileList(widget.width);
-    if (needUpdate) {
-      //fetchNShowPostList();
-      //getAccountId();
-    }
-    createPostTileList(widget.width);
-
-    return Expanded(
-      child: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Container(
-              decoration: const BoxDecoration(color: Colors.black12),
-              child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemCount: postTileList.length,
-                  itemBuilder: (BuildContext context, index) {
-                    return postTileList[index];
-                  }),
-            ),
-    );
-  }
-} */
 
 class ClassButton extends StatelessWidget {
   final String title;
@@ -1302,9 +1135,10 @@ class _PostTileState extends State<PostTile> {
                   child: CircleAvatar(
                     radius: 21,
                     backgroundColor: Colors.white,
-                    backgroundImage: widget.curPost["profile"] != ""
-                        ? NetworkImage(widget.curPost["profile"])
-                        : const NetworkImage(
+                    backgroundImage: widget.curPost["profile"] != null
+                        ? CachedNetworkImageProvider(
+                            "http://43.138.75.58:8080/static/${widget.curPost["profile"]}")
+                        : const CachedNetworkImageProvider(
                             "https://static.vecteezy.com/system/resources/previews/020/765/399/non_2x/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"),
                   ),
                 ),
@@ -1527,6 +1361,7 @@ class _PostTileState extends State<PostTile> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+                /*
                 Expanded(
                   flex: 1,
                   child: InkWell(
@@ -1543,7 +1378,7 @@ class _PostTileState extends State<PostTile> {
                       ],
                     ),
                   ),
-                ),
+                ),*/
                 Expanded(
                   flex: 1,
                   child: InkWell(

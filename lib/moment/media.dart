@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_video_player/cached_video_player.dart';
 import 'package:photo_view/photo_view.dart';
@@ -176,9 +177,8 @@ class Gallery extends StatelessWidget {
       itemCount: images.length,
       builder: (context, index) {
         return PhotoViewGalleryPageOptions(
-            imageProvider: NetworkImage(
-              "http://43.138.75.58:8080/static/${images[index]}",
-            ),
+            imageProvider: CachedNetworkImageProvider(
+                "http://43.138.75.58:8080/static/${images[index]}"),
             minScale: PhotoViewComputedScale.contained * 0.8,
             maxScale: PhotoViewComputedScale.covered * 1.3);
       },
