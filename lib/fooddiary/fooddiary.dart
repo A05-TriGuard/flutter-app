@@ -4,13 +4,12 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dio/dio.dart';
 import '../account/token.dart';
 import '../component/icons.dart';
-
-// TOIMPROVE: 在appbar右侧可以增加 ？作为使用说明
+import 'dart:convert';
 
 class FoodInfo {
   final String name;
-  final String weight;
-  final String calorie;
+  final int weight;
+  final int calorie;
   FoodInfo({required this.name, required this.weight, required this.calorie});
 }
 
@@ -23,16 +22,8 @@ class FoodDiary extends StatefulWidget {
 
 class _FoodDiaryState extends State<FoodDiary> {
   var haveRecord = <bool>[false, false, false, false];
-  var breakfastRecord = <FoodInfo>[
-    FoodInfo(name: "牛角面包", weight: "100克", calorie: "122千卡"),
-    FoodInfo(name: "鸡蛋", weight: "150克", calorie: "89千卡")
-  ];
-  var lunchRecord = <FoodInfo>[
-    FoodInfo(name: "披萨", weight: "500克", calorie: "1322千卡"),
-    FoodInfo(name: "可乐", weight: "400克", calorie: "655千卡")
-  ];
-  //var breakfastRecord = <FoodInfo>[];
-  //var lunchRecord = <FoodInfo>[];
+  var breakfastRecord = <FoodInfo>[];
+  var lunchRecord = <FoodInfo>[];
   var dinnerRecord = <FoodInfo>[];
   var otherRecord = <FoodInfo>[];
   var breakfastRowList = <FoodRow>[];
@@ -60,7 +51,39 @@ class _FoodDiaryState extends State<FoodDiary> {
   var mealCur = {};
   var mealList = [];
   var allMealInfo = {};
-  var dataFilter = ["全天", "早餐", "午餐", "晚餐", "其他"];
+  var dataFilter = ["全部", "早餐", "午餐", "晚餐", "其他"];
+  final foodNameInputController = TextEditingController();
+  final foodWeightInputController = TextEditingController();
+
+  // Meal API
+  void postMeal(String category) async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      Map<String, dynamic> map = {};
+      map['date'] = getFormattedDate(selectedDate);
+      map['category'] = category;
+      map['food'] = foodNameInputController.value.text;
+      map['weight'] = int.parse(foodWeightInputController.value.text);
+      String jsonString = jsonEncode(map);
+
+      final response = await dio.post(
+        'http://43.138.75.58:8080/api/meal/create',
+        data: jsonString,
+        options: Options(headers: headers),
+      );
+
+      if (response.statusCode == 200) {
+        getMealInfo();
+        foodNameInputController.clear();
+        foodWeightInputController.clear();
+      }
+    } catch (e) {/**/}
+  }
 
   // Meal API
   void getMealTarget() async {
@@ -99,8 +122,12 @@ class _FoodDiaryState extends State<FoodDiary> {
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
+        print(
+            'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=${dataFilter[curSelected]}');
+
         setState(() {
           allMealInfo = response.data["data"];
+          print(allMealInfo);
         });
       } else {/**/}
     } catch (e) {/**/}
@@ -118,6 +145,11 @@ class _FoodDiaryState extends State<FoodDiary> {
   }
 
   void classifyMeal() {
+    breakfastRecord.clear();
+    lunchRecord.clear();
+    dinnerRecord.clear();
+    otherRecord.clear();
+
     int len = mealList.length;
     for (int i = 0; i < len; ++i) {
       var curMeal = mealList[i];
@@ -201,12 +233,16 @@ class _FoodDiaryState extends State<FoodDiary> {
     var tempList = <NutritionRow>[];
     for (int i = 0; i < count; ++i) {
       int ind = start + i;
-      tempList.add(NutritionRow(
-          nutritionType: nutritionName[ind],
-          barWidth: width,
-          total: mealTarget[indToNut[ind]] ?? 0,
-          current: nutritionCur[ind],
-          unit: nutritionUni[ind]));
+      tempList.add(
+        NutritionRow(
+            nutritionType: nutritionName[ind],
+            barWidth: width,
+            total: mealTarget[indToNut[ind]] ?? 0,
+            current: mealCur[indToNut[ind]] ?? 0,
+            unit: nutritionUni[ind],
+            id: 0 // TOCHANGE
+            ),
+      );
     }
     return tempList;
   }
@@ -220,16 +256,18 @@ class _FoodDiaryState extends State<FoodDiary> {
               "添加【$category】饮食数据",
               textAlign: TextAlign.center,
             ),
-            content: const Column(
+            content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  decoration: InputDecoration(
+                  controller: foodNameInputController,
+                  decoration: const InputDecoration(
                       hintText: "食物名称",
                       hintStyle: TextStyle(color: Colors.black26)),
                 ),
                 TextField(
-                  decoration: InputDecoration(
+                  controller: foodWeightInputController,
+                  decoration: const InputDecoration(
                       hintText: "食物分量（以克为单位）",
                       hintStyle: TextStyle(color: Colors.black26)),
                 )
@@ -239,7 +277,8 @@ class _FoodDiaryState extends State<FoodDiary> {
               TextButton(
                 child: const Text('确认'),
                 onPressed: () {
-                  // TOINTERACT: 发送请求获取相关数据
+                  postMeal(category);
+                  Navigator.pop(context);
                 },
               ),
               TextButton(
@@ -257,19 +296,21 @@ class _FoodDiaryState extends State<FoodDiary> {
   void initState() {
     super.initState();
     getMealTarget();
-    //getMealInfo();
+    getMealInfo();
   }
 
   @override
   Widget build(BuildContext context) {
+    preset();
+    classifyMeal();
+
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
     breakfastRowList = createRecordRowList(breakfastRecord, screenWidth * 0.6);
     lunchRowList = createRecordRowList(lunchRecord, screenWidth * 0.6);
+    dinnerRowList = createRecordRowList(dinnerRecord, screenWidth * 0.6);
+    otherRowList = createRecordRowList(otherRecord, screenWidth * 0.6);
     var calorieDiff = mealTarget[indToNut[0]] ?? 0 - nutritionCur[0];
-
-    //preset();
-    //classifyMeal();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -609,8 +650,8 @@ class _FoodDiaryState extends State<FoodDiary> {
                                 classSelected[curSelected] = false;
                                 classSelected[index] = true;
                                 curSelected = index;
-                                // TOINTERACT: 获取数据更新显示内容
                               });
+                              getMealInfo();
                             }),
                         const SizedBox(height: 10),
                         // 卡路里圈
@@ -734,6 +775,9 @@ class _FoodDiaryState extends State<FoodDiary> {
                                   text: "   晚餐 Dinner",
                                   icon: MyIcons().dinnerColorBig())),
                           Visibility(
+                              visible: haveRecord[2],
+                              child: Column(children: dinnerRowList)),
+                          Visibility(
                               visible: haveRecord[3] &&
                                   (haveRecord[2] ||
                                       haveRecord[1] ||
@@ -744,6 +788,9 @@ class _FoodDiaryState extends State<FoodDiary> {
                               child: FoodHeader(
                                   text: "   其他 Others",
                                   icon: MyIcons().snackColorBig())),
+                          Visibility(
+                              visible: haveRecord[3],
+                              child: Column(children: otherRowList)),
                         ])),
                 const SizedBox(
                   height: 20,
@@ -840,13 +887,13 @@ class FoodRow extends StatelessWidget {
             SizedBox(
                 width: totalWidth * 0.25,
                 child: Text(
-                  info.weight,
+                  "${info.weight.toString()}克",
                   style: const TextStyle(fontSize: 16),
                 )),
             SizedBox(
                 width: totalWidth * 0.35,
                 child: Text(
-                  info.calorie,
+                  "${info.calorie.toString()}千卡",
                   style: const TextStyle(fontSize: 16),
                 )),
             IconButton(
@@ -886,21 +933,41 @@ class NutritionRow extends StatefulWidget {
   final String nutritionType;
   final double barWidth;
   final int total;
-  final double current;
+  final int current;
   final String unit;
+  final int id;
   const NutritionRow(
       {super.key,
       required this.nutritionType,
       required this.barWidth,
       required this.total,
       required this.current,
-      required this.unit});
+      required this.unit,
+      required this.id});
 
   @override
   State<NutritionRow> createState() => _NutritionRowState();
 }
 
 class _NutritionRowState extends State<NutritionRow> {
+  // Meal API
+  void getMealInfo() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/meal/delete?id=5',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+      } else {/**/}
+    } catch (e) {/**/}
+  }
+
   @override
   Widget build(BuildContext context) {
     var cur = widget.current;
