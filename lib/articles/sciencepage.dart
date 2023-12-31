@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import '../account/token.dart';
 import '../component/icons.dart';
 import 'collection.dart';
-import 'prevention.dart';
-import 'science.dart';
 
 class SciencePage extends StatefulWidget {
   final String title;
-  //final String link;
   final bool isPrevention;
   final int id;
   final VoidCallback updateCollection;
@@ -116,39 +114,8 @@ class _SciencePageState extends State<SciencePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (widget.title == "返回文章列表") {
-          if (widget.isPrevention) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const Prevention()));
-          } else {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const Science()));
-          }
-        } else {
-          if (widget.isPrevention) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const Collection(
-                          selectedButton: [false, false, true, false],
-                        ))).then((value) {
-              widget.updateCollection();
-            });
-          } else {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const Collection(
-                          selectedButton: [false, false, false, true],
-                        ))).then((value) {
-              widget.updateCollection();
-            });
-          }
-        }
-        return true;
-      },
+    return PopScope(
+      canPop: true,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -192,21 +159,28 @@ class _SciencePageState extends State<SciencePage> {
               )),
           flexibleSpace: Container(
             decoration: const BoxDecoration(
-                gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 250, 209, 252),
-                Color.fromARGB(255, 255, 255, 255),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )),
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 250, 209, 252),
+                  Color.fromARGB(255, 255, 255, 255),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: Color.fromRGBO(169, 171, 179, 1),
+                  width: 1,
+                ),
+              ),
+            ),
           ),
         ),
 
         // 主体内容
         body: Center(
             child: Container(
-                padding: EdgeInsets.all(30),
+                padding: const EdgeInsets.all(30),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -235,16 +209,8 @@ class _SciencePageState extends State<SciencePage> {
                             border: Border.all(color: Colors.black, width: 1),
                             borderRadius: BorderRadius.circular(15)),
                         padding: const EdgeInsets.all(15),
-                        child: ListView(children: [
-                          Text(
-                            articleInfo["subtitle"],
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                          Text(
-                            articleInfo["content"],
-                            style: const TextStyle(fontSize: 20),
-                          )
-                        ]),
+                        child: ListView(
+                            children: [HtmlWidget(articleInfo["content"])]),
                       ),
                     ),
                   ],

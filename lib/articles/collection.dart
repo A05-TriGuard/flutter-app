@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../account/token.dart';
@@ -292,14 +291,21 @@ class _CollectionState extends State<Collection> {
               )),
           flexibleSpace: Container(
             decoration: const BoxDecoration(
-                gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 250, 209, 252),
-                Color.fromARGB(255, 255, 255, 255),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )),
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 250, 209, 252),
+                  Color.fromARGB(255, 255, 255, 255),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: Color.fromRGBO(169, 171, 179, 1),
+                  width: 1,
+                ),
+              ),
+            ),
           ),
         ),
 
@@ -322,8 +328,7 @@ class _CollectionState extends State<Collection> {
                     height: screenHeight * 0.06),
                 isSelected: classSelected,
                 children: const [
-                  AutoSizeText("用药指南"),
-                  //Text("用药指南"),
+                  Text("用药指南"),
                   Text("食物参数"),
                   Text("疾病预防"),
                   Text("科普文章"),
@@ -341,26 +346,27 @@ class _CollectionState extends State<Collection> {
                 },
               ),
               SizedBox(
-                  height: screenHeight * 0.7,
-                  width: screenWidth * 0.88,
-                  child: ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    controller: _scrollController,
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: curItemCount,
-                    itemBuilder: (BuildContext context, index) {
-                      if (classSelected[0]) {
-                        return medicineTileList[index];
-                      } else if (classSelected[1]) {
-                        return foodTileList[index];
-                      } else if (classSelected[2]) {
-                        return preventionTileList[index];
-                      } else {
-                        return scienceTileList[index];
-                      }
-                    },
-                  ))
+                height: screenHeight * 0.7,
+                width: screenWidth * 0.88,
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  controller: _scrollController,
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: curItemCount,
+                  itemBuilder: (BuildContext context, index) {
+                    if (classSelected[0]) {
+                      return medicineTileList[index];
+                    } else if (classSelected[1]) {
+                      return foodTileList[index];
+                    } else if (classSelected[2]) {
+                      return preventionTileList[index];
+                    } else {
+                      return scienceTileList[index];
+                    }
+                  },
+                ),
+              )
             ],
           ),
         ),
@@ -385,33 +391,37 @@ class ArticleTile extends StatelessWidget {
     return Card(
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20))),
-      shadowColor: Colors.black87,
       elevation: 6,
       child: InkWell(
         onTap: () {
           if (isPrevention) {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => SciencePage(
-                          title: "返回收藏列表",
-                          id: article["id"],
-                          isPrevention: isPrevention,
-                          updateCollection: updateCollection,
-                        )));
+              context,
+              MaterialPageRoute(
+                  builder: (context) => SciencePage(
+                        title: "返回收藏列表",
+                        id: article["id"],
+                        isPrevention: isPrevention,
+                        updateCollection: updateCollection,
+                      )),
+            );
           } else {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => SciencePage(
-                          title: "返回收藏列表",
-                          id: article["id"],
-                          isPrevention: isPrevention,
-                          updateCollection: updateCollection,
-                        )));
+              context,
+              MaterialPageRoute(
+                  builder: (context) => SciencePage(
+                        title: "返回收藏列表",
+                        id: article["id"],
+                        isPrevention: isPrevention,
+                        updateCollection: updateCollection,
+                      )),
+            );
           }
         },
         child: ListTile(
+          tileColor: Colors.white,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
           minVerticalPadding: 15,
           title: Text(
             article["title"],
@@ -425,19 +435,19 @@ class ArticleTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          leading: Container(
-            height: 55,
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
-            child: AspectRatio(
-              aspectRatio: 1.6,
-              child: Image.network(
-                  article["cover"] != ""
-                      ? article["cover"]
-                      : "https://static.vecteezy.com/system/resources/thumbnails/008/034/405/small/loading-bar-doodle-element-hand-drawn-vector.jpg",
-                  fit: BoxFit.cover),
-            ),
-          ),
+          // leading: Container(
+          //   height: 55,
+          //   clipBehavior: Clip.hardEdge,
+          //   decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
+          //   child: AspectRatio(
+          //     aspectRatio: 1.6,
+          //     child: Image.network(
+          //         article["cover"] != ""
+          //             ? article["cover"]
+          //             : "https://static.vecteezy.com/system/resources/thumbnails/008/034/405/small/loading-bar-doodle-element-hand-drawn-vector.jpg",
+          //         fit: BoxFit.cover),
+          //   ),
+          // ),
         ),
       ),
     );
@@ -462,7 +472,6 @@ class NonArticleTile extends StatelessWidget {
     return Card(
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20))),
-      shadowColor: Colors.black87,
       elevation: 6,
       child: InkWell(
         onTap: () {
@@ -487,6 +496,9 @@ class NonArticleTile extends StatelessWidget {
           }
         },
         child: ListTile(
+          tileColor: Colors.white,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
           minVerticalPadding: 15,
           title: Text(articleInfo["name"], maxLines: 1),
           titleTextStyle: const TextStyle(

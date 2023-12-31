@@ -129,15 +129,16 @@ class _MedicineState extends State<Medicine> {
     createCardList();
     createHistoryList();
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const MainPages(
-                      arguments: {"setToArticlePage": true},
-                    )));
-        return true;
+          context,
+          MaterialPageRoute(
+              builder: (context) => const MainPages(
+                    arguments: {"setToArticlePage": true},
+                  )),
+        );
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -167,14 +168,21 @@ class _MedicineState extends State<Medicine> {
               )),
           flexibleSpace: Container(
             decoration: const BoxDecoration(
-                gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 250, 209, 252),
-                Color.fromARGB(255, 255, 255, 255),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )),
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 250, 209, 252),
+                  Color.fromARGB(255, 255, 255, 255),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: Color.fromRGBO(169, 171, 179, 1),
+                  width: 1,
+                ),
+              ),
+            ),
           ),
         ),
 
@@ -293,22 +301,25 @@ class ResultCard extends StatelessWidget {
     return Card(
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(0))),
-        shadowColor: Colors.black87,
         elevation: 5,
         child: InkWell(
           onTap: isResult
               ? () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => MedicinePage(
-                                title: "返回查询页面",
-                                id: result["id"],
-                                updateHistory: updateHistory,
-                              )));
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MedicinePage(
+                              title: "返回查询页面",
+                              id: result["id"],
+                              updateHistory: updateHistory,
+                            )),
+                  );
                 }
               : null,
           child: ListTile(
+              tileColor: Colors.white,
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(0))),
               minVerticalPadding: 15,
               title: Text(
                 result["name"],
