@@ -25,13 +25,11 @@ class CommentDialog extends StatefulWidget {
   final double height;
   final double width;
   final int postId;
-  final Function() incCommentCount;
   const CommentDialog(
       {super.key,
       required this.height,
       required this.width,
-      required this.postId,
-      required this.incCommentCount});
+      required this.postId});
 
   @override
   State<CommentDialog> createState() => _CommentDialogState();
@@ -45,27 +43,6 @@ class _CommentDialogState extends State<CommentDialog> {
   String hintText = "输入评论";
   final inputController = TextEditingController();
   var commentList = [];
-  /*
-  var commentList = [
-    CommentInfo(
-        comment: "评论加好奇，这是一个很长很长的评论哈哈哈哈应该够长了吗",
-        username: "这个是第一个用户名",
-        profilepic:
-            "https://media.nbclosangeles.com/2021/07/106882821-1620931316186-gettyimages-1232614603-DISNEYLAND_REOPENING.jpeg?quality=85&strip=all&crop=0px%2C4px%2C4000px%2C2250px&resize=1200%2C675",
-        hasQuote: false,
-        quoteComment: "",
-        quoteUsername: "",
-        commentTime: "2023-12-01   11:01"),
-    CommentInfo(
-        comment: "一些评论加回应。。。",
-        username: "用户名2",
-        profilepic:
-            "https://media.nbclosangeles.com/2021/07/106882821-1620931316186-gettyimages-1232614603-DISNEYLAND_REOPENING.jpeg?quality=85&strip=all&crop=0px%2C4px%2C4000px%2C2250px&resize=1200%2C675",
-        hasQuote: true,
-        quoteComment: "评论加好奇，这是一个很长很长的评论哈哈哈哈应该够长了吗",
-        quoteUsername: "这个是第一个用户名",
-        commentTime: "2023-12-01   13:21"),
-  ]; */
   var commentTileList = [];
 
   // Moment API
@@ -117,8 +94,8 @@ class _CommentDialogState extends State<CommentDialog> {
         setState(() {
           showTextField = false;
           canComment = false;
-          inputController.clear();
           hasQuote = false;
+          inputController.clear();
         });
         fetchNShowCommentList();
       }
@@ -371,7 +348,6 @@ class _CommentDialogState extends State<CommentDialog> {
                         onPressed: canComment
                             ? () {
                                 postComment();
-                                widget.incCommentCount();
                               }
                             : null,
                         child: const Text(

@@ -29,74 +29,34 @@ class _MomentState extends State<Moment> {
   int curSelClassInd = 0;
   int curSelCatInd = 0;
   String selectedFilter = "最新发布";
-  //bool toUpdate = false;
   var curPostList = [];
   var postTileList = [];
   var userFollowMap = {};
   var curUserId = 0;
   bool isLoading = true;
-  //bool remainPosition = false;
   double lastPosition = 0;
   late ScrollController listViewController;
   final searchController = TextEditingController();
   String keyword = "";
+  int pageCount = 1;
+  int batchCount = 5;
+  bool _isLoading = false;
+  bool refreshPage = false;
 
-/*
-  var testPost = PostInfo(
-    username: "山野都有雾灯kk",
-    //profilepic: "assets/images/testUser.png",
-    profilepic:
-        "https://media.nbclosangeles.com/2021/07/106882821-1620931316186-gettyimages-1232614603-DISNEYLAND_REOPENING.jpeg?quality=85&strip=all&crop=0px%2C4px%2C4000px%2C2250px&resize=1200%2C675",
-    date: "2023-10-25",
-    content: "最近才了解到高血糖要少吃四种蔬菜耶 土豆、南瓜、酸菜和芋头 以后都要少吃啦~",
-    images: [
-      "https://cdn.mos.cms.futurecdn.net/iC7HBvohbJqExqvbKcV3pP.jpg",
-      "https://www.thespruce.com/thmb/1snRSslsAIBo4KFg3ip3wU-KP5Q=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/how-to-choose-carving-pumpkins-1403449-03-b29896bd3fa04574937cfde004e45dd5.jpg"
-    ],
-    video: "",
-    addfriend: false,
-    star: false,
-    like: false,
-  );
-  var testPost2 = PostInfo(
-    username: "山野都有雾灯kk",
-    //profilepic: "assets/images/testUser.png",
-    profilepic:
-        "https://media.nbclosangeles.com/2021/07/106882821-1620931316186-gettyimages-1232614603-DISNEYLAND_REOPENING.jpeg?quality=85&strip=all&crop=0px%2C4px%2C4000px%2C2250px&resize=1200%2C675",
-    date: "2023-10-25",
-    content: "最近才了解到高血糖要少吃四种蔬菜耶 土豆、南瓜、酸菜和芋头 以后都要少吃啦~",
-    images: [],
-    video:
-        "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
-    addfriend: false,
-    star: false,
-    like: false,
-  );
-  var testPost3 = PostInfo(
-      username: "山野都有雾灯kk",
-      profilepic:
-          "https://media.nbclosangeles.com/2021/07/106882821-1620931316186-gettyimages-1232614603-DISNEYLAND_REOPENING.jpeg?quality=85&strip=all&crop=0px%2C4px%2C4000px%2C2250px&resize=1200%2C675",
-      date: "2023-10-25",
-      content: "最近才了解到高血糖要少吃四种蔬菜耶 土豆、南瓜、酸菜和芋头 以后都要少吃啦~",
-      images: [
-        /*
-        "https://38jiejie.com/wp-content/uploads/2019/10/Netizens-Criticize-Karry-Wang-Junkais-Style-and-Body-in-Non-Photoshopped-Pictures-Weibo_10.13.19.jpg",
-        "https://www.cpophome.com/wp-content/uploads/2021/01/Karry-Wang3.jpg",
-        "https://kingchoice.me/media/CACHE/images/4b7b853875653f368e9b0876beb4c176_kXZLhcG/9b9b24e321536feddc7d7b84a11b6dc7.jpg",
-        "https://i.mydramalist.com/2qXE2f.jpg",
-        "https://overseasidol.com/wp-content/uploads/2022/05/karry-wang-junkai.jpg",*/
-        "https://images.nintendolife.com/3e199ccf1141f/doraemon-nobitars-little-star-wars-2021.large.jpg",
-        "https://i.guim.co.uk/img/media/d13a335be378fd1d5360d34a88faefe2b6e38ca9/0_156_3500_2100/master/3500.jpg?width=700&quality=85&auto=format&fit=max&s=092c5fc37ff9a1f56faae91550b1d035",
-        "https://news.cgtn.com/news/3049544e7751544f776b7a4e3249444f776b7a4e31457a6333566d54/img/dbc2bed8083940c4a70ca53dc7e784a2/dbc2bed8083940c4a70ca53dc7e784a2.jpg",
-        "https://wollens.co.uk/wp-content/uploads/2019/10/Halloween--e1668260910131.jpg",
-        "https://www.billboard.com/wp-content/uploads/2023/06/Oreo-x-Nintendo-billboard-1548.jpg?w=942&h=623&crop=1",
-        "https://images.unsplash.com/photo-1576622085773-4eb399076362?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8bWVycnklMjBnbyUyMHJvdW5kfGVufDB8fDB8fHww",
-      ],
-      video: "",
-      addfriend: false,
-      star: false,
-      like: false); 
-      */
+  void _onScroll() {
+    if (listViewController.position.pixels ==
+        listViewController.position.maxScrollExtent) {
+      if (!_isLoading) {
+        setState(() {
+          _isLoading = true;
+          pageCount += 1;
+          refreshPage = false;
+          lastPosition = listViewController.offset;
+        });
+        fetchNShowPostList();
+      }
+    }
+  }
 
   // Moment API
   void getAccountId() async {
@@ -114,6 +74,8 @@ class _MomentState extends State<Moment> {
       if (response.statusCode == 200) {
         //print(response.data);
         curUserId = response.data["data"]["id"];
+        pageCount = 1;
+        refreshPage = false;
         fetchNShowPostList();
       }
     } catch (e) {/**/}
@@ -132,8 +94,8 @@ class _MomentState extends State<Moment> {
       };
       final response = await dio.get(
           keyword != ""
-              ? 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter&keyword=$keyword'
-              : 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter',
+              ? 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter&keyword=$keyword&page=$pageCount&size=$batchCount'
+              : 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter&page=$pageCount&size=$batchCount',
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
@@ -144,11 +106,13 @@ class _MomentState extends State<Moment> {
             isLoading = false;
             keyword = "";
             searchController.clear();
+            _isLoading = false;
           });
         } else {
           setState(() {
             curPostList = response.data["data"];
             isLoading = false;
+            _isLoading = false;
           });
         }
       } else {
@@ -160,11 +124,15 @@ class _MomentState extends State<Moment> {
   }
 
   void addUserFollowPair(int userId, bool isFollow) {
+    var postCount = pageCount * 5;
     setState(() {
       userFollowMap[userId.toString()] = isFollow;
       isLoading = true;
       //remainPosition = true;
       lastPosition = listViewController.offset;
+      pageCount = 1;
+      batchCount = postCount;
+      refreshPage = true;
     });
     fetchNShowPostList();
   }
@@ -176,11 +144,14 @@ class _MomentState extends State<Moment> {
   void updatePostList(List newPostList) {
     setState(() {
       curPostList = newPostList;
+      refreshPage = true;
     });
   }
 
   void createPostTileList(double width) {
-    postTileList.clear();
+    if (refreshPage) {
+      postTileList.clear();
+    }
 
     for (int i = 0; i < curPostList.length; ++i) {
       var tmp = curPostList[i]["accountId"].toString();
@@ -189,7 +160,7 @@ class _MomentState extends State<Moment> {
       }
 
       postTileList.add(PostTile(
-        //key: UniqueKey(),
+        key: UniqueKey(),
         width: width,
         curPost: curPostList[i],
         curUserId: curUserId,
@@ -208,17 +179,16 @@ class _MomentState extends State<Moment> {
     if (index == 1) {
       return categoryName[curSelCatInd];
     }
-    return selectedFilter;
+    if (index == 2) {
+      return selectedFilter;
+    }
+    return pageCount.toString();
   }
 
   void headerButtonAction(int curIndex) {
     if (curSelClassInd == curIndex) {
       setState(() {
-        //classSelected[curSelClassInd] = false;
-        //classSelected[curIndex] = true;
-        //curSelClassInd = curIndex;
         showHeader = !showHeader;
-        //isLoading = true;
         lastPosition = listViewController.offset;
       });
     } else {
@@ -229,6 +199,8 @@ class _MomentState extends State<Moment> {
         showHeader = true;
         isLoading = true;
         lastPosition = 0.0;
+        pageCount = 1;
+        refreshPage = true;
       });
       fetchNShowPostList();
     }
@@ -238,7 +210,6 @@ class _MomentState extends State<Moment> {
   void initState() {
     super.initState();
     getAccountId();
-    //fetchNShowPostList();
   }
 
   @override
@@ -246,6 +217,7 @@ class _MomentState extends State<Moment> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
     listViewController = ScrollController(initialScrollOffset: lastPosition);
+    listViewController.addListener(_onScroll);
 
     createPostTileList(screenWidth - 80);
 
@@ -261,14 +233,20 @@ class _MomentState extends State<Moment> {
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Color.fromRGBO(169, 171, 179, 1),
+                  width: 1,
+                ),
+              ),
               gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 250, 209, 252),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )),
+                colors: [
+                  Color.fromARGB(255, 250, 209, 252),
+                  Color.fromARGB(255, 255, 255, 255),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              )),
         ),
       ),
 
@@ -409,6 +387,8 @@ class _MomentState extends State<Moment> {
                                                           setState(() {
                                                             curSelCatInd = 0;
                                                             lastPosition = 0.0;
+                                                            pageCount = 1;
+                                                            refreshPage = true;
                                                           });
                                                           fetchNShowPostList();
                                                         },
@@ -428,6 +408,8 @@ class _MomentState extends State<Moment> {
                                                           setState(() {
                                                             curSelCatInd = 1;
                                                             lastPosition = 0.0;
+                                                            pageCount = 1;
+                                                            refreshPage = true;
                                                           });
                                                           fetchNShowPostList();
                                                         },
@@ -447,6 +429,8 @@ class _MomentState extends State<Moment> {
                                                           setState(() {
                                                             curSelCatInd = 2;
                                                             lastPosition = 0.0;
+                                                            pageCount = 1;
+                                                            refreshPage = true;
                                                           });
                                                           fetchNShowPostList();
                                                         },
@@ -466,6 +450,8 @@ class _MomentState extends State<Moment> {
                                                           setState(() {
                                                             curSelCatInd = 3;
                                                             lastPosition = 0.0;
+                                                            pageCount = 1;
+                                                            refreshPage = true;
                                                           });
                                                           fetchNShowPostList();
                                                         },
@@ -545,6 +531,8 @@ class _MomentState extends State<Moment> {
                                                 selectedFilter = value!;
                                                 lastPosition = 0.0;
                                                 isLoading = true;
+                                                pageCount = 1;
+                                                refreshPage = true;
                                               });
                                               fetchNShowPostList();
                                             },
@@ -588,6 +576,8 @@ class _MomentState extends State<Moment> {
                                                     onPressed: () {
                                                       keyword =
                                                           searchController.text;
+                                                      pageCount = 1;
+                                                      refreshPage = true;
                                                       fetchNShowPostList();
                                                       FocusScope.of(context)
                                                           .requestFocus(
@@ -648,10 +638,8 @@ class _MomentState extends State<Moment> {
                                 return AlertDialog(
                                   content: Post(
                                     width: screenWidth * 0.4,
-                                    curClass: className[curSelClassInd],
-                                    curCategory: categoryName[curSelCatInd],
-                                    curFilter: selectedFilter,
                                     updatePostList: updatePostList,
+                                    getSelectedProperty: getSelectedProperty,
                                   ),
                                 );
                               });
@@ -781,41 +769,21 @@ class _PostTileState extends State<PostTile> {
   var curClass = "";
   var curCategory = "";
   var curFilter = "";
+  int curPageCount = 0;
   bool isLoadingFollow = false;
 
   void getProperty() {
     curClass = widget.getSelectedProperty(0);
     curCategory = widget.getSelectedProperty(1);
     curFilter = widget.getSelectedProperty(2);
-  }
-
-  void refreshPage() {
-    fetchPostList();
-
-    setState(() {
-      isLoadingFollow = !isLoadingFollow;
-    });
-
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return const Dialog(
-            backgroundColor: Colors.transparent,
-          );
-        });
-
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      Navigator.pop(context);
-      setState(() {
-        isLoadingFollow = !isLoadingFollow;
-      });
-    });
+    curPageCount = int.parse(widget.getSelectedProperty(3));
   }
 
   // Moment API
   void fetchPostList() async {
     updatedPostList.clear();
     getProperty();
+    var postCount = curPageCount * 5;
 
     var token = await storage.read(key: 'token');
 
@@ -825,14 +793,11 @@ class _PostTileState extends State<PostTile> {
         'Authorization': 'Bearer $token',
       };
       final response = await dio.get(
-          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter',
+          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter&page=1&size=$postCount',
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
-        //print(response.data);
-        print("fetched data");
         updatedPostList = response.data["data"];
-        print(updatedPostList);
         widget.updatePostList(updatedPostList);
       } else {
         //print('Request failed with status: ${response.statusCode}');
@@ -1086,12 +1051,6 @@ class _PostTileState extends State<PostTile> {
     return result;
   }
 
-  void changeCommentCount() {
-    setState(() {
-      commentCount += 1;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -1321,13 +1280,6 @@ class _PostTileState extends State<PostTile> {
               style: const TextStyle(fontSize: 18, height: 1.5),
             ),
             const SizedBox(height: 10),
-            // 照片栏 media = image
-            // widget.curPost["images"] != ""
-            //     ? Row(
-            //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //         children: imageContainerList,
-            //       )
-            //     : Container(),
             Visibility(
               visible: widget.curPost["images"] != "",
               child: Row(
@@ -1343,14 +1295,6 @@ class _PostTileState extends State<PostTile> {
                     fullscreen: false,
                   )
                 : Container(),
-            // Visibility(
-            //   visible: widget.curPost["video"] != "",
-            //   child: VideoPlayerScreen(
-            //     enlarge: false,
-            //     videolink: widget.curPost[],
-            //     fullscreen: false,
-            //   ),
-            // ),
             const SizedBox(height: 10),
             Container(
               color: Colors.black12,
@@ -1361,24 +1305,6 @@ class _PostTileState extends State<PostTile> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                /*
-                Expanded(
-                  flex: 1,
-                  child: InkWell(
-                    onTap: () {},
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        MyIcons().share(),
-                        const SizedBox(width: 5),
-                        const Text(
-                          "分享",
-                          style: TextStyle(fontSize: 16),
-                        )
-                      ],
-                    ),
-                  ),
-                ),*/
                 Expanded(
                   flex: 1,
                   child: InkWell(
@@ -1419,10 +1345,11 @@ class _PostTileState extends State<PostTile> {
                                 width: screenWidth * 0.65,
                                 height: screenHeight * 0.5,
                                 postId: widget.curPost["id"],
-                                incCommentCount: changeCommentCount,
                               ),
                             );
-                          });
+                          }).then((value) {
+                        fetchPostList();
+                      });
                     },
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1490,11 +1417,13 @@ class _DeleteDialogState extends State<DeleteDialog> {
   var curClass = "";
   var curCategory = "";
   var curFilter = "";
+  int curPageCount = 0;
 
   void getProperty() {
     curClass = widget.getSelectedProperty(0);
     curCategory = widget.getSelectedProperty(1);
     curFilter = widget.getSelectedProperty(2);
+    curPageCount = int.parse(widget.getSelectedProperty(3));
   }
 
   // Moment API
@@ -1519,28 +1448,24 @@ class _DeleteDialogState extends State<DeleteDialog> {
   // Moment API
   void fetchNShowPostList() async {
     getProperty();
+    var postCount = curPageCount * 5;
 
     var token = await storage.read(key: 'token');
 
     try {
-      final dio = Dio(); // Create Dio instance
+      final dio = Dio();
       final headers = {
         'Authorization': 'Bearer $token',
       };
       final response = await dio.get(
-          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter',
+          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter&page=1&size=$postCount',
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
-        //print(response.data);
         updatedPostList = response.data["data"];
         widget.updatePostList(updatedPostList);
-      } else {
-        //print('Request failed with status: ${response.statusCode}');
-      }
-    } catch (e) {
-      //print('Request failed: $e');
-    }
+      } else {/**/}
+    } catch (e) {/**/}
   }
 
   void refreshPost() {

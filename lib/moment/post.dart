@@ -6,20 +6,13 @@ import 'dart:io';
 
 class Post extends StatefulWidget {
   final double width;
-  final String curClass;
-  final String curCategory;
-  final String curFilter;
+  final Function(int) getSelectedProperty;
   final Function(List) updatePostList;
-  //final Function(bool) setChange;
-  const Post({
-    super.key,
-    required this.width,
-    required this.curClass,
-    required this.curCategory,
-    required this.curFilter,
-    required this.updatePostList,
-    //required this.setChange,
-  });
+  const Post(
+      {super.key,
+      required this.width,
+      required this.updatePostList,
+      required this.getSelectedProperty});
 
   @override
   State<Post> createState() => _PostState();
@@ -38,6 +31,17 @@ class _PostState extends State<Post> {
   var updatedPostList = [];
   bool isLoading = false;
   var imagePathList = [];
+  var curClass = "";
+  var curCategory = "";
+  var curFilter = "";
+  int curPageCount = 0;
+
+  void getProperty() {
+    curClass = widget.getSelectedProperty(0);
+    curCategory = widget.getSelectedProperty(1);
+    curFilter = widget.getSelectedProperty(2);
+    curPageCount = int.parse(widget.getSelectedProperty(3));
+  }
 
   // Moment API
   void postStory() async {
@@ -63,16 +67,7 @@ class _PostState extends State<Post> {
         map['images'] = tmpImageList;
       }
       FormData formData = FormData.fromMap(map);
-      /*
-      FormData formData = FormData.fromMap({
-        'class': selectedClass,
-        'category': selectedCategory,
-        'content': inputController.value.text
-      });
-      if (showVid) {
-        formData.files.add(MapEntry(
-            'video', await MultipartFile.fromFile(videoPreview!.path)));
-      }*/
+
       final response = await dio.post(
         'http://43.138.75.58:8080/api/moment/create',
         data: formData,
@@ -83,8 +78,6 @@ class _PostState extends State<Post> {
       );
 
       if (response.statusCode == 200) {
-        //inputController.clear();
-        //fetchNShowPostList();
         delayPop();
       }
     } catch (e) {/**/}
@@ -108,6 +101,8 @@ class _PostState extends State<Post> {
   // Moment API
   void fetchNShowPostList() async {
     var token = await storage.read(key: 'token');
+    getProperty();
+    var postCount = curPageCount * 5;
 
     try {
       final dio = Dio(); // Create Dio instance
@@ -115,7 +110,7 @@ class _PostState extends State<Post> {
         'Authorization': 'Bearer $token',
       };
       final response = await dio.get(
-          'http://43.138.75.58:8080/api/moment/list?class=${widget.curClass}&category=${widget.curCategory}&filter=${widget.curFilter}',
+          'http://43.138.75.58:8080/api/moment/list?class=$curClass&category=$curCategory&filter=$curFilter&page=1&size=$postCount',
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {

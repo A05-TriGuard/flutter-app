@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_video_player/cached_video_player.dart';
+import 'package:video_player/video_player.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -19,13 +19,13 @@ class VideoPlayerScreen extends StatefulWidget {
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  late CachedVideoPlayerController _controller;
+  late VideoPlayerController _controller;
   late Future<void> _initializeVideoPlayerFuture;
 
   @override
   void initState() {
     super.initState();
-    _controller = CachedVideoPlayerController.network(
+    _controller = VideoPlayerController.network(
         "http://43.138.75.58:8080/static/${widget.videolink}");
     _initializeVideoPlayerFuture = _controller.initialize().catchError((error) {
       print('Error initializing video: $error');
@@ -68,7 +68,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                               }
                             });
                           },
-                          child: CachedVideoPlayer(_controller),
+                          child: VideoPlayer(_controller),
                           //VideoPlayer(_controller),
                         ),
                         Visibility(
