@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
 import 'package:dio/dio.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:pie_chart/pie_chart.dart';
 
 import '../component/header/header.dart';
 import '../other/other.dart';
 import '../account/token.dart';
 import '../component/titleDate/titleDate.dart';
+import '../fooddiary/fooddiary.dart';
 
 class MyTitle extends StatefulWidget {
   final String title;
@@ -1374,10 +1376,12 @@ class MyDiet extends StatefulWidget {
   final DateTime date;
   final int accountId;
   final String value;
+  final String nickname;
   const MyDiet(
       {Key? key,
       required this.accountId,
       required this.value,
+      required this.nickname,
       required this.date})
       : super(key: key);
 
@@ -1386,8 +1390,91 @@ class MyDiet extends StatefulWidget {
 }
 
 class _MyDietState extends State<MyDiet> {
+  Map<String, double> dataMap = {"早餐": 100, "午餐": 100, "晚餐": 100, "其他": 100};
+  int totalCalories = 0;
+  var categoryName = ["全部", "早餐", "午餐", "晚餐", "其他"];
+  int curUserId = -1;
+
   void refreshData() {
     setState(() {});
+  }
+
+  // 获取格式化后的日期 2023-8-1 => 2023-08-01
+  String getFormattedDate(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
+
+  // Meal API
+  void getAccountId() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/account/info',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        //print(response.data);
+        curUserId = response.data["data"]["id"];
+      }
+    } catch (e) {/**/}
+  }
+
+  // Meal API
+  void getSpecificMealInfo(int ind) async {
+    var token = await storage.read(key: 'token');
+    var curDate = getFormattedDate(widget.date);
+    var category = categoryName[ind];
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          widget.accountId == -1
+              ? 'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=$category'
+              : 'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=$category&accountId=${widget.accountId}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        if (ind == 0) {
+          setState(() {
+            totalCalories = response.data["data"]["calories"];
+          });
+        } else {
+          setState(() {
+            dataMap[category] =
+                double.parse(response.data["data"]["calories"].toString());
+          });
+        }
+      } else {
+        if (ind == 0) {
+          setState(() {
+            totalCalories = 0;
+          });
+        } else {
+          setState(() {
+            dataMap[category] = 0;
+          });
+        }
+      }
+    } catch (e) {/**/}
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getAccountId();
+    getSpecificMealInfo(0);
+    getSpecificMealInfo(1);
+    getSpecificMealInfo(2);
+    getSpecificMealInfo(3);
+    getSpecificMealInfo(4);
   }
 
   @override
@@ -1396,172 +1483,59 @@ class _MyDietState extends State<MyDiet> {
       MyTitle(
         title: "今日饮食",
         icon: "assets/icons/meal.png",
-        value: widget.value,
+        value: totalCalories.toString(),
         unit: "千卡",
         route: "/homePage/BloodPressure/Edit",
         refreshData: refreshData,
-      ), //TODO
-
+      ),
       const SizedBox(
         height: 5,
       ),
       Stack(alignment: Alignment.centerRight, children: [
-        UnconstrainedBox(
-          child: Container(
-            alignment: Alignment.centerRight,
-            width: MediaQuery.of(context).size.width * 0.85,
-            // height: MediaQuery.of(context).size.height * 0.25,
-            height: MediaQuery.of(context).size.height * 0.50,
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              borderRadius: const BorderRadius.all(Radius.circular(15)),
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.2),
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromARGB(120, 151, 151, 151),
-                  offset: Offset(0, 5),
-                  blurRadius: 5.0,
-                  spreadRadius: 0.0,
-                ),
-              ],
+        Container(
+          padding: const EdgeInsets.fromLTRB(45, 30, 45, 30),
+          width: MediaQuery.of(context).size.width * 0.85,
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 255, 255, 255),
+            borderRadius: const BorderRadius.all(Radius.circular(15)),
+            border: Border.all(
+              color: const Color.fromRGBO(0, 0, 0, 0.2),
             ),
-            child: Echarts(
-              extraScript: '''
-chart.on('updateAxisPointer', function (event) {
-    const xAxisInfo = event.axesInfo[0];
-    if (xAxisInfo) {
-      const dimension = xAxisInfo.value + 1;
-      chart.setOption({
-        series: {
-          id: 'pie',
-          label: {
-            formatter: '{b} {@[' + dimension + ']}'
-          },
-          encode: {
-            value: dimension,
-            tooltip: dimension
-          }
-        }
-      });
-    }
-  });
-''',
-              option: '''
-
- {
-  animation:false,
-
-   // title:'饮食',
-     title: {
-    text: '饮食',
-    top:'5%',
-    left:'2%',
-  },
-    legend: {data:['早餐','午餐','晚餐','其他','卡路里总和'],
-     orient: 'vertical',
-    top:'15%',
-      left:'5%'
-    },
-    tooltip: {
-      trigger: 'axis',
-      showContent: true
-    },
-    dataset: {
-      source: [
-        ['product', '8/11', '9/11', '10/11','11/11'],
-        ['早餐', 400, 500, 550, 480],
-        ['午餐', 600, 620, 650, 580],
-        ['晚餐', 300, 350, 380, 360],
-        ['其他', 200, 180, 160, 190],
-      //  ['卡路里总和', 1500, 1650, 1740, 1610, 1740, 1700]
-      ]
-    },
-    xAxis: { type: 'category',data: ['8/11', '9/11', '10/11','11/11']},
-    yAxis: { gridIndex: 0 },
-    grid: { 
-      top: '55%',
-      left:'3',
-      right: '4%', 
-      bottom: '5%',
-      containLabel: true
-    },
-    series: [
-      {
-        type: 'line',
-        //name: '早餐',
-        smooth: true,
-        seriesLayoutBy: 'row',
-        //emphasis: { focus: 'series' }
-      },
-      {
-        type: 'line',
-        //name: '午餐',
-        smooth: true,
-        seriesLayoutBy: 'row',
-        //emphasis: { focus: 'series' }
-      },
-      {
-        type: 'line',
-        //name: '晚餐',
-        smooth: true,
-        seriesLayoutBy: 'row',
-        //emphasis: { focus: 'series' }
-      },
-      {
-        type: 'line',
-        //name: '其他',
-        smooth: true,
-        seriesLayoutBy: 'row',
-       //emphasis: { focus: 'series' }
-      },
-      {
-        type: 'pie',
-        id: 'pie',
-        radius: '30%',
-        center: ['62%', '30%'],
-        emphasis: {
-          focus: 'self'
-        },
-        label: {
-          formatter: '{b} {@11/11}'
-        },
-        encode: {
-          itemName: 'product', // 修改为卡路里总和的对应项
-          value: '11/11',
-          tooltip: '11/11'
-        },
-        labelLine:{  
-        normal:{  
-          length: 5, // 修改引导线第一段的长度
-          length2: 2, // 修改引导线第二段的长度
-          //lineStyle: {
-          //  color: "red" // 修改引导线的颜色
-          //}
-        },
-        },
-
-       
-       
-        
-      },
-      {
-        type: 'line', // 柱状图显示总卡路里数据
-        name: '卡路里总和',
-        smooth: true,
-        data: [1500, 1650, 1740, 1610],
-        emphasis: { focus: 'series' }
-      },
-    ]
-  }
-            ''',
+            boxShadow: const [
+              BoxShadow(
+                color: Color.fromARGB(120, 151, 151, 151),
+                offset: Offset(0, 5),
+                blurRadius: 5.0,
+                spreadRadius: 0.0,
+              ),
+            ],
+          ),
+          child: PieChart(
+            dataMap: dataMap,
+            initialAngleInDegree: 290,
+            chartValuesOptions: const ChartValuesOptions(
+              showChartValueBackground: false,
             ),
           ),
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushNamed(context, "/homePage/fooddiary/Details");
+            var passId = widget.accountId == -1 ? curUserId : widget.accountId;
+            print("accountId = $passId");
+            var arguments = {
+              "accountId": passId,
+              "isOwner": widget.accountId == -1,
+              "date": widget.date,
+              "nickname": widget.nickname,
+            };
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => FoodDiary(
+                          arguments: arguments,
+                        ))).then((value) {
+              refreshData();
+            });
           },
           child: Container(
             height: 30,
@@ -1915,6 +1889,7 @@ class _HomePageState extends State<HomePage> {
               // 饮食
               MyDiet(
                   accountId: widget.arguments["accountId"],
+                  nickname: widget.arguments["nickname"],
                   date: selectedDate,
                   value: "1723"),
 

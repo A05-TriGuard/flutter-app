@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dio/dio.dart';
@@ -10,11 +11,17 @@ class FoodInfo {
   final String name;
   final int weight;
   final int calorie;
-  FoodInfo({required this.name, required this.weight, required this.calorie});
+  final int id;
+  FoodInfo(
+      {required this.name,
+      required this.weight,
+      required this.calorie,
+      required this.id});
 }
 
 class FoodDiary extends StatefulWidget {
-  const FoodDiary({super.key});
+  final Map arguments;
+  const FoodDiary({required this.arguments, super.key});
 
   @override
   State<FoodDiary> createState() => _FoodDiaryState();
@@ -51,9 +58,12 @@ class _FoodDiaryState extends State<FoodDiary> {
   var mealCur = {};
   var mealList = [];
   var allMealInfo = {};
+  var specificMealInfo = {};
   var dataFilter = ["全部", "早餐", "午餐", "晚餐", "其他"];
   final foodNameInputController = TextEditingController();
   final foodWeightInputController = TextEditingController();
+  bool loadTarget = false;
+  bool hasTarget = false;
 
   // Meal API
   void postMeal(String category) async {
@@ -65,6 +75,7 @@ class _FoodDiaryState extends State<FoodDiary> {
         'Authorization': 'Bearer $token',
       };
       Map<String, dynamic> map = {};
+      map["accountId"] = widget.arguments["accountId"];
       map['date'] = getFormattedDate(selectedDate);
       map['category'] = category;
       map['food'] = foodNameInputController.value.text;
@@ -78,9 +89,12 @@ class _FoodDiaryState extends State<FoodDiary> {
       );
 
       if (response.statusCode == 200) {
-        getMealInfo();
+        getAllMealInfo();
+        getSpecificMealInfo();
         foodNameInputController.clear();
         foodWeightInputController.clear();
+      } else {
+        print(response);
       }
     } catch (e) {/**/}
   }
@@ -95,20 +109,49 @@ class _FoodDiaryState extends State<FoodDiary> {
         'Authorization': 'Bearer $token',
       };
       final response = await dio.get(
-          'http://43.138.75.58:8080/api/meal/get-goal',
+          widget.arguments["isOwner"]
+              ? 'http://43.138.75.58:8080/api/meal/get-goal'
+              : 'http://43.138.75.58:8080/api/meal/get-goal?accountId=${widget.arguments["accountId"]}',
+          //queryParameters: queryParams,
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
-        setState(() {
-          mealTarget = response.data["data"];
-          print(mealTarget);
-        });
-      } else {/**/}
+        if (response.data["data"] == null) {
+          setState(() {
+            loadTarget = true;
+            mealTarget = {
+              "calories": 0,
+              "carbohydrates": 0,
+              "lipids": 0,
+              "cholesterol": 0,
+              "proteins": 0,
+              "fiber": 0,
+              "sodium": 0
+            };
+          });
+        } else {
+          setState(() {
+            loadTarget = true;
+            hasTarget = true;
+            mealTarget = response.data["data"];
+          });
+        }
+      } else {
+        mealTarget = {
+          "calories": 0,
+          "carbohydrates": 0,
+          "lipids": 0,
+          "cholesterol": 0,
+          "proteins": 0,
+          "fiber": 0,
+          "sodium": 0
+        };
+      }
     } catch (e) {/**/}
   }
 
   // Meal API
-  void getMealInfo() async {
+  void getAllMealInfo() async {
     var token = await storage.read(key: 'token');
     var curDate = getFormattedDate(selectedDate);
 
@@ -118,30 +161,74 @@ class _FoodDiaryState extends State<FoodDiary> {
         'Authorization': 'Bearer $token',
       };
       final response = await dio.get(
-          'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=${dataFilter[curSelected]}',
+          widget.arguments["isOwner"]
+              ? 'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=全部'
+              : 'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=全部&accountId=${widget.arguments["accountId"]}',
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
-        print(
-            'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=${dataFilter[curSelected]}');
-
         setState(() {
           allMealInfo = response.data["data"];
-          print(allMealInfo);
         });
-      } else {/**/}
+      } else {
+        allMealInfo = {
+          "mealList": [],
+          "calories": 0,
+          "carbohydrates": 0,
+          "lipids": 0,
+          "cholesterol": 0,
+          "proteins": 0,
+          "fiber": 0,
+          "sodium": 0
+        };
+      }
+    } catch (e) {/**/}
+  }
+
+  // Meal API
+  void getSpecificMealInfo() async {
+    var token = await storage.read(key: 'token');
+    var curDate = getFormattedDate(selectedDate);
+
+    try {
+      final dio = Dio();
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          widget.arguments["isOwner"]
+              ? 'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=${dataFilter[curSelected]}'
+              : 'http://43.138.75.58:8080/api/meal/get?date=$curDate&category=${dataFilter[curSelected]}&accountId=${widget.arguments["accountId"]}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          specificMealInfo = response.data["data"];
+        });
+      } else {
+        specificMealInfo = {
+          "mealList": [],
+          "calories": 0,
+          "carbohydrates": 0,
+          "lipids": 0,
+          "cholesterol": 0,
+          "proteins": 0,
+          "fiber": 0,
+          "sodium": 0
+        };
+      }
     } catch (e) {/**/}
   }
 
   void preset() {
     mealList = allMealInfo["mealList"] ?? [];
-    mealCur["carbohydrates"] = allMealInfo["carbohydrates"];
-    mealCur["calories"] = allMealInfo["calories"];
-    mealCur["lipids"] = allMealInfo["lipids"];
-    mealCur["cholesterol"] = allMealInfo["cholesterol"];
-    mealCur["proteins"] = allMealInfo["proteins"];
-    mealCur["fiber"] = allMealInfo["fiber"];
-    mealCur["sodium"] = allMealInfo["sodium"];
+    mealCur["carbohydrates"] = specificMealInfo["carbohydrates"];
+    mealCur["calories"] = specificMealInfo["calories"];
+    mealCur["lipids"] = specificMealInfo["lipids"];
+    mealCur["cholesterol"] = specificMealInfo["cholesterol"];
+    mealCur["proteins"] = specificMealInfo["proteins"];
+    mealCur["fiber"] = specificMealInfo["fiber"];
+    mealCur["sodium"] = specificMealInfo["sodium"];
   }
 
   void classifyMeal() {
@@ -156,7 +243,8 @@ class _FoodDiaryState extends State<FoodDiary> {
       FoodInfo curFoodInfo = FoodInfo(
           name: curMeal["food"],
           weight: curMeal["weight"],
-          calorie: curMeal["calories"]);
+          calorie: curMeal["calories"],
+          id: curMeal["id"]);
 
       switch (curMeal["category"]) {
         case "早餐":
@@ -216,14 +304,19 @@ class _FoodDiaryState extends State<FoodDiary> {
         selectedDate = picked;
         print(getFormattedDate(selectedDate));
       });
-      getMealInfo();
+      getAllMealInfo();
+      getSpecificMealInfo();
     }
   }
 
   List<FoodRow> createRecordRowList(List info, double totalwidth) {
     var tempList = <FoodRow>[];
     for (int i = 0; i < info.length; ++i) {
-      tempList.add(FoodRow(info: info[i], totalWidth: totalwidth));
+      tempList.add(FoodRow(
+        info: info[i],
+        totalWidth: totalwidth,
+        updateMealList: [getAllMealInfo, getSpecificMealInfo],
+      ));
     }
     return tempList;
   }
@@ -235,13 +328,12 @@ class _FoodDiaryState extends State<FoodDiary> {
       int ind = start + i;
       tempList.add(
         NutritionRow(
-            nutritionType: nutritionName[ind],
-            barWidth: width,
-            total: mealTarget[indToNut[ind]] ?? 0,
-            current: mealCur[indToNut[ind]] ?? 0,
-            unit: nutritionUni[ind],
-            id: 0 // TOCHANGE
-            ),
+          nutritionType: nutritionName[ind],
+          barWidth: width,
+          total: mealTarget[indToNut[ind]] ?? 0,
+          current: mealCur[indToNut[ind]] ?? 0,
+          unit: nutritionUni[ind], // TOCHANGE
+        ),
       );
     }
     return tempList;
@@ -267,6 +359,8 @@ class _FoodDiaryState extends State<FoodDiary> {
                 ),
                 TextField(
                   controller: foodWeightInputController,
+                  keyboardType: const TextInputType.numberWithOptions(),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(
                       hintText: "食物分量（以克为单位）",
                       hintStyle: TextStyle(color: Colors.black26)),
@@ -296,7 +390,8 @@ class _FoodDiaryState extends State<FoodDiary> {
   void initState() {
     super.initState();
     getMealTarget();
-    getMealInfo();
+    getAllMealInfo();
+    getSpecificMealInfo();
   }
 
   @override
@@ -317,13 +412,15 @@ class _FoodDiaryState extends State<FoodDiary> {
 
       appBar: AppBar(
         automaticallyImplyLeading: true,
-        title: const Text(
-          "返回首页",
+        title: Text(
+          widget.arguments["isOwner"] ? "饮食记录" : widget.arguments["nickname"],
           style: TextStyle(
               fontFamily: 'BalooBhai',
               fontSize: 24,
               color: Colors.black,
-              fontWeight: FontWeight.w900),
+              fontWeight: widget.arguments["isOwner"]
+                  ? FontWeight.w900
+                  : FontWeight.normal),
         ),
         leading: IconButton(
             onPressed: () {
@@ -441,15 +538,23 @@ class _FoodDiaryState extends State<FoodDiary> {
               ))
         ],
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
+              border: const Border(
+                bottom: BorderSide(
+                  color: Color.fromRGBO(169, 171, 179, 1),
+                  width: 1,
+                ),
+              ),
               gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 250, 209, 252),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )),
+                colors: [
+                  widget.arguments["isOwner"]
+                      ? const Color.fromARGB(255, 250, 209, 252)
+                      : const Color.fromARGB(255, 182, 234, 255),
+                  const Color.fromARGB(255, 255, 255, 255),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              )),
         ),
       ),
 
@@ -575,7 +680,7 @@ class _FoodDiaryState extends State<FoodDiary> {
                                   });
                                 },
                                 onLongPress: () {
-                                  showAddFoodDialog(context, "晚餐");
+                                  showAddFoodDialog(context, "午餐");
                                 },
                                 child: FoodButton(
                                     width: screenWidth * 0.9 * 0.26,
@@ -622,96 +727,119 @@ class _FoodDiaryState extends State<FoodDiary> {
                           blurRadius: 7)
                     ],
                   ),
-                  child: Column(
-                      //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // 切换按钮
-                        ToggleButtons(
-                            fillColor: const Color.fromARGB(255, 250, 209, 252),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            color: Colors.black38,
-                            selectedColor: Colors.black,
-                            borderRadius: BorderRadius.circular(15),
-                            constraints: BoxConstraints.expand(
-                                width: screenWidth * 0.8 * 0.2, height: 25),
-                            isSelected: classSelected,
-                            children: const [
-                              Text("全天"),
-                              Text("早餐"),
-                              Text("午餐"),
-                              Text("晚餐"),
-                              Text("其他")
-                            ],
-                            onPressed: (index) {
-                              setState(() {
-                                classSelected[curSelected] = false;
-                                classSelected[index] = true;
-                                curSelected = index;
-                              });
-                              getMealInfo();
-                            }),
-                        const SizedBox(height: 10),
-                        // 卡路里圈
-                        CircularPercentIndicator(
-                          radius: 55,
-                          lineWidth: 4,
-                          percent: 0.75,
-                          center: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text("还可摄入", textAlign: TextAlign.center),
-                              Text(
-                                "$calorieDiff",
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    fontSize: 24, fontWeight: FontWeight.bold),
-                              ),
-                              const Text("千卡", textAlign: TextAlign.center),
-                            ],
-                          ),
-                          progressColor:
-                              const Color.fromARGB(255, 24, 165, 247),
-                        ),
-                        const SizedBox(height: 20),
-                        // 营养成分
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              expandNutrition = !expandNutrition;
-                            });
-                          },
-                          child: Container(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    expandNutrition
-                                        ? Icons.arrow_drop_down
-                                        : Icons.arrow_right,
-                                    size: 40,
-                                  ),
-                                  const Text(
-                                    "营养成分",
-                                    style: TextStyle(
+                  child: loadTarget
+                      ? (hasTarget
+                          ? Column(
+                              //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                  // 切换按钮
+                                  ToggleButtons(
+                                      fillColor: widget.arguments["isOwner"]
+                                          ? const Color.fromARGB(
+                                              255, 250, 209, 252)
+                                          : const Color.fromARGB(
+                                              255, 182, 234, 255),
+                                      textStyle: const TextStyle(
                                         fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 2),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      color: Colors.black38,
+                                      selectedColor: Colors.black,
+                                      borderRadius: BorderRadius.circular(15),
+                                      constraints: BoxConstraints.expand(
+                                          width: screenWidth * 0.8 * 0.2,
+                                          height: 25),
+                                      isSelected: classSelected,
+                                      children: const [
+                                        Text("全天"),
+                                        Text("早餐"),
+                                        Text("午餐"),
+                                        Text("晚餐"),
+                                        Text("其他")
+                                      ],
+                                      onPressed: (index) {
+                                        setState(() {
+                                          classSelected[curSelected] = false;
+                                          classSelected[index] = true;
+                                          curSelected = index;
+                                        });
+                                        getSpecificMealInfo();
+                                      }),
+                                  const SizedBox(height: 10),
+                                  // 卡路里圈
+                                  CircularPercentIndicator(
+                                    radius: 55,
+                                    lineWidth: 4,
+                                    percent: 0.75,
+                                    center: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Text("还可摄入",
+                                            textAlign: TextAlign.center),
+                                        Text(
+                                          calorieDiff >= 0
+                                              ? "$calorieDiff"
+                                              : "0",
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const Text("千卡",
+                                            textAlign: TextAlign.center),
+                                      ],
+                                    ),
+                                    progressColor:
+                                        const Color.fromARGB(255, 24, 165, 247),
                                   ),
-                                ],
-                              )),
-                        ),
-                        Visibility(
-                          visible: expandNutrition,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children:
-                                createNutritionRowList(1, 6, screenWidth * 0.5),
-                          ),
-                        ),
-                      ]),
+                                  const SizedBox(height: 20),
+                                  // 营养成分
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        expandNutrition = !expandNutrition;
+                                      });
+                                    },
+                                    child: Container(
+                                        padding:
+                                            const EdgeInsets.only(left: 10),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              expandNutrition
+                                                  ? Icons.arrow_drop_down
+                                                  : Icons.arrow_right,
+                                              size: 40,
+                                            ),
+                                            const Text(
+                                              "营养成分",
+                                              style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 2),
+                                            ),
+                                          ],
+                                        )),
+                                  ),
+                                  Visibility(
+                                    visible: expandNutrition,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: createNutritionRowList(
+                                          1, 6, screenWidth * 0.5),
+                                    ),
+                                  ),
+                                ])
+                          : const Center(
+                              child: Text(
+                                "请先前往【首页】->【饮食目标】\n完成饮食目标设置，\n方可解锁数据分析模块",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(height: 2, fontSize: 16),
+                              ),
+                            ))
+                      : Container(),
                 ),
                 const SizedBox(
                   height: 20,
@@ -735,6 +863,7 @@ class _FoodDiaryState extends State<FoodDiary> {
                     child: ListView(
                         scrollDirection: Axis.vertical,
                         shrinkWrap: true,
+                        physics: const BouncingScrollPhysics(),
                         children: [
                           const Center(
                             child: Text(
@@ -866,9 +995,33 @@ class FoodHeader extends StatelessWidget {
 class FoodRow extends StatelessWidget {
   final double totalWidth;
   final FoodInfo info;
-  const FoodRow({super.key, required this.info, required this.totalWidth});
+  final List<Function()> updateMealList;
+  const FoodRow(
+      {super.key,
+      required this.info,
+      required this.totalWidth,
+      required this.updateMealList});
 
-  void showDialogFunction() async {}
+  // Meal API
+  void deleteMeal() async {
+    var token = await storage.read(key: 'token');
+
+    try {
+      final dio = Dio(); // Create Dio instance
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final response = await dio.get(
+          'http://43.138.75.58:8080/api/meal/delete?id=${info.id}',
+          options: Options(headers: headers));
+
+      if (response.statusCode == 200) {
+        print("delete meal");
+        updateMealList[0]();
+        updateMealList[1]();
+      } else {/**/}
+    } catch (e) {/**/}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -876,6 +1029,7 @@ class FoodRow extends StatelessWidget {
       children: [
         //const SizedBox(height: 10),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             SizedBox(
@@ -903,18 +1057,28 @@ class FoodRow extends StatelessWidget {
                       builder: (context) {
                         return AlertDialog(
                           title: const Text("提示"),
-                          content: Text("确认删除 \"${info.name}\" ？"),
+                          content: Text(
+                            "确认删除 \"${info.name}\" ？",
+                            style: const TextStyle(fontSize: 18),
+                          ),
                           actions: [
                             TextButton(
                                 onPressed: () {
-                                  // TOINTERACT: 发送删除请求给后端进行删除，再获取新的数据更新页面
+                                  Navigator.pop(context);
+                                  deleteMeal();
                                 },
-                                child: const Text("确认")),
+                                child: const Text(
+                                  "确认",
+                                  style: TextStyle(fontSize: 18),
+                                )),
                             TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
                                 },
-                                child: const Text("取消"))
+                                child: const Text(
+                                  "取消",
+                                  style: TextStyle(fontSize: 18),
+                                ))
                           ],
                         );
                       });
@@ -935,15 +1099,13 @@ class NutritionRow extends StatefulWidget {
   final int total;
   final int current;
   final String unit;
-  final int id;
   const NutritionRow(
       {super.key,
       required this.nutritionType,
       required this.barWidth,
       required this.total,
       required this.current,
-      required this.unit,
-      required this.id});
+      required this.unit});
 
   @override
   State<NutritionRow> createState() => _NutritionRowState();
