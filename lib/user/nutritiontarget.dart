@@ -169,6 +169,7 @@ class _NutritionTargetState extends State<NutritionTarget> {
   TableRow createTableRow(String left, String right) {
     return TableRow(children: [
       Container(
+          color: const Color.fromARGB(255, 250, 239, 251),
           padding: const EdgeInsets.all(10),
           child: Text(
             left,
@@ -307,15 +308,38 @@ class _NutritionTargetState extends State<NutritionTarget> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        "为了能够更好地监测您的饮食记录及分析您所摄入的营养成分，我们提供个性化的饮食目标定制。\n",
+                                        style: TextStyle(fontSize: 16),
                                       ),
-                                      SizedBox(height: 5),
-                                      Text("1. 点击【日期按钮】=> 自定义目标日期。"),
-                                      Text("2. 长按【分类按钮】=> 添加该时间段的进食记录。"),
-                                      Text("3. 点击【分类按钮】=> 查看该时间段的进食记录。")
+                                      Text(
+                                        "设置饮食目标的方法有两种：",
+                                        style:
+                                            TextStyle(fontSize: 16, height: 2),
+                                      ),
+                                      Text(
+                                        "1. 自定义饮食目标",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            height: 2,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        "手动输入各个营养成分的目标分量\n",
+                                        style:
+                                            TextStyle(fontSize: 16, height: 2),
+                                      ),
+                                      Text(
+                                        "2. 使用自动推荐模式",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            height: 2,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        "填写您的个人信息，由我们为您生成推荐的饮食目标",
+                                        style:
+                                            TextStyle(fontSize: 16, height: 2),
+                                      )
                                     ],
                                   ),
                                 ),
@@ -333,14 +357,20 @@ class _NutritionTargetState extends State<NutritionTarget> {
           ],
           flexibleSpace: Container(
             decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Color.fromRGBO(169, 171, 179, 1),
+                    width: 1,
+                  ),
+                ),
                 gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 250, 209, 252),
-                Color.fromARGB(255, 255, 255, 255),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )),
+                  colors: [
+                    Color.fromARGB(255, 250, 209, 252),
+                    Color.fromARGB(255, 255, 255, 255),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                )),
           ),
         ),
 

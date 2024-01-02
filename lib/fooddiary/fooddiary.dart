@@ -389,6 +389,7 @@ class _FoodDiaryState extends State<FoodDiary> {
   @override
   void initState() {
     super.initState();
+    selectedDate = widget.arguments["date"];
     getMealTarget();
     getAllMealInfo();
     getSpecificMealInfo();

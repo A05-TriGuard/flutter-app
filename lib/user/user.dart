@@ -165,10 +165,12 @@ class _UserInfoState extends State<UserInfo> {
                             print("更换头像");
                             pickedImage = await ImagePicker()
                                 .pickImage(source: ImageSource.gallery);
-                            setState(() {
-                              selectedImagePath = pickedImage!.path;
-                            });
-                            changeProfilePic();
+                            if (pickedImage != null) {
+                              setState(() {
+                                selectedImagePath = pickedImage!.path;
+                              });
+                              changeProfilePic();
+                            }
                           },
                           child: Container(
                             width: 25,

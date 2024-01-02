@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:dio/dio.dart';
 import '../account/token.dart';
 import 'dart:io';
@@ -154,7 +155,9 @@ class _PostState extends State<Post> {
       alignment: Alignment.center,
       children: [
         Visibility(
-            visible: isLoading, child: const CircularProgressIndicator()),
+            visible: isLoading,
+            child: LoadingAnimationWidget.staggeredDotsWave(
+                color: Colors.pink, size: 25)),
         SingleChildScrollView(
           child: SizedBox(
             //width: widget.width,

@@ -76,25 +76,27 @@ class _MyTitleState extends State<MyTitle> {
               SizedBox(
                 width: 20,
                 height: 20,
-                child: IconButton(
-                  padding: const EdgeInsets.all(0),
-                  icon: const Icon(Icons.edit),
-                  iconSize: 25,
-                  onPressed: () {
-                    if (widget.arguments != null) {
-                      // 有参数的跳转
-                      Navigator.pushNamed(context, widget.route,
-                              arguments: widget.arguments)
-                          .then((value) => widget.refreshData());
-                      setState(() {});
-                    } else {
-                      // 无参数的跳转
-                      Navigator.pushNamed(context, widget.route)
-                          .then((value) => widget.refreshData());
-                      setState(() {});
-                    }
-                  },
-                ),
+                child: widget.route == ""
+                    ? Container()
+                    : IconButton(
+                        padding: const EdgeInsets.all(0),
+                        icon: const Icon(Icons.edit),
+                        iconSize: 25,
+                        onPressed: () {
+                          if (widget.arguments != null) {
+                            // 有参数的跳转
+                            Navigator.pushNamed(context, widget.route,
+                                    arguments: widget.arguments)
+                                .then((value) => widget.refreshData());
+                            setState(() {});
+                          } else {
+                            // 无参数的跳转
+                            Navigator.pushNamed(context, widget.route)
+                                .then((value) => widget.refreshData());
+                            setState(() {});
+                          }
+                        },
+                      ),
               )
             ])
           ],
@@ -1365,13 +1367,22 @@ class MyDiet extends StatefulWidget {
 }
 
 class _MyDietState extends State<MyDiet> {
-  Map<String, double> dataMap = {"早餐": 100, "午餐": 100, "晚餐": 100, "其他": 100};
+  Map<String, double> dataMap = {"早餐": 0, "午餐": 0, "晚餐": 0, "其他": 0};
   int totalCalories = 0;
   var categoryName = ["全部", "早餐", "午餐", "晚餐", "其他"];
   int curUserId = -1;
+  bool isLoading = true;
 
   void refreshData() {
-    setState(() {});
+    //setState(() {});
+    setState(() {
+      isLoading = true;
+    });
+    getSpecificMealInfo(0);
+    getSpecificMealInfo(1);
+    getSpecificMealInfo(2);
+    getSpecificMealInfo(3);
+    getSpecificMealInfo(4);
   }
 
   // 获取格式化后的日期 2023-8-1 => 2023-08-01
@@ -1426,6 +1437,11 @@ class _MyDietState extends State<MyDiet> {
             dataMap[category] =
                 double.parse(response.data["data"]["calories"].toString());
           });
+          if (ind == 4) {
+            setState(() {
+              isLoading = false;
+            });
+          }
         }
       } else {
         if (ind == 0) {
@@ -1435,6 +1451,11 @@ class _MyDietState extends State<MyDiet> {
         } else {
           setState(() {
             dataMap[category] = 0;
+          });
+        }
+        if (ind == 4) {
+          setState(() {
+            isLoading = false;
           });
         }
       }
@@ -1460,8 +1481,9 @@ class _MyDietState extends State<MyDiet> {
         icon: "assets/icons/meal.png",
         value: totalCalories.toString(),
         unit: "千卡",
-        route: "/homePage/BloodPressure/Edit",
+        route: "",
         refreshData: refreshData,
+        arguments: const {"disabledEdit": true},
       ),
       const SizedBox(
         height: 5,
@@ -1485,13 +1507,16 @@ class _MyDietState extends State<MyDiet> {
               ),
             ],
           ),
-          child: PieChart(
-            dataMap: dataMap,
-            initialAngleInDegree: 290,
-            chartValuesOptions: const ChartValuesOptions(
-              showChartValueBackground: false,
-            ),
-          ),
+          child: isLoading
+              ? LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.pink, size: 25)
+              : PieChart(
+                  dataMap: dataMap,
+                  initialAngleInDegree: 290,
+                  chartValuesOptions: const ChartValuesOptions(
+                    showChartValueBackground: false,
+                  ),
+                ),
         ),
         GestureDetector(
           onTap: () {
