@@ -85,15 +85,15 @@ class _PreventionState extends State<Prevention> {
   Widget build(BuildContext context) {
     createArticleList();
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
         Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => const MainPages(
                       arguments: {"setToArticlePage": true},
                     )));
-        return true;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -121,14 +121,21 @@ class _PreventionState extends State<Prevention> {
               )),
           flexibleSpace: Container(
             decoration: const BoxDecoration(
-                gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 250, 209, 252),
-                Color.fromARGB(255, 255, 255, 255),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )),
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 250, 209, 252),
+                  Color.fromARGB(255, 255, 255, 255),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: Color.fromRGBO(169, 171, 179, 1),
+                  width: 1,
+                ),
+              ),
+            ),
           ),
         ),
 
@@ -149,7 +156,6 @@ class _PreventionState extends State<Prevention> {
   }
 }
 
-// TOINTERACT: 在跳转去内容页面时，先设置好要展示的内容
 class ArticleTile extends StatelessWidget {
   final Map article;
 
@@ -160,7 +166,6 @@ class ArticleTile extends StatelessWidget {
     return Card(
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20))),
-      shadowColor: Colors.black87,
       elevation: 6,
       child: InkWell(
         onTap: () {
@@ -175,6 +180,9 @@ class ArticleTile extends StatelessWidget {
                       )));
         },
         child: ListTile(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
+          tileColor: Colors.white,
           title: Text(
             article["title"],
             maxLines: 1,
@@ -187,18 +195,18 @@ class ArticleTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          leading: Container(
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
-            child: AspectRatio(
-              aspectRatio: 1.6,
-              child: Image.network(
-                  article["cover"] != ""
-                      ? article["cover"]
-                      : "https://static.vecteezy.com/system/resources/thumbnails/008/034/405/small/loading-bar-doodle-element-hand-drawn-vector.jpg",
-                  fit: BoxFit.cover),
-            ),
-          ),
+          // leading: Container(
+          //   clipBehavior: Clip.hardEdge,
+          //   decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
+          //   child: AspectRatio(
+          //     aspectRatio: 1.6,
+          //     child: Image.network(
+          //         (article["cover"] != "" && article["cover"] != null)
+          //             ? article["cover"]
+          //             : "https://static.vecteezy.com/system/resources/thumbnails/008/034/405/small/loading-bar-doodle-element-hand-drawn-vector.jpg",
+          //         fit: BoxFit.cover),
+          //   ),
+          // ),
         ),
       ),
     );

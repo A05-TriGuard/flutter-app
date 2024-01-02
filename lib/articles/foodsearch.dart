@@ -26,7 +26,7 @@ class _FoodsearchState extends State<Foodsearch> {
     var token = await storage.read(key: 'token');
 
     try {
-      final dio = Dio(); // Create Dio instance
+      final dio = Dio();
       final headers = {
         'Authorization': 'Bearer $token',
       };
@@ -35,17 +35,12 @@ class _FoodsearchState extends State<Foodsearch> {
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
-        //print(response.data);
         setState(() {
           showResult = true;
           resultList = response.data["data"];
         });
-      } else {
-        //print('Request failed with status: ${response.statusCode}');
-      }
-    } catch (e) {
-      //print('Request failed: $e');
-    }
+      } else {/**/}
+    } catch (e) {/**/}
   }
 
   // Food API
@@ -55,7 +50,7 @@ class _FoodsearchState extends State<Foodsearch> {
     var token = await storage.read(key: 'token');
 
     try {
-      final dio = Dio(); // Create Dio instance
+      final dio = Dio();
       final headers = {
         'Authorization': 'Bearer $token',
       };
@@ -64,17 +59,12 @@ class _FoodsearchState extends State<Foodsearch> {
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
-        //print(response.data);
         setState(() {
           historyList = response.data["data"];
           showResult = false;
         });
-      } else {
-        //print('Request failed with status: ${response.statusCode}');
-      }
-    } catch (e) {
-      //print('Request failed: $e');
-    }
+      } else {/**/}
+    } catch (e) {/**/}
   }
 
   void createCardList() {
@@ -89,7 +79,7 @@ class _FoodsearchState extends State<Foodsearch> {
       }
     } else {
       resultCardList.add(ResultCard(
-        result: {"name": "目前没有找到相关搜索结果", "id": -1},
+        result: const {"name": "目前没有找到相关搜索结果", "id": -1},
         isResult: false,
         updateHistory: fetchNShowHistoryResult,
       ));
@@ -123,15 +113,16 @@ class _FoodsearchState extends State<Foodsearch> {
     createCardList();
     createHistoryList();
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const MainPages(
-                      arguments: {"setToArticlePage": true},
-                    )));
-        return true;
+          context,
+          MaterialPageRoute(
+              builder: (context) => const MainPages(
+                    arguments: {"setToArticlePage": true},
+                  )),
+        );
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -161,14 +152,21 @@ class _FoodsearchState extends State<Foodsearch> {
               )),
           flexibleSpace: Container(
             decoration: const BoxDecoration(
-                gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 250, 209, 252),
-                Color.fromARGB(255, 255, 255, 255),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )),
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 250, 209, 252),
+                  Color.fromARGB(255, 255, 255, 255),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: Color.fromRGBO(169, 171, 179, 1),
+                  width: 1,
+                ),
+              ),
+            ),
           ),
         ),
 
@@ -285,12 +283,10 @@ class ResultCard extends StatelessWidget {
     return Card(
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(0))),
-        shadowColor: Colors.black87,
         elevation: 5,
         child: InkWell(
           onTap: isResult
               ? () {
-                  //Navigator.pushNamed(context, '/articles/medicine/page');
                   Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -302,6 +298,9 @@ class ResultCard extends StatelessWidget {
                 }
               : null,
           child: ListTile(
+              tileColor: Colors.white,
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(0))),
               minVerticalPadding: 15,
               title: Text(
                 result["name"],

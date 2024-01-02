@@ -32,14 +32,21 @@ class _ArticleState extends State<Article> {
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
-              gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 250, 209, 252),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )),
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 250, 209, 252),
+                Color.fromARGB(255, 255, 255, 255),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            border: Border(
+              bottom: BorderSide(
+                color: Color.fromRGBO(169, 171, 179, 1),
+                width: 1,
+              ),
+            ),
+          ),
         ),
       ),
 

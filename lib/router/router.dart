@@ -104,7 +104,7 @@ Map routes = {
   // -------------------- 动态模块 ====================
   '/moment': (context) => const Moment(),
   // ==================== 饮食模块 ====================
-  '/homePage/fooddiary/Details': (context) => const FoodDiary(),
+  //'/homePage/fooddiary/Details': (context) => const FoodDiary(),
   '/user/nutritiontarget': (context) => const NutritionTarget(),
   // ==================== 科普模块 ====================
   '/articles': (context) => const Article(),
