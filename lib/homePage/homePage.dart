@@ -8,6 +8,7 @@ import '../other/other.dart';
 import '../account/token.dart';
 import '../component/titleDate/titleDate.dart';
 
+// 标题抽象类
 class MyTitle extends StatefulWidget {
   final String title;
   final String icon;
@@ -36,70 +37,64 @@ class _MyTitleState extends State<MyTitle> {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Container(
-              child: Row(
-                  //mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(width: 5),
-                    Image.asset(widget.icon, width: 25, height: 25),
-                  ]),
-            ),
-            Container(
-              child: Row(
-                  //mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.value,
-                      style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromRGBO(165, 51, 51, 1)),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(widget.unit,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: IconButton(
-                        padding: const EdgeInsets.all(0),
-                        icon: const Icon(Icons.edit),
-                        iconSize: 25,
-                        onPressed: () {
-                          // print(widget.arguments);
-                          /*  if (widget.arguments != null) {
-                            Navigator.pushNamed(context, widget.route,
-                                arguments: widget.arguments);
-                          } else {
-                            Navigator.pushNamed(context, widget.route);
-                          } */
+            Row(children: [
+              // 标题+图标
+              Text(
+                widget.title,
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 5),
+              Image.asset(widget.icon, width: 25, height: 25),
+            ]),
+            // 今日的值
+            Row(children: [
+              Text(
+                widget.value,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromRGBO(165, 51, 51, 1),
+                ),
+              ),
+              const SizedBox(width: 5),
 
-                          if (widget.arguments != null) {
-                            Navigator.pushNamed(context, widget.route,
-                                    arguments: widget.arguments)
-                                .then((value) => widget.refreshData());
-                            setState(() {});
-                          } else {
-                            Navigator.pushNamed(context, widget.route)
-                                .then((value) => widget.refreshData());
-                            setState(() {});
-                          }
-                        },
-                      ),
-                    )
-                  ]),
-            )
+              // 单位
+              Text(
+                widget.unit,
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              // 编辑按钮
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: IconButton(
+                  padding: const EdgeInsets.all(0),
+                  icon: const Icon(Icons.edit),
+                  iconSize: 25,
+                  onPressed: () {
+                    if (widget.arguments != null) {
+                      // 有参数的跳转
+                      Navigator.pushNamed(context, widget.route,
+                              arguments: widget.arguments)
+                          .then((value) => widget.refreshData());
+                      setState(() {});
+                    } else {
+                      // 无参数的跳转
+                      Navigator.pushNamed(context, widget.route)
+                          .then((value) => widget.refreshData());
+                      setState(() {});
+                    }
+                  },
+                ),
+              )
+            ])
           ],
         ),
       ),
@@ -107,6 +102,7 @@ class _MyTitleState extends State<MyTitle> {
   }
 }
 
+// 血压模块
 class MyBloodPressure extends StatefulWidget {
   final int accountId;
   final String nickname;
@@ -141,11 +137,9 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
   // 从后端请求数据
   Future<void> getDataFromServer() async {
     String requestDate = getFormattedDate(widget.date);
-    // print('请求日期： $requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
@@ -153,16 +147,9 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
     dio.options.headers["Authorization"] = "Bearer $token";
 
     try {
-      response = await dio.get(
-          /* "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range",
-        queryParameters: {
-          "startDate": requestDate,
-          "endDate": requestDate,
-          "accountId": widget.accountId,
-        }, */
-          widget.accountId >= 0
-              ? "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate&accountId=${widget.accountId}"
-              : "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate");
+      response = await dio.get(widget.accountId >= 0
+          ? "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate&accountId=${widget.accountId}"
+          : "http://43.138.75.58:8080/api/blood-pressure/get-by-date-range?startDate=$requestDate&endDate=$requestDate");
       if (response.data["code"] == 200) {
         //print("获取血压数据成功");
         data = response.data["data"];
@@ -174,8 +161,6 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
       print(e);
       data = [];
     }
-
-    //print("血压数据： $data");
 
     dayData = [];
     monthData = [];
@@ -220,10 +205,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
   Widget build(BuildContext context) {
     todaySBP = -1;
     todayDBP = -1;
-    //print("血压 ${widget.date}");
-    //getDataFromServer();
     return FutureBuilder(
-      // Replace getDataFromServer with the Future you want to wait for
       future: getDataFromServer(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
@@ -278,96 +260,93 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
                         ],
                       ),
                       alignment: Alignment.centerRight,
-                      child: Container(
-                        // width: MediaQuery.of(context).size.width * 1.5,
-                        //width: dayData.length <= 5 ? 325 : dayData.length * 65,
-                        width: MediaQuery.of(context).size.width * 0.85, //345
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.85,
                         height: MediaQuery.of(context).size.height * 0.30,
                         child: Echarts(
                           extraScript: '''
-                          var month = $monthData;
-                          var day = $dayData;
-                        ''',
+                            var month = $monthData;
+                            var day = $dayData;
+                          ''',
                           option: '''
-              {
-                animation:false,
+                          {
+                            animation:false,
 
-                title: {
-                  text: '血压',
-                  top:'5%',
-                  left:'10',
-                },
+                            title: {
+                              text: '血压',
+                              top:'5%',
+                              left:'10',
+                            },
 
-                legend: {
-                  data: ['收缩压', '舒张压', '心率'],
-                  top:'6%',
-                  left:'70',
-                },
+                            legend: {
+                              data: ['收缩压', '舒张压', '心率'],
+                              top:'6%',
+                              left:'70',
+                            },
 
-                  grid: {
-                  left: '10', // 3%
-                  right: '20', // 4%
-                  //top: '45',
-                  bottom: '5%',
-                  containLabel: true,
-                },
-                tooltip: {
-                  trigger: 'axis'
-                },
+                              grid: {
+                              left: '10', // 3%
+                              right: '20', // 4%
+                              //top: '45',
+                              bottom: '5%',
+                              containLabel: true,
+                            },
+                            tooltip: {
+                              trigger: 'axis'
+                            },
 
-                xAxis: {
-                  type: 'category',
-                  boundaryGap: true,
-                  axisLabel: {
-                   interval: 0,
-                   textStyle: {
-                      color: '#000000'
-                  },
-                   formatter: function(index) {
-                        // 自定义显示格式
-                         return day[index] + '/' + month[index]; // 取日期的第一部分
-                   }
-                  },
+                            xAxis: {
+                              type: 'category',
+                              boundaryGap: true,
+                              axisLabel: {
+                              interval: 0,
+                              textStyle: {
+                                  color: '#000000'
+                              },
+                              formatter: function(index) {
+                                    // 自定义显示格式
+                                    return day[index] + '/' + month[index]; // 取日期的第一部分
+                              }
+                              },
 
-                },
+                            },
 
-                yAxis: {
-                  type: 'value',
-                  //min: 80,
-                  //max: 130,
-                  ${data.isEmpty ? "min: 0, max: 120," : ""}
-                  axisLabel:{
-                    textStyle: {
-                        color: '#000000'
-                    },
-                  },
-                },
-                series: [{
-                  name: '收缩压',
-                  data: $sbpData,
-                  type: 'line',
-                  smooth: true
-                },
-                {
-                  name: '舒张压',
-                  data: $dbpData,
-                  type: 'line',
-                  smooth: true
-                },
+                            yAxis: {
+                              type: 'value',
+                              ${data.isEmpty ? "min: 0, max: 120," : ""}
+                              axisLabel:{
+                                textStyle: {
+                                    color: '#000000'
+                                },
+                              },
+                            },
+                            series: [{
+                              name: '收缩压',
+                              data: $sbpData,
+                              type: 'line',
+                              smooth: true
+                            },
+                            {
+                              name: '舒张压',
+                              data: $dbpData,
+                              type: 'line',
+                              smooth: true
+                            },
 
-                 {
-                  name: '心率',
-                  data: $heartRateData,
-                  type: 'line',
-                  smooth: true
-                }
-                ]
-              }
-            ''',
+                            {
+                              name: '心率',
+                              data: $heartRateData,
+                              type: 'line',
+                              smooth: true
+                            }
+                            ]
+                          }
+                        ''',
                         ),
                       ),
                     ),
                   ),
+                  // 更多详情跳转按钮
                   GestureDetector(
                     onTap: () {
                       var arguments = {
@@ -441,6 +420,7 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
   }
 }
 
+// 血糖模块
 class MyBloodSugar extends StatefulWidget {
   final int accountId;
   final String value;
@@ -471,9 +451,6 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
   // 从后端请求数据
   Future<void> getDataFromServer() async {
     String requestDate = getFormattedDate(widget.date);
-    //print('请求日期：$requestDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-
-    // 提取登录获取的token
     var token = await storage.read(key: 'token');
 
     //从后端获取数据
@@ -521,8 +498,6 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
       monthData.add(widget.date.month);
       bloodSugarData.add(0);
     }
-
-    //print("bloodSugarData: $bloodSugarData");
   }
 
   void refreshData() {
@@ -580,92 +555,90 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
                       ],
                     ),
                     alignment: Alignment.centerRight,
-                    child: Container(
+                    child: SizedBox(
                       width: MediaQuery.of(context).size.width * 0.85,
                       height: MediaQuery.of(context).size.height * 0.30,
                       child: Echarts(
                         extraScript: '''
-                  var month = $monthData;
-                  var day = $dayData;
-                  
-                  ''',
+                          var month = $monthData;
+                          var day = $dayData;
+                        ''',
                         option: '''
-              {
-                animation:false,
+                        {
+                          animation:false,
 
-                title: {
-                  text: '血糖',
-                  top:'5%',
-                  left:'10',
-                },
+                          title: {
+                            text: '血糖',
+                            top:'5%',
+                            left:'10',
+                          },
 
-                legend: {
-                  data: ['血糖'],
-                  top:'6%',
-                  left:'70',
-                },
+                          legend: {
+                            data: ['血糖'],
+                            top:'6%',
+                            left:'70',
+                          },
 
-                  grid: {
-                  left: '3%',
-                  right: '4%',
-                  bottom: '5%',
-                  containLabel: true,
-                },
-                tooltip: {
-                  trigger: 'axis'
-                },
+                            grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '5%',
+                            containLabel: true,
+                          },
+                          tooltip: {
+                            trigger: 'axis'
+                          },
 
-                xAxis: {
-                  type: 'category',
-                  boundaryGap: true,
-                  axisLabel: {
-                   interval: 0,
-                   textStyle: {
-                      color: '#000000'
-                  },
-                   formatter: function(index) {
-                        // 自定义显示格式
-                         return day[index] + '/' + month[index]; // 取日期的第一部分
-                   }
-                  },
+                          xAxis: {
+                            type: 'category',
+                            boundaryGap: true,
+                            axisLabel: {
+                            interval: 0,
+                            textStyle: {
+                                color: '#000000'
+                            },
+                            formatter: function(index) {
+                                  // 自定义显示格式
+                                  return day[index] + '/' + month[index]; // 取日期的第一部分
+                            }
+                            },
 
-                },
+                          },
 
-                yAxis: {
-                  type: 'value',
-                  axisLabel:{
-                    textStyle: {
-                        color: '#000000'
-                    },
-                  },
-                  ${data.isEmpty ? "min: 0, max: 120," : ""}
-                },
-                series: [{
-                  name: '血糖',
-                  data: $bloodSugarData,
-                  type: 'line',
-                  smooth: true,
-                  itemStyle: {
-                      normal: {
-                          color: "#E437B4",
-                          lineStyle: {
-                              color: "#F87CE4"
+                          yAxis: {
+                            type: 'value',
+                            axisLabel:{
+                              textStyle: {
+                                  color: '#000000'
+                              },
+                            },
+                            ${data.isEmpty ? "min: 0, max: 120," : ""}
+                          },
+                          series: [{
+                            name: '血糖',
+                            data: $bloodSugarData,
+                            type: 'line',
+                            smooth: true,
+                            itemStyle: {
+                                normal: {
+                                    color: "#E437B4",
+                                    lineStyle: {
+                                        color: "#F87CE4"
+                                    }
+                                }
+                            },
+                          },
+                          ]
                           }
-                      }
-                  },
-                },
-                ]
-                }
-            ''',
+                      ''',
                       ),
                     ),
                   ),
                 ),
+
+                // 更多详情跳转按钮
                 GestureDetector(
                   onTap: () {
-                    /* Navigator.pushNamed(
-                        context, "/homePage/BloodSugar/Details"); */
-
                     var arguments = {
                       "accountId": widget.accountId,
                       "date": widget.date,
@@ -735,18 +708,19 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
   }
 }
 
+// 血脂模块
 class MyBloodFat extends StatefulWidget {
   final int accountId;
   final String nickname;
   final String value;
   final DateTime date;
-  const MyBloodFat(
-      {Key? key,
-      required this.accountId,
-      required this.nickname,
-      required this.value,
-      required this.date})
-      : super(key: key);
+  const MyBloodFat({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.value,
+    required this.date,
+  }) : super(key: key);
 
   @override
   State<MyBloodFat> createState() => _MyBloodFatState();
@@ -1052,6 +1026,7 @@ class _MyBloodFatState extends State<MyBloodFat> {
   }
 }
 
+// 活动模块
 class MyActivities extends StatefulWidget {
   final DateTime date;
   final int accountId;

@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "D:/Tsinghua/3Up/SoftwareEngineering/project/triguard/linux"
+    "cmake.sourceDirectory": "D:/Tsinghua/3Up/SoftwareEngineering/project/triguard/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

@@ -19,9 +19,6 @@ typedef UpdateFeelingsFilterCallback = void Function(
 typedef UpdateDateCallback = void Function(DateTime newDate);
 typedef UpdateFilterWidgetViewCallBack = void Function(bool showFilterWidget);
 
-List<bool> prevArmsSelected1 = [false, false, false, true];
-List<bool> prevFeelingsSelected1 = [false, false, false, true];
-
 class BloodFatFilterParam {
   DateTime startDate = DateTime.now().subtract(const Duration(days: 7));
   DateTime endDate = DateTime.now();
@@ -269,9 +266,7 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
 
   Future<void> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    //  var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    //  var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -285,13 +280,9 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
     var dir = await getApplicationSupportDirectory();
     var folderPath = Directory("${dir.path}/bloodLipids");
 
-    print("folderPath: ${folderPath.path}");
-
     // 判断文件夹是否存在，不存在则创建
     if (await folderPath.exists()) {
-      print("folderPath exist");
     } else {
-      print("folderPath not exist");
       folderPath.create();
     }
 
@@ -459,7 +450,7 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
 
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
-      print("excel export ok");
+      return;
     }
   }
 
@@ -470,30 +461,22 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
     String startTime = getFormattedTime(widget.filterParam.startTime);
     String endTime = getFormattedTime(widget.filterParam.endTime);
 
-    double minTC = double.parse(widget.filterParam.minTCController.text +
-        "." +
-        widget.filterParam.minTC_Controller.text);
-    double maxTC = double.parse(widget.filterParam.maxTCController.text +
-        "." +
-        widget.filterParam.maxTC_Controller.text);
-    double minTG = double.parse(widget.filterParam.minTGController.text +
-        "." +
-        widget.filterParam.minTG_Controller.text);
-    double maxTG = double.parse(widget.filterParam.maxTGController.text +
-        "." +
-        widget.filterParam.maxTG_Controller.text);
-    double minLDL = double.parse(widget.filterParam.minLDLController.text +
-        "." +
-        widget.filterParam.minLDL_Controller.text);
-    double maxLDL = double.parse(widget.filterParam.maxLDLController.text +
-        "." +
-        widget.filterParam.maxLDL_Controller.text);
-    double minHDL = double.parse(widget.filterParam.minHDLController.text +
-        "." +
-        widget.filterParam.minHDL_Controller.text);
-    double maxHDL = double.parse(widget.filterParam.maxHDLController.text +
-        "." +
-        widget.filterParam.maxHDL_Controller.text);
+    double minTC = double.parse(
+        "${widget.filterParam.minTCController.text}.${widget.filterParam.minTC_Controller.text}");
+    double maxTC = double.parse(
+        "${widget.filterParam.maxTCController.text}.${widget.filterParam.maxTC_Controller.text}");
+    double minTG = double.parse(
+        "${widget.filterParam.minTGController.text}.${widget.filterParam.minTG_Controller.text}");
+    double maxTG = double.parse(
+        "${widget.filterParam.maxTGController.text}.${widget.filterParam.maxTG_Controller.text}");
+    double minLDL = double.parse(
+        "${widget.filterParam.minLDLController.text}.${widget.filterParam.minLDL_Controller.text}");
+    double maxLDL = double.parse(
+        "${widget.filterParam.maxLDLController.text}.${widget.filterParam.maxLDL_Controller.text}");
+    double minHDL = double.parse(
+        "${widget.filterParam.minHDLController.text}.${widget.filterParam.minHDL_Controller.text}");
+    double maxHDL = double.parse(
+        "${widget.filterParam.maxHDLController.text}.${widget.filterParam.maxHDL_Controller.text}");
     String feeling = "";
     String remark = "";
     List<bool> feelingBool = widget.filterParam.feelingsSelected;
@@ -534,7 +517,6 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
@@ -547,16 +529,13 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
         data: filterParam,
       );
       if (response.data["code"] == 200) {
-        //print("获取血压数据成功 按条件筛选");
         recordData = response.data["data"]["bloodLipidsList"];
         statisticData = response.data["data"]["countedDataList"];
       } else {
-        print(response);
         recordData = [];
         statisticData = [];
       }
     } catch (e) {
-      print(e);
       recordData = [];
       statisticData = [];
     }
@@ -566,7 +545,6 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
 
   // 记录表格的标题 "日期 时间 收缩压 舒张压 心率 手臂 感觉 备注"
   List<DataColumn> getDataColumns() {
-    //using the filteredData to generate the table
     List<DataColumn> dataColumn = [];
     List<String> columnNames = [
       "日期",
@@ -801,11 +779,13 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
                 ),
                 Row(
                   children: [
-                    const Text("数据表",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontFamily: "BalooBhai",
-                            fontWeight: FontWeight.bold)),
+                    const Text(
+                      "数据表",
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: "BalooBhai",
+                          fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(width: 5),
                     Image.asset(
                       "assets/icons/statistics.png",
@@ -838,8 +818,9 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
                           columns: getDataColumns(),
                           rows: getDataRows(),
                           headingRowColor: MaterialStateColor.resolveWith(
-                              (states) =>
-                                  const Color.fromRGBO(255, 151, 245, 0.28)),
+                            (states) =>
+                                const Color.fromRGBO(255, 151, 245, 0.28),
+                          ),
                         ),
                       ),
                     ),
@@ -882,10 +863,8 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
                     height: 250,
-                    //height: MediaQuery.of(context).size.height * 0.5,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        //color: Color.fromARGB(255, 129, 127, 127),
                         color: const Color.fromARGB(255, 196, 195, 195),
                       ),
                       borderRadius: BorderRadius.circular(5),
@@ -899,8 +878,8 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
                           columns: getStatisticsDataColumns(),
                           rows: getStatisticsDataRows(),
                           headingRowColor: MaterialStateColor.resolveWith(
-                              (states) =>
-                                  const Color.fromRGBO(34, 14, 244, 0.16)),
+                            (states) => const Color.fromRGBO(34, 14, 244, 0.16),
+                          ),
                         ),
                       ),
                     ),
@@ -920,37 +899,25 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
 
     // 判断参数是否合法
     if (widget.filterParam.checkInvalidParam() > 0) {
-      print("invalid param");
       widget.filterParam.refresh = false;
       return getWholeWidget(context);
     }
 
     if (widget.filterParam.refresh == false) {
-      print("数据表格 (不) 刷新");
       return getWholeWidget(context);
     }
 
     // 原始数据记录
-    //else {
-    print("数据表格刷新");
-    //getDataFromServer();
     widget.filterParam.refresh = false;
 
     return FutureBuilder(
         future: getDataFromServer(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            //createExportFile();
             return getWholeWidget(context);
           } else {
-            //return Container();
-            /* return Center(
-              child: LoadingAnimationWidget.staggeredDotsWave(
-                  color: Colors.pink, size: 25),
-            ); */
-
             return UnconstrainedBox(
-              child: Container(
+              child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.85,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -961,11 +928,13 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
                     ),
                     Row(
                       children: [
-                        const Text("数据表",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontFamily: "BalooBhai",
-                                fontWeight: FontWeight.bold)),
+                        const Text(
+                          "数据表",
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontFamily: "BalooBhai",
+                              fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(width: 5),
                         Image.asset(
                           "assets/icons/statistics.png",
@@ -983,11 +952,13 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
                     ),
                     Row(
                       children: [
-                        const Text("统计表",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontFamily: "BalooBhai",
-                                fontWeight: FontWeight.bold)),
+                        const Text(
+                          "统计表",
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontFamily: "BalooBhai",
+                              fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(width: 5),
                         Image.asset(
                           "assets/icons/statistics.png",
@@ -1009,9 +980,6 @@ class _BloodFatRecordWidgetState extends State<BloodFatRecordWidget> {
             );
           }
         });
-    //}
-
-    //return getWholeWidget(context);
   }
 }
 
@@ -1058,21 +1026,6 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
         ],
       ),
     );
-    /* return Container(
-      alignment: Alignment.center,
-      height: 41,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          DatePicker2(
-              date: widget.startDate, updateDate: widget.updateStartDate),
-          // const SizedBox(width: 10),
-          //const SizedBox(width: 10),
-          DatePicker2(date: widget.endDate, updateDate: widget.updateEndDate),
-        ],
-      ),
-    ); */
   }
 }
 
@@ -1109,7 +1062,7 @@ class _TimeFilterWidget2State extends State<TimeFilterWidget2> {
           const SizedBox(width: 5),
           const Text(
             "至",
-            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
+            style: TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
           const SizedBox(width: 5),
           TimePicker(time: widget.endTime, updateTime: widget.updateEndTime),
@@ -1167,38 +1120,36 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
           }
         });
       },
-      child: Container(
-        child: Row(children: [
-          Container(
-            height: 40,
-            width: 50,
-            padding: const EdgeInsets.all(0.0),
-            decoration: BoxDecoration(
-              color: widget.newFilterParam.feelingsSelected[index] == true
-                  ? const Color.fromRGBO(253, 134, 255, 0.66)
-                  : const Color.fromRGBO(218, 218, 218, 0.66),
-              borderRadius: BorderRadius.circular(10.0),
-              border:
-                  Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
-            ),
-            alignment: Alignment.center,
-            child: Center(
-              child: Text(
-                buttonText[index],
-                style: TextStyle(
-                  color: widget.newFilterParam.feelingsSelected[index] == true
-                      ? const Color.fromRGBO(66, 9, 119, 0.773)
-                      : const Color.fromRGBO(94, 68, 68, 100),
-                  fontSize: 16.0,
-                  fontFamily: 'Blinker',
-                ),
-                textAlign: TextAlign.center,
+      child: Row(children: [
+        Container(
+          height: 40,
+          width: 50,
+          padding: const EdgeInsets.all(0.0),
+          decoration: BoxDecoration(
+            color: widget.newFilterParam.feelingsSelected[index] == true
+                ? const Color.fromRGBO(253, 134, 255, 0.66)
+                : const Color.fromRGBO(218, 218, 218, 0.66),
+            borderRadius: BorderRadius.circular(10.0),
+            border:
+                Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
+          ),
+          alignment: Alignment.center,
+          child: Center(
+            child: Text(
+              buttonText[index],
+              style: TextStyle(
+                color: widget.newFilterParam.feelingsSelected[index] == true
+                    ? const Color.fromRGBO(66, 9, 119, 0.773)
+                    : const Color.fromRGBO(94, 68, 68, 100),
+                fontSize: 16.0,
+                fontFamily: 'Blinker',
               ),
+              textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(width: 5),
-        ]),
-      ),
+        ),
+        const SizedBox(width: 5),
+      ]),
     );
   }
 
@@ -1215,12 +1166,6 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    //print('感觉里面：${widget.isSelected}');
-
-    /* if (widget.reset) {
-      widget.isSelected = widget.prevIsSelected;
-    } */
-
     return Container(
       alignment: Alignment.center,
       height: 41,
@@ -1232,18 +1177,20 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
 // 血脂指数的区间 抽象
 // ignore: must_be_immutable
 class ValueFilterWidget extends StatefulWidget {
-  //TextEditingController minHeartRateController = TextEditingController();
-  //TextEditingController maxHeartRateController = TextEditingController();
   TextEditingController minController = TextEditingController();
+  // ignore: non_constant_identifier_names
   TextEditingController min_Controller = TextEditingController();
   TextEditingController maxController = TextEditingController();
+  // ignore: non_constant_identifier_names
   TextEditingController max_Controller = TextEditingController();
 
   ValueFilterWidget({
     Key? key,
     required this.minController,
+    // ignore: non_constant_identifier_names
     required this.min_Controller,
     required this.maxController,
+    // ignore: non_constant_identifier_names
     required this.max_Controller,
   }) : super(key: key);
 
@@ -1258,7 +1205,7 @@ class _ValueFilterWidgetState extends State<ValueFilterWidget> {
   Widget getEditWidget(TextEditingController controller,
       TextEditingController controller_, String hintText, String hintText_) {
     double height = 41;
-    return Container(
+    return SizedBox(
       height: height,
       child: Row(
         children: [
@@ -1284,7 +1231,7 @@ class _ValueFilterWidgetState extends State<ValueFilterWidget> {
           ),
 
           // 小数点
-          Container(
+          SizedBox(
             height: 40,
             width: 10,
             child: Column(
@@ -1311,9 +1258,10 @@ class _ValueFilterWidgetState extends State<ValueFilterWidget> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               decoration: InputDecoration(
-                  counterText: "",
-                  hintText: hintText_,
-                  contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                counterText: "",
+                hintText: hintText_,
+                contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+              ),
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.bottom,
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
@@ -1353,14 +1301,9 @@ class _ValueFilterWidgetState extends State<ValueFilterWidget> {
 // 备注选择按钮
 // ignore: must_be_immutable
 class RemarksButtonsWidget extends StatefulWidget {
-  //final VoidCallback onPressed;
-  //final String iconPath;
-  //final bool isSelected;
   List<bool> isSelected = [false, false, true];
   RemarksButtonsWidget({
     Key? key,
-    //required this.onPressed,
-    //required this.iconPath,
     required this.isSelected,
   }) : super(key: key);
 
@@ -1398,37 +1341,37 @@ class _RemarksButtonsWidgetState extends State<RemarksButtonsWidget> {
           }
         });
       },
-      child: Container(
-        child: Row(children: [
-          Container(
-            height: 40,
-            width: 68,
-            padding: EdgeInsets.all(0.0),
-            decoration: BoxDecoration(
-              color: widget.isSelected[index] == true
-                  ? const Color.fromRGBO(253, 134, 255, 0.66)
-                  : Color.fromRGBO(218, 218, 218, 0.66),
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
-            ),
-            alignment: Alignment.center,
-            child: Center(
-              child: Text(
-                buttonText[index],
-                style: TextStyle(
-                  color: widget.isSelected[index] == true
-                      ? Color.fromRGBO(66, 9, 119, 0.773)
-                      : Color.fromRGBO(94, 68, 68, 100),
-                  fontSize: 16.0,
-                  fontFamily: 'Blinker',
-                ),
-                textAlign: TextAlign.center,
-              ),
+      child: Row(children: [
+        Container(
+          height: 40,
+          width: 68,
+          padding: const EdgeInsets.all(0.0),
+          decoration: BoxDecoration(
+            color: widget.isSelected[index] == true
+                ? const Color.fromRGBO(253, 134, 255, 0.66)
+                : const Color.fromRGBO(218, 218, 218, 0.66),
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(
+              color: const Color.fromRGBO(122, 119, 119, 0.43),
             ),
           ),
-          const SizedBox(width: 5),
-        ]),
-      ),
+          alignment: Alignment.center,
+          child: Center(
+            child: Text(
+              buttonText[index],
+              style: TextStyle(
+                color: widget.isSelected[index] == true
+                    ? const Color.fromRGBO(66, 9, 119, 0.773)
+                    : const Color.fromRGBO(94, 68, 68, 100),
+                fontSize: 16.0,
+                fontFamily: 'Blinker',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        const SizedBox(width: 5),
+      ]),
     );
   }
 
@@ -1500,14 +1443,12 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
         Container(
           width: MediaQuery.of(context).size.width * 0.85,
           alignment: Alignment.center,
-          //child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 重置按钮
               GestureDetector(
                 onTap: () {
-                  print("重置");
                   widget.filterParam.reset();
                   invalidParam = 0;
 
@@ -1518,10 +1459,11 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
                   width: 50,
                   padding: const EdgeInsets.all(0.0),
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 209, 212, 212),
+                    color: const Color.fromARGB(255, 209, 212, 212),
                     borderRadius: BorderRadius.circular(10.0),
                     border: Border.all(
-                        color: const Color.fromRGBO(122, 119, 119, 0.43)),
+                      color: const Color.fromRGBO(122, 119, 119, 0.43),
+                    ),
                   ),
                   alignment: Alignment.center,
                   child: const Center(
@@ -1544,13 +1486,10 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
               // 确定按钮
               GestureDetector(
                 onTap: () {
-                  print("确定");
                   // 进行数据表的刷新
                   widget.filterParam.refresh = true;
 
                   invalidParam = widget.filterParam.checkInvalidParam();
-                  print("invalidParam: $invalidParam");
-                  //widget.updateGraph();
 
                   if (invalidParam == 0) {
                     widget.updateFilterWidgetView(false);
@@ -1566,7 +1505,8 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
                     color: Colors.greenAccent,
                     borderRadius: BorderRadius.circular(10.0),
                     border: Border.all(
-                        color: const Color.fromRGBO(122, 119, 119, 0.43)),
+                      color: const Color.fromRGBO(122, 119, 119, 0.43),
+                    ),
                   ),
                   alignment: Alignment.center,
                   child: const Center(
@@ -1595,7 +1535,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
             fontSize: 12.0,
             fontFamily: 'Blinker',
           ),
-          //textAlign: TextAlign.center,
         ),
       ],
     );
@@ -1639,20 +1578,20 @@ class _BloodFatFilterWidgetState extends State<BloodFatFilterWidget> {
   bool isExpanded = true;
 
   // 标题
-  Widget getTitle(String TitleChn, String TitleEng) {
-    if (TitleChn.length > 4) {
+  Widget getTitle(String titleChn, String titleEng) {
+    if (titleChn.length > 4) {
       return Column(
         children: [
           Text(
-            "${TitleChn.substring(0, 4)}", //前四个字
+            titleChn.substring(0, 4), //前四个字
             style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
           ),
           Text(
-            "${TitleChn.substring(4)}",
+            titleChn.substring(4),
             style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
           ),
           Text(
-            "${TitleEng}",
+            titleEng,
             style: const TextStyle(
                 fontSize: 14,
                 fontFamily: "Blinker",
@@ -1664,11 +1603,11 @@ class _BloodFatFilterWidgetState extends State<BloodFatFilterWidget> {
     return Column(
       children: [
         Text(
-          "${TitleChn}",
+          titleChn,
           style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
         ),
         Text(
-          "${TitleEng}",
+          titleEng,
           style: const TextStyle(
               fontSize: 14,
               fontFamily: "Blinker",
@@ -1687,19 +1626,20 @@ class _BloodFatFilterWidgetState extends State<BloodFatFilterWidget> {
             height: 10,
           ),
           // 过滤器标题
-          Container(
+          SizedBox(
             width: MediaQuery.of(context).size.width * 0.85,
-            //alignment: Alignment.centerLeft,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    const Text("过滤与筛选",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontFamily: "BalooBhai",
-                            fontWeight: FontWeight.bold)),
+                    const Text(
+                      "过滤与筛选",
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: "BalooBhai",
+                          fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(width: 5),
                     Image.asset(
                       "assets/icons/filter.png",
@@ -1724,12 +1664,10 @@ class _BloodFatFilterWidgetState extends State<BloodFatFilterWidget> {
             height: isExpanded ? 440 : 50,
             decoration: BoxDecoration(
               border: Border.all(
-                //color: const Color.fromARGB(255, 129, 127, 127),
-                color: Color.fromARGB(255, 196, 195, 195),
+                color: const Color.fromARGB(255, 196, 195, 195),
               ),
               borderRadius: BorderRadius.circular(15),
             ),
-            //alignment: Alignment.center,
             child: isExpanded
                 ? SingleChildScrollView(
                     scrollDirection: Axis.vertical,
@@ -1866,7 +1804,6 @@ class _BloodFatFilterWidgetState extends State<BloodFatFilterWidget> {
                     ),
                   )
                 : Center(
-                    // child: Text("..."),
                     child: Image.asset(
                       "assets/icons/filter1.png",
                       height: 25,
@@ -1912,9 +1849,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
 
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    // var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    //var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -1927,8 +1862,6 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     // 获取文件夹路径
     var dir = await getApplicationSupportDirectory();
     var folderPath = Directory("${dir.path}/bloodLipids");
-
-    print("folderPath: ${folderPath.path}");
 
     // 判断文件夹是否存在，不存在则创建
     if (!await folderPath.exists()) {
@@ -1946,11 +1879,11 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     if (await File(fileNamePath).exists()) {
       var downloadPath = await getDownloadsDirectory();
       await File(fileNamePath).copy(
-          '${downloadPath!.path}/bloodLipids_${nickname}_${exportTime}.xlsx');
+          '${downloadPath!.path}/bloodLipids_${nickname}_$exportTime.xlsx');
       // 检测文件是否存在
       if (await File('${downloadPath.path}/bloodLipids.xlsx').exists()) {
         exportPath =
-            '${downloadPath.path}/bloodLipids_${nickname}_${exportTime}.xlsx';
+            '${downloadPath.path}/bloodLipids_${nickname}_$exportTime.xlsx';
         return true;
       }
     }
@@ -1963,7 +1896,6 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     return UnconstrainedBox(
       child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
-        //alignment: Alignment.center,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -1988,7 +1920,8 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
                     color: const Color.fromARGB(255, 148, 252, 148),
                     borderRadius: BorderRadius.circular(10.0),
                     border: Border.all(
-                        color: const Color.fromRGBO(122, 119, 119, 0.43)),
+                      color: const Color.fromRGBO(122, 119, 119, 0.43),
+                    ),
                   ),
                   //alignment: Alignment.centerRight,
                   child: Row(
@@ -2075,7 +2008,6 @@ class _BloodFatMoreDataState extends State<BloodFatMoreData> {
   void updateStartDate(DateTime newDate) {
     setState(() {
       filterParam.startDate = newDate;
-      // print('设置新起始日期：${filterParam.startDate}');
     });
   }
 

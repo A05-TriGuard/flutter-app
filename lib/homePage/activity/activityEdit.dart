@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:triguard/component/titleDate/titleDate.dart';
-//import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:dio/dio.dart';
 
 import '../../component/header/header.dart';
 import '../../account/token.dart';
 import "../../other/other.dart";
+
+//
+typedef UpdateTimeCallback = void Function(DateTime newTime);
+typedef UpdateDateCallback = void Function(DateTime newDate);
 
 // 删除 取消 确定
 List<String> feelingButtonTypes = ["开心", "还好", "不好"];
@@ -27,11 +30,6 @@ List<Color> functionButtonColors = const [
 
 List<dynamic> data = [];
 List<Widget> dataWidget = [];
-
-late Widget titleDateWidget;
-int randomId = 100;
-typedef UpdateTimeCallback = void Function(DateTime newTime);
-typedef UpdateDateCallback = void Function(DateTime newDate);
 List<String> items = [
   '不选',
   '跑步',
@@ -80,6 +78,10 @@ List<String> items = [
   '其他'
 ];
 
+late Widget titleDateWidget;
+bool deleteDataMark = false;
+
+// ignore: camel_case_types
 class newValue {
   int id = 0;
   int type = 0;
@@ -100,25 +102,6 @@ class newValue {
     feelingIndex = 0;
     remarks = "";
   }
-}
-
-String getRemarById(int id) {
-  for (int i = 0; i < data.length; i++) {
-    if (data[i]["id"] == id) {
-      return data[i]["remark"];
-    }
-  }
-  return "";
-}
-
-void setRemrakById(int id, String newRemarks) {
-  for (int i = 0; i < data.length; i++) {
-    if (data[i]["id"] == id) {
-      data[i]["remark"] = newRemarks;
-      return;
-    }
-  }
-  print("set failed");
 }
 
 // 获取某个id的数据
@@ -142,64 +125,21 @@ void setDataById(int id, String type, int value) {
   print("set failed");
 }
 
-void setTimeById(int id, DateTime time) {
-  for (int i = 0; i < data.length; i++) {
-    if (data[i]["id"] == id) {
-      data[i]["time"] =
-          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
-      return;
-    }
-  }
-  print("set failed");
-}
-
-late newValue afterEditedValue; //= newValue(0, "0", "0", "0", "0", "0", 0, 0);
-bool deleteDataMark = false;
-
-int invalidValue(newValue value) {
-  return 0;
-}
+late newValue afterEditedValue;
 
 // =================================================================================
-
-// 添加数据的 填写框
-// ignore: must_be_immutable
-class addDataWidget extends StatefulWidget {
-  final int accountId;
-  DateTime date;
-  final VoidCallback updateData;
-  DateTime time = DateTime.now();
-
-  addDataWidget(
-      {Key? key,
-      required this.accountId,
-      required this.updateData,
-      required this.time,
-      required this.date})
-      : super(key: key);
-
-  @override
-  State<addDataWidget> createState() => _addDataWidgetState();
-}
-
-class _addDataWidgetState extends State<addDataWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
 
 // “修改血压”标题 与 日期选择
 class TitleDate extends StatefulWidget {
   final DateTime date;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
-  const TitleDate(
-      {Key? key,
-      required this.date,
-      required this.updateView,
-      required this.updateDate})
-      : super(key: key);
+  const TitleDate({
+    Key? key,
+    required this.date,
+    required this.updateView,
+    required this.updateDate,
+  }) : super(key: key);
 
   @override
   State<TitleDate> createState() => _TitleDateState();
@@ -209,7 +149,6 @@ class _TitleDateState extends State<TitleDate> {
   DateTime date = DateTime.now();
   DateTime oldDate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-  //DateTime newDate = DateTime(2023, 11, 11);
 
   String getWeekDay() {
     switch (widget.date.weekday) {
@@ -257,7 +196,7 @@ class _TitleDateState extends State<TitleDate> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-        child: Container(
+        child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.85,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -265,141 +204,115 @@ class _TitleDateState extends State<TitleDate> {
               const SizedBox(
                 height: 5,
               ),
-              Container(
-                child: Row(
-                    //mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "修改活动",
-                        style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 5),
-                      Image.asset("assets/icons/bloodFat.png",
-                          width: 20, height: 20),
-                    ]),
-              ),
+              Row(children: [
+                const Text(
+                  "修改活动",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 5),
+                Image.asset("assets/icons/bloodFat.png", width: 20, height: 20),
+              ]),
               const SizedBox(
                 height: 10,
               ),
-              Container(
-                child: Row(
-                    //mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        //"${widget.date.year}年${widget.date.month}月${widget.date.day}日",
-                        '${date.year}年${date.month}月${date.day}日 ${getWeekDay()}',
-                        style: const TextStyle(
-                            fontSize: 18,
-                            fontFamily: "BalooBhai",
-                            color: Color.fromRGBO(48, 48, 48, 1)),
-                      ),
-                      const SizedBox(width: 2),
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: IconButton(
-                          padding: const EdgeInsets.all(0),
-                          icon: const Icon(Icons.calendar_month),
-                          iconSize: 25,
-                          /* onPressed: () {
-                            print("editDate");
-                          }, */
-
-                          onPressed: () => _showDialog(Column(
+              Row(children: [
+                Text(
+                  '${date.year}年${date.month}月${date.day}日 ${getWeekDay()}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontFamily: "BalooBhai",
+                    color: Color.fromRGBO(48, 48, 48, 1),
+                  ),
+                ),
+                const SizedBox(width: 2),
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: IconButton(
+                    padding: const EdgeInsets.all(0),
+                    icon: const Icon(Icons.calendar_month),
+                    iconSize: 25,
+                    onPressed: () => _showDialog(Column(
+                      children: [
+                        Expanded(
+                          child: CupertinoDatePicker(
+                            initialDateTime: date,
+                            maximumDate: DateTime.now(),
+                            mode: CupertinoDatePickerMode.date,
+                            use24hFormat: true,
+                            showDayOfWeek: true,
+                            onDateTimeChanged: (DateTime newDate) {
+                              date = newDate;
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                          width: 320,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Expanded(
-                                //height: 220,
-                                child: CupertinoDatePicker(
-                                  initialDateTime: date,
-                                  maximumDate: DateTime.now(),
-                                  mode: CupertinoDatePickerMode.date,
-                                  use24hFormat: true,
-                                  // This shows day of week alongside day of month
-                                  showDayOfWeek: true,
-                                  // This is called when the user changes the date.
-                                  onDateTimeChanged: (DateTime newDate) {
-                                    // setState(() => date = newDate);
-                                    date = newDate;
+                              SizedBox(
+                                width: 120,
+                                child: TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      date = oldDate;
+                                    });
+
+                                    Navigator.of(context).pop();
                                   },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                      const Color.fromARGB(255, 221, 223, 223),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    '取消',
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 15),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
                               SizedBox(
-                                height: 40,
-                                width: 320,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Container(
-                                      width: 120,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            date = oldDate;
-                                          });
+                                width: 120,
+                                child: TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      oldDate = date;
+                                    });
+                                    Navigator.of(context).pop();
 
-                                          Navigator.of(context).pop();
-                                        },
-                                        style: ButtonStyle(
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                            const Color.fromARGB(
-                                                255, 221, 223, 223),
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          '取消',
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 15),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
+                                    // 后端
+                                    widget.updateDate(date);
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                      const Color.fromARGB(255, 118, 241, 250),
                                     ),
-                                    Container(
-                                      width: 120,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            oldDate = date;
-                                          });
-                                          Navigator.of(context).pop();
-                                          // bpdata
-                                          // widget.updateDate(date);
-                                          //widget.updateView();
-
-                                          // 后端
-                                          widget.updateDate(date);
-                                          //widget.updateView();
-                                        },
-                                        style: ButtonStyle(
-                                            backgroundColor:
-                                                MaterialStateProperty.all<
-                                                        Color>(
-                                                    const Color.fromARGB(
-                                                        255, 118, 241, 250))),
-                                        child: const Text(
-                                          '确定',
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 15),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
+                                  child: const Text(
+                                    '确定',
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 15),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(
-                                height: 5,
-                              ),
                             ],
-                          )),
+                          ),
                         ),
-                      )
-                    ]),
-              )
+                        const SizedBox(
+                          height: 5,
+                        ),
+                      ],
+                    )),
+                  ),
+                )
+              ])
             ],
           ),
         ),
@@ -430,17 +343,17 @@ class _OtherButtonState extends State<OtherButton> {
       child: Container(
         height: 25,
         width: 40,
-        padding: EdgeInsets.all(0.0),
+        padding: const EdgeInsets.all(0.0),
         decoration: BoxDecoration(
           color: functionButtonColors[widget.type],
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+          border: Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
         ),
         alignment: Alignment.center,
         child: Center(
           child: Text(
             functionButtonTypes[widget.type],
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 12.0,
               fontFamily: 'Blinker',
@@ -460,10 +373,11 @@ class FeelingsButton extends StatefulWidget {
   final bool isSelected;
 
   const FeelingsButton({
+    Key? key,
     required this.onPressed,
     required this.iconPath,
     required this.isSelected,
-  });
+  }) : super(key: key);
 
   @override
   State<FeelingsButton> createState() => _FeelingsButtonState();
@@ -479,21 +393,18 @@ class _FeelingsButtonState extends State<FeelingsButton> {
       child: Container(
         height: 40,
         width: 50,
-        padding: EdgeInsets.all(0.0),
+        padding: const EdgeInsets.all(0.0),
         decoration: BoxDecoration(
           color: widget.isSelected
               ? const Color.fromRGBO(253, 134, 255, 0.66)
-              : Color.fromRGBO(218, 218, 218, 0.66),
+              : const Color.fromRGBO(218, 218, 218, 0.66),
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+          border: Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
         ),
         alignment: Alignment.center,
-        child: Container(
+        child: SizedBox(
           height: 25,
           width: 25,
-          // color: widget.isSelected
-          //     ? Color.fromRGBO(66, 9, 119, 0.773)
-          //     : Color.fromRGBO(94, 68, 68, 100),
           child: Image.asset(
             widget.iconPath,
           ),
@@ -508,9 +419,10 @@ class _FeelingsButtonState extends State<FeelingsButton> {
 class FeelingsButtonsRow extends StatefulWidget {
   int selectedIndex;
 
-  FeelingsButtonsRow({required this.selectedIndex});
+  FeelingsButtonsRow({Key? key, required this.selectedIndex}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _FeelingsButtonsRowState createState() => _FeelingsButtonsRowState();
 
   int getSelectedButtonIndex() {
@@ -522,12 +434,11 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
   @override
   void initState() {
     super.initState();
-    //selectedButtonIndex = widget.selectedIndex;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 41,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -537,7 +448,6 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 0;
               });
-              print("开心按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-nice.png",
             isSelected: widget.selectedIndex == 0,
@@ -548,7 +458,6 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 1;
               });
-              print("还好按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-ok.png",
             isSelected: widget.selectedIndex == 1,
@@ -559,7 +468,6 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 2;
               });
-              print("不好按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-bad.png",
             isSelected: widget.selectedIndex == 2,
@@ -572,7 +480,7 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
 
 // 生成血压数据的显示模块
 // ignore: must_be_immutable
-class BloodFatEditWidget extends StatefulWidget {
+class ActivityEditWidget extends StatefulWidget {
   final int accountId;
   final int id;
   final String startTime;
@@ -585,7 +493,7 @@ class BloodFatEditWidget extends StatefulWidget {
   final VoidCallback updateData;
   int isExpanded;
 
-  BloodFatEditWidget({
+  ActivityEditWidget({
     Key? key,
     required this.accountId,
     required this.id,
@@ -601,13 +509,11 @@ class BloodFatEditWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodFatEditWidget> createState() => _BloodFatEditWidgetState();
+  State<ActivityEditWidget> createState() => _ActivityEditWidgetState();
 }
 
-class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
-  //bool isExpanded = false;
-  Widget? BPEditWidget;
-
+class _ActivityEditWidgetState extends State<ActivityEditWidget> {
+  // 删除数据
   Future<void> deleteData(int id) async {
     var token = await storage.read(key: 'token');
 
@@ -619,15 +525,13 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
         ? "http://43.138.75.58:8080/api/sports/exercise/delete?id=$id&accountId=${widget.accountId}"
         : "http://43.138.75.58:8080/api/sports/exercise/delete?id=$id");
     if (response.data["code"] == 200) {
-      //print("删除血脂数据成功");
-      print("删除运动数据成功");
+      return;
     } else {
-      print(response);
-      //print("删除血脂数据失败");
-      //data = [];
+      return;
     }
   }
 
+  // 修改数据
   Future<void> editData(int id, newValue afterEditedValue) async {
     var token = await storage.read(key: 'token');
 
@@ -646,10 +550,6 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
       newVal["accountId"] = widget.accountId.toString();
     }
 
-    print("newVal=====================TODO");
-    print(newVal);
-    //return;
-
     try {
       response = await dio.post(
         "http://43.138.75.58:8080/api/sports/exercise/update",
@@ -657,19 +557,16 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
       );
 
       if (response.data['code'] == 200) {
-        print("修改数据成功");
+        return;
       } else {
-        print("修改数据失败");
+        return;
       }
     } on DioException catch (error) {
       final response = error.response;
       if (response != null) {
-        print(response.data);
-        print("修改数据请求失败1");
+        return;
       } else {
-        print(error.requestOptions);
-        print(error.message);
-        print("修改数据请求失败2");
+        return;
       }
     }
   }
@@ -678,87 +575,82 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
   Widget build(BuildContext context) {
     //printBP();
     return GestureDetector(
-        onTap: () {
-          // 当收起时，点击任意地方可以展开
-          if (getDataById(widget.id, "isExpanded") == 0) {
-            setState(() {
-              setDataById(widget.id, "isExpanded", 1);
+      onTap: () {
+        // 当收起时，点击任意地方可以展开
+        if (getDataById(widget.id, "isExpanded") == 0) {
+          setState(() {
+            setDataById(widget.id, "isExpanded", 1);
 
-              // 其他的一律收起
-              for (int i = 0; i < data.length; i++) {
-                if (data[i]["id"] != widget.id) {
-                  setDataById(data[i]["id"], "isExpanded", 0);
-                }
+            // 其他的一律收起
+            for (int i = 0; i < data.length; i++) {
+              if (data[i]["id"] != widget.id) {
+                setDataById(data[i]["id"], "isExpanded", 0);
               }
-            });
-            widget.updateParent();
-          }
-        },
-        //child: BPEditWidget,
-        child: Column(
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeIn,
-              height: getDataById(widget.id, "isExpanded") == 1
-                  ? 380 //MediaQuery.of(context).size.height * 0.65
-                  //: MediaQuery.of(context).size.height * 0.15,
-                  : 200,
-              // height: MediaQuery.of(context).size.height * 0.15,
-              width: MediaQuery.of(context).size.width * 0.85,
+            }
+          });
+          widget.updateParent();
+        }
+      },
+      //child: BPEditWidget,
+      child: Column(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeIn,
+            height: getDataById(widget.id, "isExpanded") == 1 ? 380 : 200,
+            width: MediaQuery.of(context).size.width * 0.85,
 
-              alignment: Alignment.center,
-              //https://stackoverflow.com/questions/56298325/overflow-warning-in-animatedcontainer-adjusting-height
-              //切换的一瞬间会overflow，用SingleChildScrollView包裹一下解决
-              child: getDataById(widget.id, "isExpanded") == 1
-                  ? SingleChildScrollView(
-                      child: BloodFatEditWidgetMore(
-                        id: widget.id,
-                        startTime: widget.startTime,
-                        endTime: widget.endTime,
-                        type: widget.type,
-                        duration: widget.duration,
-                        feeling: widget.feeling,
-                        remark: widget.remark,
-                        deleteData: () {
-                          deleteData(widget.id).then((_) {
-                            widget.updateData();
-                          });
-                        },
-                        cancelEditData: () {
-                          setState(() {
-                            setDataById(widget.id, "isExpanded", 0);
-                          });
-                        },
-                        confirmEditData: () {
-                          //afterEditedValue.printValue();
-
-                          editData(widget.id, afterEditedValue).then((_) {
-                            widget.updateData();
-                          });
-                        },
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      child: BloodFatEditWidgetLess(
-                        id: widget.id,
-                        startTime: widget.startTime,
-                        endTime: widget.endTime,
-                        type: widget.type,
-                        duration: widget.duration,
-                        feeling: widget.feeling,
-                        remark: widget.remark,
-                      ),
+            alignment: Alignment.center,
+            //https://stackoverflow.com/questions/56298325/overflow-warning-in-animatedcontainer-adjusting-height
+            //切换的一瞬间会overflow，用SingleChildScrollView包裹一下解决
+            child: getDataById(widget.id, "isExpanded") == 1
+                ? SingleChildScrollView(
+                    child: ActivityEditWidgetMore(
+                      id: widget.id,
+                      startTime: widget.startTime,
+                      endTime: widget.endTime,
+                      type: widget.type,
+                      duration: widget.duration,
+                      feeling: widget.feeling,
+                      remark: widget.remark,
+                      deleteData: () {
+                        deleteData(widget.id).then((_) {
+                          widget.updateData();
+                        });
+                      },
+                      cancelEditData: () {
+                        setState(() {
+                          setDataById(widget.id, "isExpanded", 0);
+                        });
+                      },
+                      confirmEditData: () {
+                        editData(widget.id, afterEditedValue).then((_) {
+                          widget.updateData();
+                        });
+                      },
                     ),
-            )
-          ],
-        ));
+                  )
+                : SingleChildScrollView(
+                    child: ActivityEditWidgetLess(
+                      id: widget.id,
+                      startTime: widget.startTime,
+                      endTime: widget.endTime,
+                      type: widget.type,
+                      duration: widget.duration,
+                      feeling: widget.feeling,
+                      remark: widget.remark,
+                    ),
+                  ),
+          )
+        ],
+      ),
+    );
   }
 }
 
 // 只展示
 // ignore: must_be_immutable
-class BloodFatEditWidgetLess extends StatefulWidget {
+class ActivityEditWidgetLess extends StatefulWidget {
   final int id;
   final String startTime;
   final String endTime;
@@ -767,7 +659,7 @@ class BloodFatEditWidgetLess extends StatefulWidget {
   final int feeling;
   final String remark;
 
-  BloodFatEditWidgetLess(
+  const ActivityEditWidgetLess(
       {Key? key,
       required this.id,
       required this.startTime,
@@ -779,10 +671,10 @@ class BloodFatEditWidgetLess extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<BloodFatEditWidgetLess> createState() => _BloodFatEditWidgetLessState();
+  State<ActivityEditWidgetLess> createState() => _ActivityEditWidgetLessState();
 }
 
-class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
+class _ActivityEditWidgetLessState extends State<ActivityEditWidgetLess> {
   List<String> mealButtonTypes = ["空腹", "餐后", "不选"];
   List<String> feelingButtonTypes = ["开心", "还好", "不好"];
   bool showRemark = false;
@@ -790,11 +682,8 @@ class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
 
   Widget getInfoPage() {
     return Container(
-      //duration: Duration(milliseconds: 1000),
-      //curve: Curves.easeInOut,
       height: 180,
       width: MediaQuery.of(context).size.width * 0.85,
-
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
@@ -1018,7 +907,6 @@ class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
                 ],
               ),
               SizedBox(
-                //height: 5,
                 child: getPageNum(showRemark),
               ),
             ],
@@ -1034,7 +922,7 @@ class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
 
 // 可编辑
 // ignore: must_be_immutable
-class BloodFatEditWidgetMore extends StatefulWidget {
+class ActivityEditWidgetMore extends StatefulWidget {
   final int id;
   final String startTime;
   final String endTime;
@@ -1047,7 +935,7 @@ class BloodFatEditWidgetMore extends StatefulWidget {
   final VoidCallback confirmEditData;
   int selectedType = 0;
 
-  BloodFatEditWidgetMore({
+  ActivityEditWidgetMore({
     Key? key,
     required this.id,
     required this.startTime,
@@ -1062,10 +950,10 @@ class BloodFatEditWidgetMore extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodFatEditWidgetMore> createState() => _BloodFatEditWidgetMoreState();
+  State<ActivityEditWidgetMore> createState() => _ActivityEditWidgetMoreState();
 }
 
-class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
+class _ActivityEditWidgetMoreState extends State<ActivityEditWidgetMore> {
   int invalidValueType = 0;
   int selectedType = 0;
   OverlayEntry? overlayEntry;
@@ -1076,7 +964,6 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     selectedType = widget.type;
   }
@@ -1091,7 +978,6 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
 
   // 显示未修改前的值
   void getBeforeEditValue() {
-    // selectedType = widget.type;
     remarkController = TextEditingController(text: widget.remark);
     feelingsButtons = FeelingsButtonsRow(
       selectedIndex: widget.feeling,
@@ -1106,11 +992,9 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
         left: 0,
         child: Material(
           color: Colors.transparent,
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            //color: const Color.fromARGB(156, 255, 255, 255),
-            //child: getTypeSelector2(),
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
@@ -1119,7 +1003,8 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(
-                      color: const Color.fromARGB(217, 131, 131, 131)),
+                    color: const Color.fromARGB(217, 131, 131, 131),
+                  ),
                   boxShadow: const [
                     BoxShadow(
                       color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -1143,7 +1028,7 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
   // 运动类型枚举选择
   Widget exercisingTypeSelector2() {
     //网格布局，将items中的数据放入网格中
-    return Container(
+    return SizedBox(
       width: MediaQuery.of(context).size.width * 0.65,
       height: MediaQuery.of(context).size.height * 0.5,
       child: GridView.count(
@@ -1155,11 +1040,8 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
           return GestureDetector(
             onTap: () {
               selectedType = items.indexOf(item);
-              print(items[selectedType]);
               setState(() {
                 // 更新被选中的运动类型
-
-                //
               });
               overlayEntry?.markNeedsBuild();
             },
@@ -1167,7 +1049,7 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: item == items[selectedType]
-                    ? Color.fromARGB(255, 253, 184, 255)
+                    ? const Color.fromARGB(255, 253, 184, 255)
                     : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
@@ -1237,15 +1119,14 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
                   },
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(
-                        Color.fromARGB(255, 118, 246, 255)),
+                        const Color.fromARGB(255, 118, 246, 255)),
                   ),
-                  child: Text('取消'),
+                  child: const Text('取消'),
                 ),
 
                 //确定开始运动
                 ElevatedButton(
                   onPressed: () {
-                    // 开始timer
                     widget.type = selectedType;
                     setState(() {});
                     overlayEntry?.markNeedsBuild();
@@ -1260,7 +1141,6 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
               ],
             ),
           ],
-          //),
         ),
       ),
     );
@@ -1311,7 +1191,6 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
     // 输入的controller
     getBeforeEditValue();
 
-    //DateTime time = DateTime.now();
     return UnconstrainedBox(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1320,7 +1199,6 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
           Container(
             width: MediaQuery.of(context).size.width * 0.85,
             decoration: BoxDecoration(
-              //color: Colors.white,
               color: Colors.white,
               borderRadius: BorderRadius.circular(20.0),
               border: Border.all(
@@ -1345,150 +1223,138 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       // 左边标题
-                      Container(
-                        child: Column(
-                          children: [
-                            getTitle("开始时间", "START TIME"),
-                            getTitle("结束时间", "END TIME"),
-                            getTitle("总时长", "TOTAL TIME"),
-                            getTitle("运动类型", "TYPE"),
-                            getTitle("感觉", "FEELINGS"),
-                            getTitle("备注", "REMARKS"),
-                          ],
-                        ),
+                      Column(
+                        children: [
+                          getTitle("开始时间", "START TIME"),
+                          getTitle("结束时间", "END TIME"),
+                          getTitle("总时长", "TOTAL TIME"),
+                          getTitle("运动类型", "TYPE"),
+                          getTitle("感觉", "FEELINGS"),
+                          getTitle("备注", "REMARKS"),
+                        ],
                       ),
 
                       const SizedBox(width: 5),
 
                       // 右边的子容器 （值）
-                      Container(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            //开始时间
-                            Container(
-                              //color: Colors.yellow,
-                              height: 41,
-                              child: Center(
-                                child: Text(
-                                  widget.startTime,
-                                  style: const TextStyle(
-                                      fontSize: 20, fontFamily: "BalooBhai"),
-                                ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          //开始时间
+                          SizedBox(
+                            height: 41,
+                            child: Center(
+                              child: Text(
+                                widget.startTime,
+                                style: const TextStyle(
+                                    fontSize: 20, fontFamily: "BalooBhai"),
                               ),
                             ),
+                          ),
 
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
 
-                            // 结束时间
-                            Container(
-                              //color: Colors.yellow,
-                              height: 41,
-                              child: Center(
-                                child: Text(
-                                  widget.endTime,
-                                  style: const TextStyle(
-                                      fontSize: 20, fontFamily: "BalooBhai"),
-                                ),
+                          // 结束时间
+                          SizedBox(
+                            height: 41,
+                            child: Center(
+                              child: Text(
+                                widget.endTime,
+                                style: const TextStyle(
+                                    fontSize: 20, fontFamily: "BalooBhai"),
                               ),
                             ),
+                          ),
 
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
 
-                            // 总时长
-                            Container(
-                              //color: Colors.yellow,
-                              height: 41,
-                              child: Center(
-                                child: Text(
-                                  "${widget.duration} 分钟",
-                                  style: const TextStyle(
-                                      fontSize: 20, fontFamily: "BalooBhai"),
-                                ),
+                          // 总时长
+                          SizedBox(
+                            height: 41,
+                            child: Center(
+                              child: Text(
+                                "${widget.duration} 分钟",
+                                style: const TextStyle(
+                                    fontSize: 20, fontFamily: "BalooBhai"),
                               ),
                             ),
+                          ),
 
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
 
-                            // 修改类型
-                            Row(
-                              children: [
-                                Container(
-                                  // color: Colors.yellow,
-                                  height: 41,
-                                  child: Center(
-                                    child: Text(
-                                      items[selectedType],
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontFamily: "BalooBhai",
-                                      ),
+                          // 修改类型
+                          Row(
+                            children: [
+                              SizedBox(
+                                height: 41,
+                                child: Center(
+                                  child: Text(
+                                    items[selectedType],
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontFamily: "BalooBhai",
                                     ),
                                   ),
                                 ),
-                                Container(
-                                  height: 41,
-                                  child: IconButton(
-                                    onPressed: () {
-                                      exercisingTypeOverlay(context);
-                                    },
-                                    icon: const Icon(Icons.edit),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
-
-                            //修改感觉
-                            feelingsButtons,
-
-                            //
-                            //const SizedBox(height: 5),
-
-                            // 备注
-                            Container(
-                              height: 41,
-                              child: SizedBox(
-                                width: 150,
-                                height: 40,
-                                child: TextFormField(
-                                  controller: remarkController,
-                                  //initialValue: widget.SBloodpressure,
-                                  decoration: const InputDecoration(
-                                      counterText: "",
-                                      hintText: "-",
-                                      hintStyle: TextStyle(
-                                        color:
-                                            Color.fromARGB(255, 167, 166, 166),
-                                      ),
-                                      contentPadding:
-                                          EdgeInsets.fromLTRB(0, 0, 0, 6)),
-                                  textAlign: TextAlign.center,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  style: const TextStyle(
-                                      fontSize: 20, fontFamily: "BalooBhai"),
+                              ),
+                              SizedBox(
+                                height: 41,
+                                child: IconButton(
+                                  onPressed: () {
+                                    exercisingTypeOverlay(context);
+                                  },
+                                  icon: const Icon(Icons.edit),
                                 ),
                               ),
-                            ),
+                            ],
+                          ),
 
-                            //
-                            const SizedBox(height: 10),
-                          ],
-                        ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
+
+                          //修改感觉
+                          feelingsButtons,
+
+                          // 备注
+                          SizedBox(
+                            height: 41,
+                            child: SizedBox(
+                              width: 150,
+                              height: 40,
+                              child: TextFormField(
+                                controller: remarkController,
+                                decoration: const InputDecoration(
+                                  counterText: "",
+                                  hintText: "-",
+                                  hintStyle: TextStyle(
+                                    color: Color.fromARGB(255, 167, 166, 166),
+                                  ),
+                                  contentPadding:
+                                      EdgeInsets.fromLTRB(0, 0, 0, 6),
+                                ),
+                                textAlign: TextAlign.center,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                style: const TextStyle(
+                                    fontSize: 20, fontFamily: "BalooBhai"),
+                              ),
+                            ),
+                          ),
+
+                          //
+                          const SizedBox(height: 10),
+                        ],
                       ),
                     ],
                   ),
@@ -1526,25 +1392,22 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
                           type: 0),
 
                       // 确定修改数据
-                      Container(
-                        child: Row(
-                          // mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            OtherButton(
-                                onPressed: widget.cancelEditData, type: 1),
-                            const SizedBox(width: 5),
-                            OtherButton(
-                                onPressed: () {
-                                  afterEditedValue = newValue(
-                                      widget.id,
-                                      selectedType,
-                                      feelingsButtons.getSelectedButtonIndex(),
-                                      remarkController.text);
-                                  widget.confirmEditData();
-                                },
-                                type: 2),
-                          ],
-                        ),
+                      Row(
+                        children: [
+                          OtherButton(
+                              onPressed: widget.cancelEditData, type: 1),
+                          const SizedBox(width: 5),
+                          OtherButton(
+                              onPressed: () {
+                                afterEditedValue = newValue(
+                                    widget.id,
+                                    selectedType,
+                                    feelingsButtons.getSelectedButtonIndex(),
+                                    remarkController.text);
+                                widget.confirmEditData();
+                              },
+                              type: 2),
+                        ],
                       )
                     ],
                   ),
@@ -1575,7 +1438,6 @@ class _StepWidgetState extends State<StepWidget> {
   @override
   Widget build(BuildContext context) {
     // 先获取权限
-    //getActivityRecognitionPermission();
     return UnconstrainedBox(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
@@ -1595,7 +1457,6 @@ class _StepWidgetState extends State<StepWidget> {
             ),
           ],
         ),
-        //alignment: Alignment.centerLeft,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Row(
@@ -1622,7 +1483,6 @@ class _StepWidgetState extends State<StepWidget> {
                       '${widget.step}',
                       style: const TextStyle(
                         fontSize: 35,
-                        //fontSize: 15,
                         fontFamily: "BalooBhai",
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 70, 165, 119),
@@ -1702,6 +1562,7 @@ class ActivityEdit extends StatefulWidget {
 
   const ActivityEdit({Key? key, required this.arguments}) : super(key: key);
   @override
+  // ignore: library_private_types_in_public_api
   _ActivityEditState createState() => _ActivityEditState();
 }
 
@@ -1730,11 +1591,9 @@ class _ActivityEditState extends State<ActivityEdit> {
         left: 0,
         child: Material(
           color: Colors.transparent,
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            //color: const Color.fromARGB(156, 255, 255, 255),
-            //child: getTypeSelector2(),
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
@@ -1742,7 +1601,8 @@ class _ActivityEditState extends State<ActivityEdit> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Color.fromARGB(217, 131, 131, 131)),
+                  border: Border.all(
+                      color: const Color.fromARGB(217, 131, 131, 131)),
                   boxShadow: const [
                     BoxShadow(
                       color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -1766,18 +1626,11 @@ class _ActivityEditState extends State<ActivityEdit> {
   // 确定结束运动dialog
   // 获取当前是否有在运动
   Future<void> getCurrentExercising() async {
-    print('getCurrentExercising');
     var token = await storage.read(key: 'token');
 
     final dio = Dio();
     Response response;
     dio.options.headers["Authorization"] = "Bearer $token";
-
-    if (widget.arguments["accountId"] >= 0) {
-      print(
-          "http://43.138.75.58:8080/api/sports/exercise/current?accountId=${widget.arguments["accountId"]}");
-    } else
-      print("http://43.138.75.58:8080/api/sports/exercise/current");
 
     response = await dio.get(
       widget.arguments["accountId"] >= 0
@@ -1785,7 +1638,6 @@ class _ActivityEditState extends State<ActivityEdit> {
           : "http://43.138.75.58:8080/api/sports/exercise/current",
     );
     if (response.data["code"] == 200) {
-      print(response.data["data"]);
       if (response.data["data"] != null) {
         isExercising = response.data["data"]["isExercising"];
         isPause = response.data["data"]["isPausing"];
@@ -1798,9 +1650,8 @@ class _ActivityEditState extends State<ActivityEdit> {
         selectedType = 0;
       }
     } else {
-      print(response);
+      return;
     }
-    print("=============================");
   }
 
   //开始运动
@@ -1823,26 +1674,18 @@ class _ActivityEditState extends State<ActivityEdit> {
       arguments["accountId"] = (widget.arguments["accountId"]).toString();
     }
 
-    // print("=========startExercising===========");
-    // print(arguments);
-
     try {
       response = await dio.post(
           "http://43.138.75.58:8080/api/sports/exercise/start",
           queryParameters: arguments);
       if (response.data["code"] == 200) {
-        print("==========开始运动成功===============");
-        //data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-
-    return false;
   }
 
   // 暂停运动
@@ -1862,26 +1705,18 @@ class _ActivityEditState extends State<ActivityEdit> {
       arguments["accountId"] = (widget.arguments["accountId"].toString());
     }
 
-    // print("=========pauseExercising===========");
-    // print(arguments);
-
     try {
       response = await dio.post(
           "http://43.138.75.58:8080/api/sports/exercise/pause",
           queryParameters: arguments);
       if (response.data["code"] == 200) {
-        print("==========暂停运动成功===============");
-        //data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-
-    return false;
   }
 
   // 继续运动
@@ -1901,26 +1736,18 @@ class _ActivityEditState extends State<ActivityEdit> {
       arguments["accountId"] = (widget.arguments["accountId"].toString());
     }
 
-    print("=========continueExercising===========");
-    print(arguments);
-
     try {
       response = await dio.post(
           "http://43.138.75.58:8080/api/sports/exercise/continue",
           queryParameters: arguments);
       if (response.data["code"] == 200) {
-        print("==========恢复运动成功===============");
-        //data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-
-    return false;
   }
 
   // 结束运动
@@ -1945,26 +1772,18 @@ class _ActivityEditState extends State<ActivityEdit> {
       arguments["accountId"] = widget.arguments["accountId"];
     }
 
-    print("=========endExercising===========");
-    print(arguments);
-
     try {
       response = await dio.post(
           "http://43.138.75.58:8080/api/sports/exercise/end",
           queryParameters: arguments);
       if (response.data["code"] == 200) {
-        print("==========结束运动成功===============");
-        //data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-
-    return false;
   }
 
   // 确定结束运动弹窗
@@ -1996,15 +1815,6 @@ class _ActivityEditState extends State<ActivityEdit> {
             TextButton(
               onPressed: () {
                 // 结束运动
-                /* isExercising = false;
-                isPause = false;
-                watchTimer.onStopTimer();
-                print(
-                    "结束运动 类型:${items[selectedType]}  开始/结束：${startTime} ~ ${DateTime.now()}");
-
-                setState(() {});
-                Navigator.pop(context); */
-
                 feelings = 1;
                 exercisingFeelingsRemarksOverlay(context);
               },
@@ -2024,11 +1834,9 @@ class _ActivityEditState extends State<ActivityEdit> {
         left: 0,
         child: Material(
           color: Colors.transparent,
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            //color: const Color.fromARGB(156, 255, 255, 255),
-            //child: getTypeSelector2(),
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
@@ -2036,7 +1844,8 @@ class _ActivityEditState extends State<ActivityEdit> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Color.fromARGB(217, 131, 131, 131)),
+                  border: Border.all(
+                      color: const Color.fromARGB(217, 131, 131, 131)),
                   boxShadow: const [
                     BoxShadow(
                       color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -2100,9 +1909,7 @@ class _ActivityEditState extends State<ActivityEdit> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          print("开心");
                           feelings = 0;
-                          //setState(() {});
                           overlayEntry?.markNeedsBuild();
                         },
                         child: Container(
@@ -2132,7 +1939,6 @@ class _ActivityEditState extends State<ActivityEdit> {
                       GestureDetector(
                         onTap: () {
                           feelings = 1;
-                          // setState(() {});
                           overlayEntry?.markNeedsBuild();
                         },
                         child: Container(
@@ -2161,9 +1967,7 @@ class _ActivityEditState extends State<ActivityEdit> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          print("不好");
                           feelings = 2;
-                          // setState(() {});
                           overlayEntry?.markNeedsBuild();
                         },
                         child: Container(
@@ -2210,14 +2014,13 @@ class _ActivityEditState extends State<ActivityEdit> {
                 const SizedBox(
                   width: 10,
                 ),
-                Container(
+                SizedBox(
                   height: 41,
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.45,
                     height: 40,
                     child: TextFormField(
                       controller: remarksController,
-                      //initialValue: widget.SBloodpressure,
                       decoration: const InputDecoration(
                           counterText: "",
                           hintText: "-",
@@ -2244,7 +2047,6 @@ class _ActivityEditState extends State<ActivityEdit> {
                   // 取消
                   ElevatedButton(
                     onPressed: () {
-                      //setState(() {});
                       overlayEntry?.remove();
                     },
                     style: ButtonStyle(
@@ -2257,33 +2059,15 @@ class _ActivityEditState extends State<ActivityEdit> {
                   //确定
                   ElevatedButton(
                     onPressed: () async {
-                      /* setState(() {});
-                        overlayEntry?.markNeedsBuild();
-                        overlayEntry?.remove();
-                        Navigator.pop(context); */
-
-                      //isExercising = false;
-                      //isPause = false;
-                      /*  print(
-                          "结束运动 类型:${items[selectedType]}  开始/结束：${startTime} ~ ${DateTime.now()}");
-
-                      overlayEntry?.remove();
-                      setState(() {});
-                      widget.updateView();
-                      Navigator.pop(context); */
-
                       bool status = await endExercising();
                       if (status) {
                         isExercising = false;
                         isPause = false;
                         overlayEntry?.remove();
-                        //setState(() {});
-                        //updateView();
                         updateData();
-                        //await getDataFromServer();
+                        // ignore: use_build_context_synchronously
                         Navigator.pop(context);
                       } else {
-                        print("结束运动失败");
                         overlayEntry?.remove();
                       }
                     },
@@ -2291,7 +2075,7 @@ class _ActivityEditState extends State<ActivityEdit> {
                       backgroundColor:
                           MaterialStateProperty.all(Colors.greenAccent),
                     ),
-                    child: Text('确定'),
+                    child: const Text('确定'),
                   ),
                 ],
               ),
@@ -2303,7 +2087,7 @@ class _ActivityEditState extends State<ActivityEdit> {
   // 运动类型枚举选择
   Widget exercisingTypeSelector2() {
     //网格布局，将items中的数据放入网格中
-    return Container(
+    return SizedBox(
       width: MediaQuery.of(context).size.width * 0.65,
       height: MediaQuery.of(context).size.height * 0.5,
       child: GridView.count(
@@ -2315,11 +2099,8 @@ class _ActivityEditState extends State<ActivityEdit> {
           return GestureDetector(
             onTap: () {
               selectedType = items.indexOf(item);
-              print(items[selectedType]);
               setState(() {
                 // 更新被选中的运动类型
-
-                //
               });
               overlayEntry?.markNeedsBuild();
             },
@@ -2327,7 +2108,7 @@ class _ActivityEditState extends State<ActivityEdit> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: item == items[selectedType]
-                    ? Color.fromARGB(255, 253, 184, 255)
+                    ? const Color.fromARGB(255, 253, 184, 255)
                     : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
@@ -2352,7 +2133,7 @@ class _ActivityEditState extends State<ActivityEdit> {
   Widget getTypeSelector2() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -2392,38 +2173,24 @@ class _ActivityEditState extends State<ActivityEdit> {
                 // 取消运动
                 ElevatedButton(
                   onPressed: () {
-                    //setState(() {});
                     overlayEntry?.remove();
                   },
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(
-                        Color.fromARGB(255, 118, 246, 255)),
+                        const Color.fromARGB(255, 118, 246, 255)),
                   ),
-                  child: Text('取消'),
+                  child: const Text('取消'),
                 ),
 
                 //确定开始运动
                 ElevatedButton(
                   onPressed: () async {
-                    /* isExercising = true;
-                    // 开始timer
-                    //startTime = DateTime.now();
-                    //setState(() {});
-                    updateView();
-                    overlayEntry?.markNeedsBuild();
-                    overlayEntry?.remove(); */
-                    print("开始运动");
                     bool status = await startExercising();
                     if (status) {
-                      //print("开始运动成功");
                       isExercising = true;
-                      //updateView();
-                      //await getDataFromServer();
-                      updateData();
                       overlayEntry?.markNeedsBuild();
                       overlayEntry?.remove();
                     } else {
-                      print("开始运动失败");
                       overlayEntry?.remove();
                     }
                   },
@@ -2431,7 +2198,7 @@ class _ActivityEditState extends State<ActivityEdit> {
                     backgroundColor:
                         MaterialStateProperty.all(Colors.greenAccent),
                   ),
-                  child: Text('开始'),
+                  child: const Text('开始'),
                 ),
               ],
             ),
@@ -2474,7 +2241,6 @@ class _ActivityEditState extends State<ActivityEdit> {
         data = response.data["data"];
       }
     } else {
-      print(response);
       data = [];
     }
 
@@ -2484,12 +2250,8 @@ class _ActivityEditState extends State<ActivityEdit> {
           : "http://43.138.75.58:8080/api/sports/steps",
     );
     if (response.data["code"] == 200) {
-      print("========================");
-      print("${response.data}");
       steps = response.data["data"][0]["steps"];
-    } else {
-      print(response);
-    }
+    } else {}
 
     // 如果data[i]["endTime"] == null ，则剔除这一项
     for (int i = 0; i < data.length; i++) {
@@ -2528,7 +2290,7 @@ class _ActivityEditState extends State<ActivityEdit> {
       }
 
       dataWidget.add(UnconstrainedBox(
-        child: BloodFatEditWidget(
+        child: ActivityEditWidget(
           accountId: widget.arguments["accountId"],
           id: id_,
           startTime: startTime,
@@ -2562,13 +2324,11 @@ class _ActivityEditState extends State<ActivityEdit> {
   }
 
   void updateDate(DateTime newDate) {
-    // print("new date: $newDate");
     date = newDate;
     getDataFromServer();
   }
 
   void updateData() {
-    //print("刷新，日期：${date.year}年${date.month}月${date.day}日");
     getDataFromServer();
   }
 
@@ -2586,25 +2346,21 @@ class _ActivityEditState extends State<ActivityEdit> {
 
     List<int> isExpandedArray = [];
     for (int i = 0; i < data.length; i++) {
-      //print("展开状态 isExpanded: ${data[i]["id"]} ${data[i]["isExpanded"]}");
       isExpandedArray.add(data[i]["isExpanded"]);
     }
 
     List<Widget> dataWidgetTemp = [];
     dataWidgetTemp.add(titleDateWidget);
-    //dataWidgetTemp.add(StepWidget(step: 2460)); //TODO
     dataWidgetTemp.add(StepWidget(step: steps));
     dataWidgetTemp.add(const SizedBox(height: 20));
     dataWidgetTemp.add(getCurrentExercisingWidget());
     dataWidgetTemp.add(const SizedBox(height: 10));
-    //isExercising ? dataWidgetTemp.add(exercisingWidget()) : const SizedBox();
-    // TODO
     isExercising
         ? dataWidgetTemp.add(const SizedBox(height: 20))
         : const SizedBox();
     for (int i = 0; i < data.length; i++) {
       dataWidgetTemp.add(UnconstrainedBox(
-        child: BloodFatEditWidget(
+        child: ActivityEditWidget(
           accountId: widget.arguments["accountId"],
           id: data[i]["id"],
           startTime: data[i]["startTime"],
@@ -2671,7 +2427,6 @@ class _ActivityEditState extends State<ActivityEdit> {
                         children: [
                           // 计时器
                           Container(
-                            // color: Colors.greenAccent,
                             height: 40,
                             alignment: Alignment.center,
                             child: Row(
@@ -2686,7 +2441,6 @@ class _ActivityEditState extends State<ActivityEdit> {
                                   ),
                                 ),
                                 Container(
-                                  //color: Colors.greenAccent,
                                   height: 40,
                                   alignment: Alignment.center,
                                   child: Text(
@@ -2704,7 +2458,6 @@ class _ActivityEditState extends State<ActivityEdit> {
 
                           // 运动类型
                           Container(
-                            //color: Colors.yellowAccent,
                             height: 40,
                             alignment: Alignment.center,
                             child: Text(
@@ -2722,8 +2475,7 @@ class _ActivityEditState extends State<ActivityEdit> {
                           ),
 
                           // 暂停与结束运动按钮
-                          Container(
-                            //color: Colors.deepPurpleAccent,
+                          SizedBox(
                             height: 40,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -2852,7 +2604,6 @@ class _ActivityEditState extends State<ActivityEdit> {
       // 添加数据的按钮
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          //print("我要添加运动数据");
           // 如果是今天才能添加数据
           if (date.year != DateTime.now().year ||
               date.month != DateTime.now().month ||
@@ -2881,79 +2632,5 @@ class _ActivityEditState extends State<ActivityEdit> {
         child: const Icon(Icons.add, size: 30, color: Colors.white),
       ),
     );
-
-    /* return FutureBuilder(
-        // Replace getDataFromServer with the Future you want to wait for
-        future: getDataFromServer(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // print("血压修改页面刷新");
-            return Scaffold(
-              appBar: widget.arguments["accountId"] < 0
-                  ? getAppBar(0, true, "TriGuard")
-                  : getAppBar(1, true, widget.arguments["nickname"]),
-
-              // 标题，日期与数据
-              body: Container(
-                color: Colors.white,
-                child: ListView.builder(
-                  itemCount: dataWidget.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return dataWidget[index];
-                  },
-                ),
-              ),
-
-              // 添加数据的按钮
-              floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                  //print("我要添加运动数据");
-                  // 如果是今天才能添加数据
-                  if (date.year != DateTime.now().year ||
-                      date.month != DateTime.now().month ||
-                      date.day != DateTime.now().day) {
-                    //snackbar提示只有今天才能添加数据
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("温馨提示：只能添加今天的运动数据"),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  } else if (isExercising) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("温馨提示：请先结束运动"),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  } else {
-                    // 开始运动
-                    exercisingTypeOverlay(context);
-                  }
-                },
-                shape: const CircleBorder(),
-                backgroundColor: const Color.fromARGB(255, 237, 136, 247),
-                child: const Icon(Icons.add, size: 30, color: Colors.white),
-              ),
-            );
-          } else {
-            titleDateWidget = TitleDate(
-                date: date, updateView: updateView, updateDate: updateDate);
-            return Scaffold(
-              appBar: widget.arguments["accountId"] < 0
-                  ? getAppBar(0, true, "TriGuard")
-                  : getAppBar(1, true, widget.arguments["nickname"]),
-
-              // 标题，日期与数据
-              body: Container(
-                  color: Colors.white,
-                  child: Center(
-                    child: LoadingAnimationWidget.staggeredDotsWave(
-                        color: Colors.pink, size: 25),
-                  )),
-            );
-          }
-        });
-   */
   }
 }

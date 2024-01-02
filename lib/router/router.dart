@@ -21,6 +21,7 @@ import '../homePage/bloodFat/bloodFatMoreData.dart';
 // 活动
 import '../homePage/activity/activityEdit.dart';
 import '../homePage/activity/activityDetails.dart';
+import '../homePage/activity/activityMoreData.dart';
 
 // 监护模块
 import '../supervisor/guardianGroup.dart';
@@ -85,6 +86,8 @@ Map routes = {
       ActivityEdit(arguments: arguments),
   '/homePage/Activity/Details': (context, {arguments}) =>
       ActivityDetails(arguments: arguments),
+  '/homePage/Activity/MoreData': (context, {arguments}) =>
+      ActivityMoreData(arguments: arguments),
 
   // 监护模块
   '/supervisor': (context) => const Supervisor(),

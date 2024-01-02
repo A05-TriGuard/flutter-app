@@ -5,8 +5,6 @@ import 'package:excel/excel.dart' as ExcelPackage;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-//import 'package:syncfusion_flutter_xlsio/xlsio.dart'
-//    hide Column, Row, Border, Stack;
 import 'package:dio/dio.dart';
 import 'package:triguard/account/token.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -15,8 +13,6 @@ import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/other.dart';
 
-//typedef UpdateDateCallback = void Function(DateTime newDate);
-//typedef UpdateDaysCallback = void Function(String newDays);
 typedef UpdateHeartRateFilterCallback = void Function(
     int minHeartRate, int maxHeartRate);
 typedef UpdateArmFilterCallback = void Function(List<bool> armsSelected);
@@ -75,7 +71,7 @@ List<String> items = [
   '其他'
 ];
 
-class BloodPressureFilterParam {
+class ActivityFilterParam {
   DateTime startDate = DateTime.now().subtract(const Duration(days: 7));
   DateTime endDate = DateTime.now();
   DateTime startTime = DateTime(2023, 11, 11, 00, 00);
@@ -86,7 +82,7 @@ class BloodPressureFilterParam {
   TextEditingController maxDurationController = TextEditingController();
   TextEditingController minDurationController = TextEditingController();
 
-  BloodPressureFilterParam({
+  ActivityFilterParam({
     required this.startDate,
     required this.endDate,
     required this.startTime,
@@ -99,8 +95,6 @@ class BloodPressureFilterParam {
   });
 
   void tackle() {
-    // startTime and endTime pad 0
-
     if (minDurationController.text == "") {
       minDurationController.text = "0";
     }
@@ -129,18 +123,15 @@ class BloodPressureFilterParam {
     DateTime time2 = DateTime(endDate.year, endDate.month, endDate.day, 23, 59);
 
     if (time1.isAfter(time2)) {
-      print("invalid date");
       return 1;
     }
 
     if (startTime.isAfter(endTime)) {
-      print("invalid time");
       return 2;
     }
 
     if (int.parse(minDurationController.text) >
         int.parse(maxDurationController.text)) {
-      print("invalid duration");
       return 3;
     }
 
@@ -150,12 +141,12 @@ class BloodPressureFilterParam {
 
 // 血压表格记录
 // ignore: must_be_immutable
-class BloodPressureRecordWidget extends StatefulWidget {
+class ActivityRecordWidget extends StatefulWidget {
   final int accountId;
-  BloodPressureFilterParam filterParam;
+  ActivityFilterParam filterParam;
   bool oldParam = false;
   final VoidCallback updateGraph;
-  BloodPressureRecordWidget(
+  ActivityRecordWidget(
       {Key? key,
       required this.accountId,
       required this.filterParam,
@@ -164,11 +155,10 @@ class BloodPressureRecordWidget extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<BloodPressureRecordWidget> createState() =>
-      _BloodPressureRecordWidgetState();
+  State<ActivityRecordWidget> createState() => _ActivityRecordWidgetState();
 }
 
-class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
+class _ActivityRecordWidgetState extends State<ActivityRecordWidget> {
   List<Map<dynamic, dynamic>> filteredData = [];
 
   List<int> sbpList = [0, 0, 0, 0, 0, 0, 0, 0]; //
@@ -189,7 +179,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       await Permission.storage.request();
     }
 
-    // if (!await Permission.storage.request().isGranted) {
     if (!status1) {
       await Permission.manageExternalStorage.status;
     }
@@ -198,7 +187,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       await Permission.manageExternalStorage.request();
     }
 
-    // if (!await Permission.manageExternalStorage.request().isGranted) {
     if (!status3) {
       await Permission.manageExternalStorage.status;
     }
@@ -206,8 +194,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     // 获取文件夹路径
     var dir = await getApplicationSupportDirectory();
     var folderPath = Directory("${dir.path}/sportsActivity");
-
-    print("folderPath: ${folderPath.path}");
 
     // 判断文件夹是否存在，不存在则创建
     if (await folderPath.exists() == false) {
@@ -272,8 +258,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
 
       sheet1.appendRow(dataCell);
     }
-
-    //sheet1.setColumnWidth(0, 15);
 
     ExcelPackage.CellStyle dataCellStyle = ExcelPackage.CellStyle(
       textWrapping: ExcelPackage.TextWrapping.WrapText,
@@ -446,7 +430,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     }
 
     excel.delete('Sheet1');
-    //var downloadFolderPath = '/storage/emulated/0/Download/bp.xlsx';
 
     // 保存
     List<int>? fileBytes = excel.save();
@@ -457,9 +440,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     }
 
     //检测文件是否存在
-    if (await File(fileNamePath).exists()) {
-      print("excel export ok");
-    }
+    if (await File(fileNamePath).exists()) {}
   }
 
   // 从后端请求数据
@@ -493,8 +474,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       filterParam["feelings"] = feeling;
     }
 
-    //print("feeling: ${filterParam["feeling"]} ");
-
     if (remarkBool[2] == false) {
       remarkBool[0] == true ? remark += "1" : remark += "0";
       remarkBool[1] == true ? remark += "1" : remark += "0";
@@ -519,30 +498,25 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         data: filterParam,
       );
       if (response.data["code"] == 200) {
-        //print("获取血压数据成功 按条件筛选");
         recordData = response.data["data"]["exerciseList"];
         recordStepData = response.data["data"]["stepsList"];
         statisticData = response.data["data"]["countedDataList"];
       } else {
-        print(response);
         recordData = [];
         recordStepData = [];
         statisticData = [];
       }
     } catch (e) {
-      print(e);
       recordData = [];
       recordStepData = [];
       statisticData = [];
     }
 
     await createExportFile();
-    // TODO ####
   }
 
   // 记录表格的标题 "日期 时间 收缩压 舒张压 心率 手臂 感觉 备注"
   List<DataColumn> getDataColumns() {
-    //using the filteredData to generate the table
     List<DataColumn> dataColumn = [];
     List<String> columnNames = [
       "开始时间",
@@ -636,7 +610,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
     return dataRow;
   }
 
-  // 统计表格的标题 "血压/心率 最低值 最高值 平均值 偏低次数 正常次数 偏高次数 异常次数 总次数"
+  // 统计表格的标题
   List<DataColumn> getStatisticsDataColumns() {
     List<DataColumn> dataColumn = [];
     List<String> columnNames = [
@@ -718,10 +692,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
         UnconstrainedBox(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.85,
-            /* height: recordData.length < 9
-                ? ((recordData.length + 1) * 50) + 50
-                : (50 * 9) + 50, */
-            // color: Colors.yellow,
             alignment: Alignment.center,
             child: Column(
               children: [
@@ -751,9 +721,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                 UnconstrainedBox(
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
-                    /* height: recordData.length < 9
-                        ? ((recordData.length + 1) * 50)
-                        : 50 * 9, */
                     height: recordDataHeight,
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -770,8 +737,9 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                           columns: getDataColumns(),
                           rows: getDataRows(),
                           headingRowColor: MaterialStateColor.resolveWith(
-                              (states) =>
-                                  const Color.fromRGBO(255, 151, 245, 0.28)),
+                            (states) =>
+                                const Color.fromRGBO(255, 151, 245, 0.28),
+                          ),
                         ),
                       ),
                     ),
@@ -794,11 +762,13 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
               children: [
                 Row(
                   children: [
-                    const Text("运动统计表",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontFamily: "BalooBhai",
-                            fontWeight: FontWeight.bold)),
+                    const Text(
+                      "运动统计表",
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: "BalooBhai",
+                          fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(width: 5),
                     Image.asset(
                       "assets/icons/statistics.png",
@@ -814,10 +784,8 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
                     height: 105,
-                    //height: MediaQuery.of(context).size.height * 0.5,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        //color: Color.fromARGB(255, 129, 127, 127),
                         color: const Color.fromARGB(255, 196, 195, 195),
                       ),
                       borderRadius: BorderRadius.circular(5),
@@ -831,8 +799,8 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
                           columns: getStatisticsDataColumns(),
                           rows: getStatisticsDataRows(),
                           headingRowColor: MaterialStateColor.resolveWith(
-                              (states) =>
-                                  const Color.fromRGBO(34, 14, 244, 0.16)),
+                            (states) => const Color.fromRGBO(34, 14, 244, 0.16),
+                          ),
                         ),
                       ),
                     ),
@@ -852,37 +820,25 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
 
     // 判断参数是否合法
     if (widget.filterParam.checkInvalidParam() > 0) {
-      //print("invalid param");
       widget.filterParam.refresh = false;
       return getWholeWidget(context);
     }
 
     if (widget.filterParam.refresh == false) {
-      //print("数据表格 (不) 刷新");
       return getWholeWidget(context);
     }
 
     // 原始数据记录
-    //else {
-    print("数据表格刷新");
-    //getDataFromServer();
     widget.filterParam.refresh = false;
 
     return FutureBuilder(
         future: getDataFromServer(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            //createExportFile();
             return getWholeWidget(context);
           } else {
-            //return Container();
-            /* return Center(
-              child: LoadingAnimationWidget.staggeredDotsWave(
-                  color: Colors.pink, size: 25),
-            ); */
-
             return UnconstrainedBox(
-              child: Container(
+              child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.85,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -941,9 +897,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
             );
           }
         });
-    //}
-
-    //return getWholeWidget(context);
   }
 }
 
@@ -951,7 +904,7 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
 // ignore: must_be_immutable
 class StepRecordWidget extends StatefulWidget {
   final int accountId;
-  BloodPressureFilterParam filterParam;
+  ActivityFilterParam filterParam;
   bool oldParam = false;
   final VoidCallback updateGraph;
   StepRecordWidget(
@@ -967,9 +920,6 @@ class StepRecordWidget extends StatefulWidget {
 }
 
 class _StepRecordWidgetState extends State<StepRecordWidget> {
-  List<Map<dynamic, dynamic>> filteredData = [];
-  // [最小值，最大值，平均值，偏低次数，正常次数，偏高次数，异常次数，总次数]
-
   List<int> sbpList = [0, 0, 0, 0, 0, 0, 0, 0]; //
   List<int> dbpList = [0, 0, 0, 0, 0, 0, 0, 0];
   List<int> heartRateList = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -1030,37 +980,28 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
         data: filterParam,
       );
       if (response.data["code"] == 200) {
-        //print("获取血压数据成功 按条件筛选");
         recordData = response.data["data"]["stepsList"];
         statisticData = response.data["data"]["countedDataList"];
-
-        //print(recordData);
       } else {
-        print(response);
         recordData = [];
         statisticData = [];
       }
     } catch (e) {
-      print(e);
       recordData = [];
       statisticData = [];
     }
-
-    //await createExportFile();
-    // TODO ####
   }
 
   // 记录表格的标题 "日期 步数"
   List<DataColumn> getDataColumns(double width) {
-    //using the filteredData to generate the table
     List<DataColumn> dataColumn = [];
     List<String> columnNames = ["日期", "步数"];
 
     for (int i = 0; i < columnNames.length; i++) {
       dataColumn.add(DataColumn(
         label: Expanded(
-          child: Container(
-            width: width, //MediaQuery.of(context).size.width * 0.85 * 0.5,
+          child: SizedBox(
+            width: width,
             child: Center(
               child: Text(
                 columnNames[i],
@@ -1107,7 +1048,7 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
     return dataRow;
   }
 
-  // 统计表格的标题 "血压/心率 最低值 最高值 平均值 偏低次数 正常次数 偏高次数 异常次数 总次数"
+  // 统计表格的标题
   List<DataColumn> getStatisticsDataColumns() {
     List<DataColumn> dataColumn = [];
     List<String> columnNames = [
@@ -1149,9 +1090,6 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
           statisticData[i]["more"];
       dataRow.add(DataRow(
         cells: <DataCell>[
-          /* DataCell(Center(
-            child: Text(names[i]),
-          )), */
           DataCell(Center(
             child: Text(statisticData[i]["less"].toString()),
           )),
@@ -1190,10 +1128,6 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
         UnconstrainedBox(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.85,
-            /* height: recordData.length < 9
-                ? ((recordData.length + 1) * 50) + 50
-                : (50 * 9) + 50, */
-            // color: Colors.yellow,
             alignment: Alignment.center,
             child: Column(
               children: [
@@ -1223,9 +1157,6 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
                 UnconstrainedBox(
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
-                    /* height: recordData.length < 9
-                        ? ((recordData.length + 1) * 50)
-                        : 50 * 9, */
                     height: recordDataHeight,
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -1287,10 +1218,8 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.85,
                     height: 105,
-                    //height: MediaQuery.of(context).size.height * 0.5,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        //color: Color.fromARGB(255, 129, 127, 127),
                         color: const Color.fromARGB(255, 196, 195, 195),
                       ),
                       borderRadius: BorderRadius.circular(5),
@@ -1325,37 +1254,20 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
 
     // 判断参数是否合法
     if (widget.filterParam.checkInvalidParam() > 0) {
-      //print("invalid param");
       widget.filterParam.refresh = false;
       return getWholeWidget(context);
     }
 
-    /* if (widget.filterParam.refresh == false) {
-      //print("数据表格 (不) 刷新");
-      return getWholeWidget(context);
-    } */
-
-    // 原始数据记录
-    //else {
-    print("数据表格刷新");
-    //getDataFromServer();
     widget.filterParam.refresh = false;
 
     return FutureBuilder(
         future: getDataFromServer(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            //createExportFile();
             return getWholeWidget(context);
           } else {
-            //return Container();
-            /* return Center(
-              child: LoadingAnimationWidget.staggeredDotsWave(
-                  color: Colors.pink, size: 25),
-            ); */
-
             return UnconstrainedBox(
-              child: Container(
+              child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.85,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -1414,16 +1326,13 @@ class _StepRecordWidgetState extends State<StepRecordWidget> {
             );
           }
         });
-    //}
-
-    //return getWholeWidget(context);
   }
 }
 
 // 感觉选择按钮
 // ignore: must_be_immutable
 class FeelingsButtonsWidget extends StatefulWidget {
-  BloodPressureFilterParam newFilterParam;
+  ActivityFilterParam newFilterParam;
   FeelingsButtonsWidget({
     Key? key,
     required this.newFilterParam,
@@ -1516,12 +1425,6 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    //print('感觉里面：${widget.isSelected}');
-
-    /* if (widget.reset) {
-      widget.isSelected = widget.prevIsSelected;
-    } */
-
     return Container(
       alignment: Alignment.center,
       height: 41,
@@ -1530,7 +1433,7 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
   }
 }
 
-// SBP区间
+// 运动时长区间
 // ignore: must_be_immutable
 class DurationFilterWidget extends StatefulWidget {
   TextEditingController minDurationController = TextEditingController();
@@ -1559,7 +1462,6 @@ class _DurationFilterWidgetState extends State<DurationFilterWidget> {
             child: TextFormField(
               maxLength: 3,
               controller: widget.minDurationController,
-              //initialValue: widget.heartRate,
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
@@ -1585,7 +1487,6 @@ class _DurationFilterWidgetState extends State<DurationFilterWidget> {
             child: TextFormField(
               maxLength: 3,
               controller: widget.maxDurationController,
-              //initialValue: widget.heartRate,
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
@@ -1696,35 +1597,15 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
         ],
       ),
     );
-    /* return Container(
-      alignment: Alignment.center,
-      height: 41,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          DatePicker2(
-              date: widget.startDate, updateDate: widget.updateStartDate),
-          // const SizedBox(width: 10),
-          //const SizedBox(width: 10),
-          DatePicker2(date: widget.endDate, updateDate: widget.updateEndDate),
-        ],
-      ),
-    ); */
   }
 }
 
 // 备注选择按钮
 // ignore: must_be_immutable
 class RemarksButtonsWidget extends StatefulWidget {
-  //final VoidCallback onPressed;
-  //final String iconPath;
-  //final bool isSelected;
   List<bool> isSelected = [false, false, true];
   RemarksButtonsWidget({
     Key? key,
-    //required this.onPressed,
-    //required this.iconPath,
     required this.isSelected,
   }) : super(key: key);
 
@@ -1821,7 +1702,7 @@ class _RemarksButtonsWidgetState extends State<RemarksButtonsWidget> {
 // 确定取消按钮
 // ignore: must_be_immutable
 class OKCancelButtonsWidget extends StatefulWidget {
-  BloodPressureFilterParam filterParam;
+  ActivityFilterParam filterParam;
   List<bool> prevArmsSelected = [false, false, false, true];
   List<bool> prevFeelingsSelected = [false, false, false, true];
   final VoidCallback updateGraph;
@@ -1908,8 +1789,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
                   widget.filterParam.refresh = true;
 
                   invalidParam = widget.filterParam.checkInvalidParam();
-                  //print("invalidParam: $invalidParam");
-                  //widget.updateGraph();
 
                   if (invalidParam == 0) {
                     widget.updateFilterWidgetView(false);
@@ -1943,7 +1822,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
               ),
             ],
           ),
-          //),
         ),
 
         // 警告信息
@@ -1954,7 +1832,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
             fontSize: 12.0,
             fontFamily: 'Blinker',
           ),
-          //textAlign: TextAlign.center,
         ),
       ],
     );
@@ -1963,10 +1840,10 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
 
 // 筛选过滤器
 // ignore: must_be_immutable
-class BloodPressureFilterWidget extends StatefulWidget {
+class ActivityFilterWidget extends StatefulWidget {
   // 默认展示过去一周的数据（含今天）
 
-  BloodPressureFilterParam filterParam;
+  ActivityFilterParam filterParam;
   List<bool> prevArmsSelected = [false, false, false, true];
   List<bool> prevFeelingsSelected = [false, false, false, true];
 
@@ -1977,7 +1854,7 @@ class BloodPressureFilterWidget extends StatefulWidget {
   final UpdateDateCallback updateEndTime;
   final UpdateFilterWidgetViewCallBack updateFilterWidgetView;
 
-  BloodPressureFilterWidget({
+  ActivityFilterWidget({
     Key? key,
     required this.filterParam,
     required this.updateGraph,
@@ -1991,23 +1868,22 @@ class BloodPressureFilterWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodPressureFilterWidget> createState() =>
-      _BloodPressureFilterWidgetState();
+  State<ActivityFilterWidget> createState() => _ActivityFilterWidgetState();
 }
 
-class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
+class _ActivityFilterWidgetState extends State<ActivityFilterWidget> {
   bool isExpanded = true;
 
   // 标题
-  Widget getTitle(String TitleChn, String TitleEng) {
+  Widget getTitle(String titleChn, String titleEng) {
     return Column(
       children: [
         Text(
-          TitleChn,
+          titleChn,
           style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
         ),
         Text(
-          TitleEng,
+          titleEng,
           style: const TextStyle(
               fontSize: 14,
               fontFamily: "Blinker",
@@ -2027,9 +1903,8 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
             height: 10,
           ),
           // 过滤器标题
-          Container(
+          SizedBox(
             width: MediaQuery.of(context).size.width * 0.85,
-            //alignment: Alignment.centerLeft,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -2085,8 +1960,6 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                 children: [
                                   Column(
                                     children: [
-                                      // getTitle("起始日期", "START DATE"),
-                                      //getTitle("结束日期", "END DATE"),
                                       getTitle("日期", "DATE"),
                                       getTitle("时间", "TIME"),
                                       getTitle("时长", "DURATION"),
@@ -2115,16 +1988,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                       const SizedBox(height: 10),
 
                                       //时间
-                                      /* TimeFilterWidget(
-                                        startHourController: widget
-                                            .filterParam.startHourController,
-                                        startMinuteController: widget
-                                            .filterParam.startMinuteController,
-                                        endHourController: widget
-                                            .filterParam.endHourController,
-                                        endMinuteController: widget
-                                            .filterParam.endMinuteController,
-                                      ), */
+
                                       TimeFilterWidget2(
                                           startTime:
                                               widget.filterParam.startTime,
@@ -2161,14 +2025,6 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                     ],
                                   )
                                 ]),
-                            /* OKCancelButtonsWidget(
-                              filterParam: widget.filterParam,
-                              updateGraph: widget.updateGraph,
-                              prevArmsSelected: widget.prevArmsSelected,
-                              prevFeelingsSelected: widget.prevFeelingsSelected,
-                              updateFilterWidgetView:
-                                  widget.updateFilterWidgetView,
-                            ), */
                           ],
                         ),
                       ),
@@ -2219,9 +2075,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
   String exportPath = "";
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    //var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    // var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -2234,8 +2088,6 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     // 获取文件夹路径
     var dir = await getApplicationSupportDirectory();
     var folderPath = Directory("${dir.path}/sportsActivity");
-
-    print("folderPath: ${folderPath.path}");
 
     // 判断文件夹是否存在
     if (!await folderPath.exists()) {
@@ -2254,16 +2106,14 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
       var downloadPath = await getDownloadsDirectory();
 
       await File(fileNamePath).copy(
-          '${downloadPath!.path}/sportsActivity_${nickname}_${exportTime}.xlsx');
+          '${downloadPath!.path}/sportsActivity_${nickname}_$exportTime.xlsx');
       // 检测文件是否存在
-      print(
-          '${downloadPath.path}/sportsActivity_${nickname}_${exportTime}.xlsx');
       if (await File(
-              '${downloadPath.path}/sportsActivity_${nickname}_${exportTime}.xlsx')
+              '${downloadPath.path}/sportsActivity_${nickname}_$exportTime.xlsx')
           .exists()) {
         exportPath =
-            '${downloadPath.path}/sportsActivity_${nickname}_${exportTime}.xlsx';
-        print("export sportsActivity.xlsx successfully");
+            '${downloadPath.path}/sportsActivity_${nickname}_$exportTime.xlsx';
+
         return true;
       }
     }
@@ -2274,9 +2124,8 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
   @override
   Widget build(BuildContext context) {
     return UnconstrainedBox(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
-        //alignment: Alignment.center,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -2303,7 +2152,6 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
                   border: Border.all(
                       color: const Color.fromRGBO(122, 119, 119, 0.43)),
                 ),
-                //alignment: Alignment.centerRight,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -2348,7 +2196,7 @@ class ActivityMoreData extends StatefulWidget {
 class _ActivityMoreDataState extends State<ActivityMoreData> {
   //过滤器参数
 
-  BloodPressureFilterParam filterParam = BloodPressureFilterParam(
+  ActivityFilterParam filterParam = ActivityFilterParam(
     startDate: DateTime.now().subtract(const Duration(days: 7)),
     endDate: DateTime.now(),
     startTime: DateTime(2023, 11, 11, 00, 00),
@@ -2380,7 +2228,6 @@ class _ActivityMoreDataState extends State<ActivityMoreData> {
   void updateStartDate(DateTime newDate) {
     setState(() {
       filterParam.startDate = newDate;
-      print('设置新起始日期：${filterParam.startDate}');
     });
   }
 
@@ -2441,13 +2288,6 @@ class _ActivityMoreDataState extends State<ActivityMoreData> {
                     Center(
                       child: GestureDetector(
                         onTap: () {
-                          //print("哈哈哈哈");
-
-                          if (showFilterWidget == false) {
-                            print("展开");
-                          } else {
-                            print("隐藏");
-                          }
                           showFilterWidget = !showFilterWidget;
                           setState(() {});
                         },
@@ -2464,7 +2304,7 @@ class _ActivityMoreDataState extends State<ActivityMoreData> {
             ),
             // 过滤器
             showFilterWidget == true
-                ? BloodPressureFilterWidget(
+                ? ActivityFilterWidget(
                     filterParam: filterParam,
                     prevArmsSelected: prevArmsSelected,
                     prevFeelingsSelected: prevFeelingsSelected,
@@ -2478,7 +2318,7 @@ class _ActivityMoreDataState extends State<ActivityMoreData> {
                 : Container(),
 
             // table数据表格
-            BloodPressureRecordWidget(
+            ActivityRecordWidget(
               accountId: widget.arguments["accountId"],
               filterParam: filterParam,
               oldParam: isOldParam,

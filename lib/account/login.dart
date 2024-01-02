@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import './token.dart';
 
 class LoginPage extends StatefulWidget {
@@ -17,13 +17,13 @@ class _LoginPageState extends State<LoginPage> {
       TextEditingController(text: "");
   final TextEditingController passwordController =
       TextEditingController(text: "");
+  int accountId = -1;
   bool isLoggedIn = false;
   bool isLoginFailed = false;
-  Dio dio = Dio();
   String loginStateHintText = "";
-  int accountId = -1;
   OverlayEntry? overlayEntry;
 
+  // 获取用户id
   Future<void> getAccountId() async {
     var token = await storage.read(key: 'token');
 
@@ -50,26 +50,28 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // 登录函数
-  void login() async {
+  Future<void> login() async {
+    // 获取用户输入的用户名与密码
     final username = usernameController.text;
     final password = passwordController.text;
 
-    //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
-
+    // 判断用户名与密码是否为空
     if (!(username.isEmpty || password.isEmpty)) {
+      // 显示加载动画
       loginLoadingTypeOverlay(context);
 
       const String loginApi = 'http://43.138.75.58:8080/api/auth/login';
       print("登录请求中 $username $password");
       try {
+        final Dio dio = Dio();
         Response response = await dio.post(loginApi, queryParameters: {
           'username': username,
           'password': password,
         });
+        // 登录成功后，移除加载动画
         overlayEntry?.remove();
 
         print(response.data);
-        //overlayEntry?.remove();
 
         if (response.data['code'] == 200) {
           print("登录成功");
@@ -79,28 +81,26 @@ class _LoginPageState extends State<LoginPage> {
           });
 
           // 保存token
-
           await storage.write(
               key: "token", value: response.data["data"]["token"]);
-          /* print(response.data["data"]["token"]);
-          print("-==============================");
-          var value = await storage.read(key: 'token');
-          print(value);
-          print("-=============================="); */
           await getAccountId().then((value) => Navigator.pushNamed(
               context, '/mainPages',
               arguments: {"accountId": -1}));
-
-          //Navigator.pushReplacement(context, '/mainPages', arguments: {"id": 1});
-        } else if (response.data['code'] == 403) {
+        }
+        // 登录失败
+        else if (response.data['code'] == 403) {
           isLoginFailed = true;
           print(response.data["message"]);
+          // 显示登录失败提示信息
           setState(() {
             loginStateHintText = response.data["message"];
           });
-        } else if (response.data['code'] == 401) {
+        }
+        // 用户或密码不正确
+        else if (response.data['code'] == 401) {
           isLoginFailed = true;
           print(response.data["message"]);
+          // 显示登录失败提示信息
           setState(() {
             loginStateHintText = "用户或密码不正确";
           });
@@ -108,20 +108,26 @@ class _LoginPageState extends State<LoginPage> {
       } on DioException catch (error) {
         overlayEntry?.remove();
         final response = error.response;
-        //Navigator.pushNamed(context, '/mainPages', arguments: {"id": 1});
         if (response != null) {
           print(response.data);
           print("登录请求失败1");
         } else {
-          // Something happened in setting up or sending the request that triggered an Error
           print(error.requestOptions);
           print(error.message);
           print("登录请求失败2");
         }
       }
     }
+    // 用户名或密码为空
+    else {
+      setState(() {
+        isLoginFailed = true;
+        loginStateHintText = "用户名或密码不能为空";
+      });
+    }
   }
 
+  // 登录加载动画
   void loginLoadingTypeOverlay(BuildContext context) async {
     overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -129,13 +135,11 @@ class _LoginPageState extends State<LoginPage> {
         left: 0,
         child: Material(
           color: Colors.transparent,
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            //color: const Color.fromARGB(156, 255, 255, 255),
-            //child: getTypeSelector2(),
             child: Center(
-              child: Container(
+              child: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 child: Center(
@@ -154,34 +158,38 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return
-        //SafeArea(  // 可以避免摄像头等
-        //child:
-        Scaffold(
-      //避免键盘弹出时，出现overFlow现象
-      //https://stackoverflow.com/questions/54156420/flutter-bottom-overflowed-by-119-pixels
-      resizeToAvoidBottomInset: false,
-      body: Container(
-        constraints: BoxConstraints.expand(),
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/loginBg1.png"),
-            fit: BoxFit.cover,
-            opacity: 0.66,
+    return PopScope(
+      onPopInvoked: (bool didPop) {
+        if (didPop) {
+          //退出app
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        //避免键盘弹出时，出现overFlow现象
+        //https://stackoverflow.com/questions/54156420/flutter-bottom-overflowed-by-119-pixels
+        resizeToAvoidBottomInset: false,
+        body: Container(
+          // 背景图片
+          constraints: const BoxConstraints.expand(),
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/images/loginBg1.png"),
+              fit: BoxFit.cover,
+              opacity: 0.66,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            // TriGuard白透明背景标题
-            Padding(
+          child: Column(
+            children: [
+              // TriGuard白透明背景标题
+              Padding(
                 padding: EdgeInsets.only(
                     top: MediaQuery.of(context).size.height * 0.15, bottom: 0),
                 child: Stack(
                   alignment: Alignment.center,
                   children: <Widget>[
+                    // 图片
                     Container(
-                      //height: 220, // 设置Logo图片的高度
-                      //width: 357, // 设置Logo图片的宽度
                       width: MediaQuery.of(context).size.width *
                           0.85, // 宽度占屏幕宽度的90%
                       height: MediaQuery.of(context).size.height *
@@ -191,14 +199,14 @@ class _LoginPageState extends State<LoginPage> {
                           image: AssetImage("assets/images/loginLogo.png"),
                           fit: BoxFit.contain,
                           opacity: 1,
-                          //alignment: Alignment.topCenter,
                         ),
                       ),
                     ),
+
+                    // TriGuard文字
                     Container(
                         width: MediaQuery.of(context).size.width * 0.75,
                         height: 50,
-                        //color: Color.fromARGB(190, 255, 255, 255),
                         decoration: const BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(30)),
                           color: Color.fromARGB(220, 255, 255, 255),
@@ -211,11 +219,11 @@ class _LoginPageState extends State<LoginPage> {
                           color: Colors.black),
                     ),
                   ],
-                )),
+                ),
+              ),
 
-            // 登录组件
-            Container(
-              child: Padding(
+              // 登录组件
+              Padding(
                 padding: const EdgeInsets.only(top: 10, bottom: 0),
                 child: SingleChildScrollView(
                   child: Column(
@@ -252,19 +260,20 @@ class _LoginPageState extends State<LoginPage> {
                             labelStyle: const TextStyle(
                               color: Color.fromARGB(96, 104, 104, 104),
                             ),
-                            //fillColor: Color.fromARGB(190, 255, 255, 255),
                             fillColor: const Color.fromARGB(187, 250, 250, 250),
                             filled: true,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
                               borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 0, 0, 0.2)),
-                              //borderSide: BorderSide.none
+                                color: Color.fromRGBO(0, 0, 0, 0.2),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(25),
-                                borderSide: const BorderSide(
-                                    color: Color.fromARGB(179, 145, 145, 145))),
+                              borderRadius: BorderRadius.circular(25),
+                              borderSide: const BorderSide(
+                                color: Color.fromARGB(179, 145, 145, 145),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -276,13 +285,11 @@ class _LoginPageState extends State<LoginPage> {
                       //密码框
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.7,
-                        //height: 45,
                         child: TextFormField(
                           controller: passwordController,
                           obscureText: true, //隐藏密码
                           textAlign: TextAlign.left,
                           textAlignVertical: TextAlignVertical.top,
-                          //maxLines: 1,
                           cursorColor: Colors.black38,
                           style: const TextStyle(color: Colors.black),
 
@@ -291,31 +298,33 @@ class _LoginPageState extends State<LoginPage> {
                             contentPadding:
                                 const EdgeInsets.fromLTRB(0, 10, 15, 10),
                             prefixIcon: Padding(
-                                padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                                child: Image.asset(
-                                  "assets/icons/lock.png",
-                                  width: 20,
-                                  height: 20,
-                                )),
+                              padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                              child: Image.asset(
+                                "assets/icons/lock.png",
+                                width: 20,
+                                height: 20,
+                              ),
+                            ),
                             prefixIconConstraints:
                                 const BoxConstraints(minWidth: 60),
                             labelText: '密码',
                             labelStyle: const TextStyle(
                               color: Color.fromARGB(96, 104, 104, 104),
                             ),
-                            //fillColor: Color.fromARGB(190, 255, 255, 255),
                             fillColor: const Color.fromARGB(187, 250, 250, 250),
                             filled: true,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
                               borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 0, 0, 0.2)),
-                              //borderSide: BorderSide.none
+                                color: Color.fromRGBO(0, 0, 0, 0.2),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(25),
-                                borderSide: const BorderSide(
-                                    color: Color.fromARGB(179, 145, 145, 145))),
+                              borderRadius: BorderRadius.circular(25),
+                              borderSide: const BorderSide(
+                                color: Color.fromARGB(179, 145, 145, 145),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -341,13 +350,10 @@ class _LoginPageState extends State<LoginPage> {
                         child: SizedBox(
                           width: MediaQuery.of(context).size.width * 0.7,
                           child: FilledButton(
-                            onPressed: () {
-                              login();
-                              //Navigator.pushNamed(context, '/mainPages');
-                              // print("object");
+                            onPressed: () async {
+                              // 等待登录
+                              await login();
                             },
-                            //onPressed: onPressed,
-
                             style: FilledButton.styleFrom(
                               backgroundColor:
                                   const Color.fromARGB(255, 255, 132, 176),
@@ -384,55 +390,16 @@ class _LoginPageState extends State<LoginPage> {
                             )
                           :
                           // 登录失败时显示
-
                           const SizedBox(
                               height: 15,
                             ),
 
-                      //忘记密码 或选择
-                      /*  Container(
-                        width: MediaQuery.of(context).size.width * 0.7,
-                        height: 40,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    0, 0, 15, 0), //(0, 0, 10, 0),
-                                child: TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        isLoginFailed = false;
-                                      });
-                                      Navigator.pushNamed(
-                                          context, '/resetPassword');
-                                    },
-                                    child: const Text(
-                                      "忘记密码",
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: Color.fromARGB(
-                                              255, 106, 116, 207)),
-                                    ))),
-                            const Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                  10, 0, 25, 0), //(10, 0, 15, 0),
-                              child: Text(
-                                "或选择",
-                                style: TextStyle(
-                                    fontSize: 12, color: Colors.black38),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
- */
-
                       const SizedBox(
                         height: 10,
                       ),
-                      //其他登录方式
-                      Container(
+
+                      //忘记密码/点此注册
+                      SizedBox(
                         width: MediaQuery.of(context).size.width * 0.7,
                         height: 45,
                         child: Row(
@@ -459,6 +426,7 @@ class _LoginPageState extends State<LoginPage> {
                                   setState(() {
                                     isLoginFailed = false;
                                   });
+                                  // 跳转到重置密码页面
                                   Navigator.pushNamed(
                                       context, '/resetPassword');
                                 },
@@ -472,12 +440,6 @@ class _LoginPageState extends State<LoginPage> {
                                     Padding(
                                       padding:
                                           const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                      /* child: Icon(
-                                        Icons.phone_iphone,
-                                        color:
-                                            Color.fromARGB(255, 119, 119, 119),
-                                        size: 16,
-                                      ), */
                                       child: Image.asset(
                                         "assets/icons/resetPassword2.png",
                                         width: 18,
@@ -496,6 +458,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                             ),
+                            // 点此注册
                             Container(
                               width: MediaQuery.of(context).size.width *
                                   0.7 *
@@ -517,10 +480,10 @@ class _LoginPageState extends State<LoginPage> {
                                   setState(() {
                                     isLoginFailed = false;
                                   });
+                                  // 跳转到注册账号页面
                                   Navigator.pushNamed(
                                       context, '/account/register');
                                 },
-                                // text with icon
                                 style: FilledButton.styleFrom(
                                   backgroundColor: Colors.white,
                                 ),
@@ -531,12 +494,6 @@ class _LoginPageState extends State<LoginPage> {
                                     Padding(
                                       padding:
                                           const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                      /* child: Icon(
-                                        Icons.email,
-                                        color:
-                                            Color.fromARGB(255, 119, 119, 119),
-                                        size: 16,
-                                      ), */
                                       child: Image.asset(
                                         "assets/icons/register2.png",
                                         width: 20,
@@ -559,60 +516,17 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
 
-                      // 短信/邮箱登录下的分割线
                       const SizedBox(
                         height: 15,
                       ),
-
-                      //没有账号? 点此注册
-                      /* Container(
-                        width: MediaQuery.of(context).size.width * 0.7,
-                        height: 45,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // 没有账号
-                            const Padding(
-                              padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                              child: Text(
-                                "没有账号?",
-                                style: TextStyle(
-                                    fontSize: 12, color: Colors.black38),
-                              ),
-                            ),
-
-                            // 点此注册
-                            Padding(
-                                padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-                                child: TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        isLoginFailed = false;
-                                      });
-                                      Navigator.pushNamed(
-                                          context, '/account/register');
-                                    },
-                                    child: const Text(
-                                      "点此注册",
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: Color.fromARGB(
-                                              255, 106, 116, 207)),
-                                    ))),
-                          ],
-                        ),
-                      ),
-                   
-                    */
                     ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      //),
     );
   }
 }

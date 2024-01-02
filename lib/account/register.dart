@@ -4,9 +4,8 @@ import '../component/header/header.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
 
+// 注册下拉菜单
 class RegisterDropdownButton extends StatefulWidget {
-  //const RegisterDropdownButton({super.key, required this.onChanged});
-
   const RegisterDropdownButton({
     Key? key,
     required this.onChanged,
@@ -62,6 +61,7 @@ class _RegisterDropdownButtonState extends State<RegisterDropdownButton> {
   }
 }
 
+// 注册状态对话框
 class RegisterStateDialog extends StatefulWidget {
   final String content;
   const RegisterStateDialog({Key? key, required this.content})
@@ -168,6 +168,7 @@ class _RegisterStateDialogState extends State<RegisterStateDialog> {
   }
 }
 
+// 注册页面
 class RegisterAccount extends StatefulWidget {
   const RegisterAccount({super.key});
 
@@ -176,16 +177,14 @@ class RegisterAccount extends StatefulWidget {
 }
 
 class _RegisterAccountState extends State<RegisterAccount> {
-  String methodLabelText = "邮箱";
-  String methodIconPath = "assets/icons/email.png";
-  String methodPrexifText = "";
-  String validCodeSentHintText = "验证码已经发送";
-
   final TextEditingController userController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController validCodeController = TextEditingController();
-
+  String methodLabelText = "邮箱";
+  String methodIconPath = "assets/icons/email.png";
+  String methodPrexifText = "";
+  String validCodeSentHintText = "验证码已经发送";
   bool isSignedUp = false;
   int sentValidCodeState = 0;
   Dio dio = Dio();
@@ -197,30 +196,28 @@ class _RegisterAccountState extends State<RegisterAccount> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Container(
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "注册成功",
-                  style: TextStyle(
-                      fontSize: 25,
-                      //文字阴影
-                      shadows: <Shadow>[
-                        Shadow(
-                          offset: Offset(0.0, 1),
-                          blurRadius: 5.0,
-                          color: Color.fromARGB(100, 0, 0, 0),
-                        ),
-                      ]),
-                ),
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.greenAccent,
-                  size: 30,
-                ),
-              ],
-            ),
+          title: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "注册成功",
+                style: TextStyle(
+                    fontSize: 25,
+                    //文字阴影
+                    shadows: <Shadow>[
+                      Shadow(
+                        offset: Offset(0.0, 1),
+                        blurRadius: 5.0,
+                        color: Color.fromARGB(100, 0, 0, 0),
+                      ),
+                    ]),
+              ),
+              Icon(
+                Icons.check_circle,
+                color: Colors.greenAccent,
+                size: 30,
+              ),
+            ],
           ),
           content: const Text("欢迎使用TriGuard！让我们一切打造幸福健康的生活吧！"),
 
@@ -233,14 +230,14 @@ class _RegisterAccountState extends State<RegisterAccount> {
                 Navigator.pushNamed(context, '/');
               },
               style: FilledButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 211, 211, 211),
+                backgroundColor: const Color.fromARGB(255, 211, 211, 211),
                 textStyle: const TextStyle(
                   fontSize: 16.0,
                 ),
               ),
-              child: Container(
+              child: const SizedBox(
                 width: 90,
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
@@ -283,7 +280,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
         validCode.isEmpty ||
         username.isEmpty ||
         password.isEmpty) {
-      showFailSignUpDialog("手机号/邮箱，用户名，密码，验证码其中一者不能为空！");
+      showFailSignUpDialog("邮箱，用户名，密码，验证码其中一者不能为空！");
       return;
     }
 
@@ -318,7 +315,6 @@ class _RegisterAccountState extends State<RegisterAccount> {
         print(response.data);
         showFailSignUpDialog("注册失败！你可能已经注册过，或者验证码不正确，用户名密码格式不正确！");
       } else {
-        // Something happened in setting up or sending the request that triggered an Error
         print(error.requestOptions);
         print(error.message);
         showFailSignUpDialog("注册失败！");
@@ -326,8 +322,8 @@ class _RegisterAccountState extends State<RegisterAccount> {
     }
   }
 
+  // 请求验证码
   Future<void> getValidCode() async {
-    print("获取验证码");
     final String email = userController.text;
     final String emailGetValidCodeApi =
         "http://43.138.75.58:8080/api/auth/email-code?email=${email}&type=register";
@@ -343,6 +339,11 @@ class _RegisterAccountState extends State<RegisterAccount> {
     } else {
       print("获取验证码失败");
       validCodeSentHintText = response.data["message"];
+
+      if (response.data["message"] ==
+          "askVerifyCode.email: must be a well-formed email address") {
+        validCodeSentHintText = "邮箱格式错误！";
+      }
 
       if (response.data["message"] == "请求参数有误") {
         validCodeSentHintText = "邮箱格式错误！";
@@ -369,7 +370,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
         ),
         alignment: Alignment.center,
         child: Column(children: [
-          // 间距
+          // 顶部间距
           SizedBox(height: MediaQuery.of(context).size.width * 0.15),
 
           //账号注册 标题
@@ -400,35 +401,7 @@ class _RegisterAccountState extends State<RegisterAccount> {
           ),
           const SizedBox(height: 20),
 
-          /* //下拉菜单 选择 “手机号”或“邮箱”
-          Container(
-            decoration: BoxDecoration(
-                color: const Color.fromARGB(187, 250, 250, 250),
-                borderRadius: const BorderRadius.all(Radius.circular(25)),
-                border: Border.all(color: const Color.fromRGBO(0, 0, 0, 0.2))),
-            width: MediaQuery.of(context).size.width * 0.75,
-            height: 45,
-            child: RegisterDropdownButton(
-              onChanged: (String? newValue) {
-                setState(() {
-                  //dropdownValue = newValue!;
-                  if (newValue == "手机号") {
-                    methodLabelText = "手机号";
-                    methodIconPath = "assets/icons/smartphone.png";
-                    methodPrexifText = "+86";
-                  } else if (newValue == "邮箱") {
-                    methodLabelText = "邮箱";
-                    methodIconPath = "assets/icons/email.png";
-                    methodPrexifText = "";
-                  }
-                });
-              },
-            ),
-          ),
-
-          SizedBox(height: MediaQuery.of(context).size.width * 0.05), */
-
-          // 手机号输入
+          // 邮箱输入
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.75,
             child: TextField(
@@ -494,17 +467,16 @@ class _RegisterAccountState extends State<RegisterAccount> {
                 contentPadding: const EdgeInsets.fromLTRB(0, 10, 15, 10),
                 counterStyle: const TextStyle(color: Colors.black38),
                 prefixIcon: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: Image.asset(
-                      "assets/icons/profile.png",
-                      width: 20,
-                      height: 20,
-                    )),
-                //prefixText: methodPrexifText,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                  child: Image.asset(
+                    "assets/icons/profile.png",
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
                 prefixStyle: const TextStyle(
                   color: Colors.black38,
                   fontSize: 16,
-                  //fontFamily: 'Blinker',
                 ),
                 prefixIconConstraints: const BoxConstraints(minWidth: 60),
                 labelText: "用户名",
@@ -515,17 +487,21 @@ class _RegisterAccountState extends State<RegisterAccount> {
                 filled: true,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
-                  borderSide:
-                      const BorderSide(color: Color.fromRGBO(0, 0, 0, 0.2)),
+                  borderSide: const BorderSide(
+                    color: Color.fromRGBO(0, 0, 0, 0.2),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(179, 145, 145, 145))),
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(179, 145, 145, 145),
+                  ),
+                ),
               ),
             ),
           ),
 
+          // 用户名提示
           const Text("谨慎填写，用户名不可再修改!", style: TextStyle(color: Colors.red)),
           const SizedBox(height: 10),
 
@@ -545,20 +521,19 @@ class _RegisterAccountState extends State<RegisterAccount> {
                 contentPadding: const EdgeInsets.fromLTRB(0, 10, 15, 10),
                 counterStyle: const TextStyle(color: Colors.black38),
                 prefixIcon: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: Image.asset(
-                      "assets/icons/lock.png",
-                      width: 20,
-                      height: 20,
-                    )),
-                //prefixText: methodPrexifText,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                  child: Image.asset(
+                    "assets/icons/lock.png",
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
                 prefixStyle: const TextStyle(
                   color: Colors.black38,
                   fontSize: 16,
-                  //fontFamily: 'Blinker',
                 ),
                 prefixIconConstraints: const BoxConstraints(minWidth: 60),
-                labelText: "密码",
+                labelText: "密码(至少6位)",
                 labelStyle: const TextStyle(
                   color: Color.fromARGB(96, 104, 104, 104),
                 ),
@@ -566,13 +541,16 @@ class _RegisterAccountState extends State<RegisterAccount> {
                 filled: true,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
-                  borderSide:
-                      const BorderSide(color: Color.fromRGBO(0, 0, 0, 0.2)),
+                  borderSide: const BorderSide(
+                    color: Color.fromRGBO(0, 0, 0, 0.2),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(179, 145, 145, 145))),
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(179, 145, 145, 145),
+                  ),
+                ),
               ),
             ),
           ),

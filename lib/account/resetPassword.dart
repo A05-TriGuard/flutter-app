@@ -4,9 +4,8 @@ import '../component/header/header.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
 
+// 手机号/邮箱选择下拉菜单
 class RegisterDropdownButton extends StatefulWidget {
-  //const RegisterDropdownButton({super.key, required this.onChanged});
-
   const RegisterDropdownButton({
     Key? key,
     required this.onChanged,
@@ -22,7 +21,7 @@ class _RegisterDropdownButtonState extends State<RegisterDropdownButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: MediaQuery.of(context).size.width * 0.75,
       child: DropdownButtonHideUnderline(
         child: ButtonTheme(
@@ -31,19 +30,15 @@ class _RegisterDropdownButtonState extends State<RegisterDropdownButton> {
             value: dropdownValue,
             icon: const Icon(Icons.arrow_drop_down),
             elevation: 16,
-
             style: const TextStyle(color: Color.fromARGB(255, 56, 56, 56)),
-            //修改宽度，与高度，然后要圆角
             borderRadius: BorderRadius.circular(25),
             isExpanded: true,
             padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
             underline: Container(
               height: 0,
-              //color: Colors.deepPurpleAccent,
               color: Colors.transparent,
             ),
             onChanged: (String? value) {
-              // This is called when the user selects an item.
               setState(() {
                 dropdownValue = value!;
                 widget.onChanged(dropdownValue);
@@ -62,6 +57,7 @@ class _RegisterDropdownButtonState extends State<RegisterDropdownButton> {
   }
 }
 
+// 重置密码失败对话框
 class ResetFailedDialog extends StatefulWidget {
   final String content;
   const ResetFailedDialog({Key? key, required this.content}) : super(key: key);
@@ -73,34 +69,29 @@ class ResetFailedDialog extends StatefulWidget {
 class _ResetFailedDialogState extends State<ResetFailedDialog> {
   @override
   Widget build(BuildContext context) {
+    // 对话框
     return AlertDialog(
       backgroundColor: Colors.white,
-      title: Container(
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "重置密码失败",
-              style: TextStyle(
-                  fontSize: 25,
-                  //文字阴影
-                  shadows: <Shadow>[
-                    Shadow(
-                      offset: Offset(0.0, 1),
-                      blurRadius: 5.0,
-                      color: Color.fromARGB(100, 0, 0, 0),
-                    ),
-                  ]),
-            ),
-            Icon(
-              Icons.cancel,
-              color: Colors.red,
-              size: 30,
-            ),
-          ],
-        ),
+      title: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "重置密码失败",
+            style: TextStyle(fontSize: 25, shadows: <Shadow>[
+              Shadow(
+                offset: Offset(0.0, 1),
+                blurRadius: 5.0,
+                color: Color.fromARGB(100, 0, 0, 0),
+              ),
+            ]),
+          ),
+          Icon(
+            Icons.cancel,
+            color: Colors.red,
+            size: 30,
+          ),
+        ],
       ),
-      //content: const Text("注册失败，您可能已经注册过了！或者验证码不正确！"),
       content: Text(widget.content),
 
       // 尝试登录按钮
@@ -111,14 +102,14 @@ class _ResetFailedDialogState extends State<ResetFailedDialog> {
             Navigator.of(context).pop(); // 关闭对话框
           },
           style: FilledButton.styleFrom(
-            backgroundColor: Color.fromARGB(255, 211, 211, 211),
+            backgroundColor: const Color.fromARGB(255, 211, 211, 211),
             textStyle: const TextStyle(
               fontSize: 16.0,
             ),
           ),
-          child: Container(
+          child: const SizedBox(
             width: 90,
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
@@ -135,6 +126,7 @@ class _ResetFailedDialogState extends State<ResetFailedDialog> {
   }
 }
 
+// 重置密码页面
 class ResetPassword extends StatefulWidget {
   const ResetPassword({super.key});
 
@@ -143,15 +135,13 @@ class ResetPassword extends StatefulWidget {
 }
 
 class _ResetPasswordState extends State<ResetPassword> {
+  final TextEditingController userController = TextEditingController();
+  final TextEditingController newPasswordController = TextEditingController();
+  final TextEditingController validCodeController = TextEditingController();
   String methodLabelText = "邮箱";
   String methodIconPath = "assets/icons/email.png";
   String methodPrexifText = "";
   String validCodeSentHintText = "验证码已经发送";
-
-  final TextEditingController userController = TextEditingController();
-  final TextEditingController newPasswordController = TextEditingController();
-  final TextEditingController validCodeController = TextEditingController();
-
   bool isSignedUp = false;
   int sentValidCodeState = 0;
   Dio dio = Dio();
@@ -163,30 +153,25 @@ class _ResetPasswordState extends State<ResetPassword> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Container(
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "成功重置密码",
-                  style: TextStyle(
-                      fontSize: 25,
-                      //文字阴影
-                      shadows: <Shadow>[
-                        Shadow(
-                          offset: Offset(0.0, 1),
-                          blurRadius: 5.0,
-                          color: Color.fromARGB(100, 0, 0, 0),
-                        ),
-                      ]),
-                ),
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.greenAccent,
-                  size: 30,
-                ),
-              ],
-            ),
+          title: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "成功重置密码",
+                style: TextStyle(fontSize: 25, shadows: <Shadow>[
+                  Shadow(
+                    offset: Offset(0.0, 1),
+                    blurRadius: 5.0,
+                    color: Color.fromARGB(100, 0, 0, 0),
+                  ),
+                ]),
+              ),
+              Icon(
+                Icons.check_circle,
+                color: Colors.greenAccent,
+                size: 30,
+              ),
+            ],
           ),
           content: const Text("重置密码成功！赶紧去登录吧！"),
 
@@ -204,9 +189,10 @@ class _ResetPasswordState extends State<ResetPassword> {
                   fontSize: 16.0,
                 ),
               ),
-              child: SizedBox(
+              // 立即登录按钮
+              child: const SizedBox(
                 width: 90,
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
@@ -245,7 +231,7 @@ class _ResetPasswordState extends State<ResetPassword> {
 
     // 校验：手机号/邮箱，用户名，密码，验证码其中一者不能为空
     if (user.isEmpty || validCode.isEmpty || newPassword.isEmpty) {
-      showFailResetPwdDialog("手机号/邮箱，密码，验证码其中一者不能为空！");
+      showFailResetPwdDialog("邮箱，密码，验证码其中一者不能为空！");
       return;
     }
 
@@ -268,7 +254,6 @@ class _ResetPasswordState extends State<ResetPassword> {
         print("成功重置密码");
         showSuccessResetPwdDialog();
       } else {
-        //showFailSignUpDialog("注册失败！${response.data["message"]}");
         showFailResetPwdDialog("重置密码失败！验证码错误");
       }
     }
@@ -279,7 +264,6 @@ class _ResetPasswordState extends State<ResetPassword> {
         print(response.data);
         showFailResetPwdDialog("重置密码失败！用户名，密码格，验证码式不正确！");
       } else {
-        // Something happened in setting up or sending the request that triggered an Error
         print(error.requestOptions);
         print(error.message);
         showFailResetPwdDialog("重置密码失败！！");
@@ -287,9 +271,8 @@ class _ResetPasswordState extends State<ResetPassword> {
     }
   }
 
+  // 请求验证码
   Future<void> getValidCode() async {
-    print("获取验证码");
-
     final String email = userController.text;
     final String emailGetValidCodeApi =
         "http://43.138.75.58:8080/api/auth/email-code?email=${email}&type=register";
@@ -313,8 +296,13 @@ class _ResetPasswordState extends State<ResetPassword> {
       print("获取验证码失败");
       validCodeSentHintText = response.data["message"];
 
-      if (response.data["message"] == "请求参数有误") {
+      if (response.data["message"] ==
+          "askVerifyCode.email: must be a well-formed email address") {
         validCodeSentHintText = "邮箱格式错误！";
+      }
+
+      if (response.data["message"] == "请求参数有误") {
+        validCodeSentHintText = "请填写正确的邮箱！";
       }
       sentValidCodeState = -1;
     }
@@ -432,18 +420,22 @@ class _ResetPasswordState extends State<ResetPassword> {
                 filled: true,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
-                  borderSide:
-                      const BorderSide(color: Color.fromRGBO(0, 0, 0, 0.2)),
+                  borderSide: const BorderSide(
+                    color: Color.fromRGBO(0, 0, 0, 0.2),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(179, 145, 145, 145))),
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(179, 145, 145, 145),
+                  ),
+                ),
               ),
             ),
           ),
 
           const SizedBox(height: 20),
+
           // 新密码输入
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.75,
@@ -460,20 +452,19 @@ class _ResetPasswordState extends State<ResetPassword> {
                 contentPadding: const EdgeInsets.fromLTRB(0, 10, 15, 10),
                 counterStyle: const TextStyle(color: Colors.black38),
                 prefixIcon: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: Image.asset(
-                      "assets/icons/lock.png",
-                      width: 20,
-                      height: 20,
-                    )),
-                //prefixText: methodPrexifText,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                  child: Image.asset(
+                    "assets/icons/lock.png",
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
                 prefixStyle: const TextStyle(
                   color: Colors.black38,
                   fontSize: 16,
-                  //fontFamily: 'Blinker',
                 ),
                 prefixIconConstraints: const BoxConstraints(minWidth: 60),
-                labelText: "新密码",
+                labelText: "新密码(至少6位)",
                 labelStyle: const TextStyle(
                   color: Color.fromARGB(96, 104, 104, 104),
                 ),
@@ -481,13 +472,16 @@ class _ResetPasswordState extends State<ResetPassword> {
                 filled: true,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
-                  borderSide:
-                      const BorderSide(color: Color.fromRGBO(0, 0, 0, 0.2)),
+                  borderSide: const BorderSide(
+                    color: Color.fromRGBO(0, 0, 0, 0.2),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(179, 145, 145, 145))),
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(179, 145, 145, 145),
+                  ),
+                ),
               ),
             ),
           ),

@@ -103,15 +103,12 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
 
   @override
   Widget build(BuildContext context) {
-    //print("血压图表天数显示刷新 ${widget.selectedValue}");
     return Row(
-      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
           "显示：",
           style: TextStyle(fontSize: 15, fontFamily: "BalooBhai"),
         ),
-
         DropdownButtonHideUnderline(
           child: DropdownButton2<String>(
             isExpanded: true,
@@ -137,8 +134,6 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
             onChanged: (String? value) {
               setState(() {
                 widget.selectedValue = value;
-                //print("更改为 ${widget.selectedValue}");
-                //widget.updateView();
                 widget.updateDays(widget.selectedValue!);
               });
             },
@@ -146,15 +141,12 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
               padding: EdgeInsets.symmetric(horizontal: 16),
               height: 40,
               width: 140,
-              // decoration:
-              //     BoxDecoration(borderRadius: BorderRadius.circular(10)),
             ),
             menuItemStyleData: const MenuItemStyleData(
               height: 40,
             ),
           ),
         ),
-        // DatePicker(),
       ],
     );
   }
@@ -162,24 +154,24 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
 
 // 血压图表
 // ignore: must_be_immutable
-class BloodPressureGraph extends StatefulWidget {
+class ActivityGraph extends StatefulWidget {
   final int accountId;
   DateTime date;
   final String selectedDays;
   final UpdateDateCallback updateDate;
-  BloodPressureGraph(
-      {Key? key,
-      required this.accountId,
-      required this.date,
-      required this.selectedDays,
-      required this.updateDate})
-      : super(key: key);
+  ActivityGraph({
+    Key? key,
+    required this.accountId,
+    required this.date,
+    required this.selectedDays,
+    required this.updateDate,
+  }) : super(key: key);
 
   @override
-  State<BloodPressureGraph> createState() => _BloodPressureGraphState();
+  State<ActivityGraph> createState() => _ActivityGraphState();
 }
 
-class _BloodPressureGraphState extends State<BloodPressureGraph> {
+class _ActivityGraphState extends State<ActivityGraph> {
   // 从后端请求得到的原始数据
   List<dynamic> data = [];
   List<dynamic> exerciseDataList = [];
@@ -199,7 +191,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
   Future<void> getDataListFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestEndDate = getFormattedDate(widget.date);
-    //String endDate = getFormattedDate(widget.date);
     if (widget.selectedDays == "当前的月") {
       requestEndDate = getFormattedDate(
           DateTime(widget.date.year, widget.date.month + 1, 0));
@@ -228,12 +219,8 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
     if (response.data["code"] == 200) {
       data = response.data["data"];
     } else {
-      print(response);
       data = [];
     }
-
-    //print("======================图表数据=====================");
-    //print(data);
 
     stepCountData = [];
     exercisingData = [];
@@ -250,22 +237,15 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
       dayData.add(day_);
       monthData.add(month_);
     }
-
-    //setState(() {});
   }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    //print('血压图表更新：${widget.date}');
-    //widget.updateDate(widget.date);
   }
 
   @override
   Widget build(BuildContext context) {
-    //print('血压折线图更新build：${widget.date}，天数：${widget.selectedDays}');
-
     return FutureBuilder(
       future: getDataListFromServer(),
       builder: (context, snapshot) {
@@ -281,7 +261,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                   color: const Color.fromARGB(255, 255, 255, 255),
                   borderRadius: const BorderRadius.all(Radius.circular(15)),
                   border: Border.all(
-                    color: Color.fromRGBO(0, 0, 0, 0.2),
+                    color: const Color.fromRGBO(0, 0, 0, 0.2),
                   ),
                   boxShadow: const [
                     BoxShadow(
@@ -295,7 +275,7 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    Container(
+                    SizedBox(
                       width: dayData.length <= 5
                           ? MediaQuery.of(context).size.width * 0.85
                           : dayData.length * 65, //325
@@ -303,117 +283,117 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
                       child: Echarts(
                         extraScript: '''
-                  var month = $monthData;
-                  var day = $dayData;
-                  
-''',
+                          var month = $monthData;
+                          var day = $dayData;
+                          
+                        ''',
                         option: '''
-              {
-                animation:false,
+                        {
+                          animation:false,
 
-                title: {
-                  text: '活动',
-                  top:'5%',
-                  left:'10',
-                },
+                          title: {
+                            text: '活动',
+                            top:'5%',
+                            left:'10',
+                          },
 
-                legend: {
-                  data: ['步数', '运动时长'],
-                  top:'6%',
-                  left:'70',
-                },
+                          legend: {
+                            data: ['步数', '运动时长'],
+                            top:'6%',
+                            left:'70',
+                          },
 
-                  grid: {
-                  left: '3%',
-                  right: '4%',
-                  bottom: '5%',
-                  top: '30%',
-                  containLabel: true,
-                },
+                            grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '5%',
+                            top: '30%',
+                            containLabel: true,
+                          },
 
-               tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                  type: 'cross',
-                  crossStyle: {
-                    color: '#999'
-                  }
-                }
-              },
+                        tooltip: {
+                          trigger: 'axis',
+                          axisPointer: {
+                            type: 'cross',
+                            crossStyle: {
+                              color: '#999'
+                            }
+                          }
+                        },
 
-                xAxis: {
-                  type: 'category',
-                  boundaryGap: true,
-                  axisLabel: {
-                   interval: 0,
-                   textStyle: {
-                      color: '#000000'
-                  },
-                   formatter: function(index) {
-                        // 自定义显示格式
-                         return day[index] + '/' + month[index]; // 取日期的第一部分
-                   }
-                  },
+                          xAxis: {
+                            type: 'category',
+                            boundaryGap: true,
+                            axisLabel: {
+                            interval: 0,
+                            textStyle: {
+                                color: '#000000'
+                            },
+                            formatter: function(index) {
+                                  // 自定义显示格式
+                                  return day[index] + '/' + month[index]; // 取日期的第一部分
+                            }
+                            },
 
-                },
+                          },
 
-                yAxis:[
-                  { 
-                    type: 'value',
-                    name: '运动时长',
-                    axisLabel:{
-                      textStyle: {
-                          color: '#000000'
-                      },
-                    },
-                    splitLine:{       //y轴刻度线
-                      show:false
-                    }, 
-                  },
+                          yAxis:[
+                            { 
+                              type: 'value',
+                              name: '运动时长',
+                              axisLabel:{
+                                textStyle: {
+                                    color: '#000000'
+                                },
+                              },
+                              splitLine:{       //y轴刻度线
+                                show:false
+                              }, 
+                            },
 
-                  {
-                    type: 'value',
-                    name: '步数',
-                    
-                    axisLabel:{
-                      textStyle: {
-                          color: '#000000'
-                      },
-                    },
-                  },
-                ],
+                            {
+                              type: 'value',
+                              name: '步数',
+                              
+                              axisLabel:{
+                                textStyle: {
+                                    color: '#000000'
+                                },
+                              },
+                            },
+                          ],
 
-                series: [{
-                  name: '步数',
-                  data: $stepCountData,
-                  type: 'bar',
-                  //barWidth: '25%',
-                  barWidth: ${stepCountData.length} < 4? 50 : '60%',
-                  //barGap: '20%',
-                  yAxisIndex: 1,
-                  smooth: true,
-                  tooltip: {
-                    valueFormatter: function (value) {
-                      return value + ' 步';
-                    }
-                  },
-                },
-                {
-                  name: '运动时长',
-                  data: $exercisingData,
-                  type: 'line',
-                 
-                  yAxisIndex: 0,
-                  tooltip: {
-                    valueFormatter: function (value) {
-                      return value + ' 分钟';
-                    }
-                  },
-                  smooth: true
-                },
-                ]
-              }
-            ''',
+                          series: [{
+                            name: '步数',
+                            data: $stepCountData,
+                            type: 'bar',
+                            //barWidth: '25%',
+                            barWidth: ${stepCountData.length} < 4? 50 : '60%',
+                            //barGap: '20%',
+                            yAxisIndex: 1,
+                            smooth: true,
+                            tooltip: {
+                              valueFormatter: function (value) {
+                                return value + ' 步';
+                              }
+                            },
+                          },
+                          {
+                            name: '运动时长',
+                            data: $exercisingData,
+                            type: 'line',
+                          
+                            yAxisIndex: 0,
+                            tooltip: {
+                              valueFormatter: function (value) {
+                                return value + ' 分钟';
+                              }
+                            },
+                            smooth: true
+                          },
+                          ]
+                        }
+                      ''',
                       ),
                     )
                   ],
@@ -422,7 +402,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
             ),
           );
         } else {
-          //return CircularProgressIndicator();
           return Center(
             child: LoadingAnimationWidget.staggeredDotsWave(
                 color: Colors.pink, size: 25),
@@ -435,14 +414,14 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
 // 日期选择器 与 血压图表 组件
 // ignore: must_be_immutable
-class BloodPressureGraphWidget extends StatefulWidget {
+class ActivityGraphWidget extends StatefulWidget {
   final int accountId;
   DateTime date;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
   final UpdateDaysCallback updateDays;
   String selectedDays = "最近7天";
-  BloodPressureGraphWidget(
+  ActivityGraphWidget(
       {Key? key,
       required this.date,
       required this.accountId,
@@ -453,33 +432,22 @@ class BloodPressureGraphWidget extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<BloodPressureGraphWidget> createState() =>
-      _BloodPressureGraphWidgetState();
+  State<ActivityGraphWidget> createState() => _ActivityGraphWidgetState();
 }
 
-class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
+class _ActivityGraphWidgetState extends State<ActivityGraphWidget> {
   String selectedDays2 = "最近7天";
 
   @override
   void initState() {
     super.initState();
-    //setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    //print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
-
-    /* BloodPressureGraph graph =  BloodPressureGraph(
-      date: widget.date,
-      selectedDays: widget.selectedDays,
-      updateDate: widget.updateDate,
-    ); */
-
     GraphDayDropdownButton selectDaysButton = GraphDayDropdownButton(
       updateView: widget.updateView,
       updateDays: widget.updateDays,
-      //selectedValue: selectedDays2,
       selectedValue: widget.selectedDays,
     );
 
@@ -488,9 +456,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(children: [
           Column(
-            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              //GraphDayDropdownButton(updateView: widget.updateView),
               const SizedBox(height: 5),
               DatePicker2(date: widget.date, updateDate: widget.updateDate),
               selectDaysButton,
@@ -498,10 +464,9 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
             ],
           ),
           //graph,
-          BloodPressureGraph(
+          ActivityGraph(
             accountId: widget.accountId,
             date: widget.date,
-            //selectedDays: selectedDays2,
             selectedDays: widget.selectedDays,
             updateDate: widget.updateDate,
           ),
@@ -512,7 +477,7 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
 }
 
 // 只展示 （有备注）
-class BloodPressureData extends StatefulWidget {
+class ActivityData extends StatefulWidget {
   final int accountId;
   final String nickname;
   final int id;
@@ -527,26 +492,26 @@ class BloodPressureData extends StatefulWidget {
 
   final VoidCallback updateData;
 
-  const BloodPressureData(
-      {Key? key,
-      required this.accountId,
-      required this.nickname,
-      required this.id,
-      required this.date,
-      required this.startTime,
-      required this.endTime,
-      required this.duration,
-      required this.type,
-      required this.feeling,
-      required this.remark,
-      required this.updateData})
-      : super(key: key);
+  const ActivityData({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.id,
+    required this.date,
+    required this.startTime,
+    required this.endTime,
+    required this.duration,
+    required this.type,
+    required this.feeling,
+    required this.remark,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
-  State<BloodPressureData> createState() => _BloodPressureDataState();
+  State<ActivityData> createState() => _ActivityDataState();
 }
 
-class _BloodPressureDataState extends State<BloodPressureData> {
+class _ActivityDataState extends State<ActivityData> {
   List<String> armButtonTypes = ["左手", "右手", "不选"];
   List<String> feelingButtonTypes = ["开心", "还好", "不好"];
   bool showRemark = false;
@@ -770,7 +735,6 @@ class _BloodPressureDataState extends State<BloodPressureData> {
                             scrollDirection: Axis.vertical,
                             child: infoPage,
                           ),
-                          //child: infoPage,
                         ),
                         secondChild: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
@@ -778,7 +742,6 @@ class _BloodPressureDataState extends State<BloodPressureData> {
                             scrollDirection: Axis.vertical,
                             child: getRemarkPage(),
                           ),
-                          //child: getRemarkPage(),
                         ),
                         crossFadeState: showRemark
                             ? CrossFadeState.showSecond
@@ -790,7 +753,6 @@ class _BloodPressureDataState extends State<BloodPressureData> {
                     ],
                   ),
                   SizedBox(
-                    //height: 5,
                     child: getPageNum(showRemark),
                   ),
                 ],
@@ -804,8 +766,6 @@ class _BloodPressureDataState extends State<BloodPressureData> {
           // Edit
           GestureDetector(
             onTap: () {
-              print("编辑 ${widget.id}");
-              // accountId, nickname, date, activityDataId
               var args = {
                 "accountId": widget.accountId,
                 "nickname": widget.nickname,
@@ -815,16 +775,13 @@ class _BloodPressureDataState extends State<BloodPressureData> {
               Navigator.pushNamed(context, '/homePage/Activity/Edit',
                       arguments: args)
                   .then((_) {
-                //print("哈哈哈");
                 widget.updateData();
               });
             },
-            child: Container(
-              child: Image.asset(
-                "assets/icons/pencil.png",
-                width: 20,
-                height: 20,
-              ),
+            child: Image.asset(
+              "assets/icons/pencil.png",
+              width: 20,
+              height: 20,
             ),
           ),
         ],
@@ -887,7 +844,6 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
             ),
             GestureDetector(
               onTap: () {
-                print("添加数据");
                 var args = {
                   "accountId": widget.accountId,
                   "nickname": widget.nickname,
@@ -897,11 +853,10 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
                 Navigator.pushNamed(context, '/homePage/Activity/Edit',
                         arguments: args)
                     .then((_) {
-                  //print("哈哈哈");
                   widget.updateData();
                 });
               },
-              child: Container(
+              child: SizedBox(
                 height: 20,
                 width: 20,
                 child:
@@ -917,13 +872,13 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
 
 // 展示所有
 // ignore: must_be_immutable
-class BloodPressureDataList extends StatefulWidget {
+class ActivityDataList extends StatefulWidget {
   final int accountId;
   final String nickname;
   final VoidCallback updateData;
   DateTime date;
   int showMore;
-  BloodPressureDataList({
+  ActivityDataList({
     Key? key,
     required this.accountId,
     required this.nickname,
@@ -933,10 +888,10 @@ class BloodPressureDataList extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodPressureDataList> createState() => _BloodPressureDataListState();
+  State<ActivityDataList> createState() => _ActivityDataListState();
 }
 
-class _BloodPressureDataListState extends State<BloodPressureDataList> {
+class _ActivityDataListState extends State<ActivityDataList> {
   List<Map> data2 = [];
   List<dynamic> data = [];
   List<Widget> dataWidget = [];
@@ -972,21 +927,13 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
         data = response.data["data"];
       }
     } else {
-      print(response);
       data = [];
     }
-    // print("===============运动数据列表=====================");
-    //print(data);
   }
 
   @override
   void initState() {
-    // TODO: 从后端请求数据
-
     super.initState();
-    /* getDataFromServer().then((_) {
-      getdataWidgetList();
-    }); */
   }
 
   void getdataWidgetList() {
@@ -1000,8 +947,6 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       }
     }
 
-    //TODO 要考虑到当天没有数据的情况
-
     // 收起时就显示一个
     if (widget.showMore == 1) {
       length = data.length;
@@ -1010,7 +955,6 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     }
 
     if (data.isEmpty) {
-      //dataWidget.add(NoDataWidget());
       dataWidget.add(NoDataListWidget(
         accountId: widget.accountId,
         nickname: widget.nickname,
@@ -1034,7 +978,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       String remark = data[i]["remark"] ?? "暂无备注";
 
       dataWidget.add(UnconstrainedBox(
-        child: BloodPressureData(
+        child: ActivityData(
           accountId: widget.accountId,
           nickname: widget.nickname,
           id: id_,
@@ -1053,15 +997,10 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     if (data.isEmpty) {
       dataWidget.add(const NoDataWidget());
     }
-
-    //setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    //print(
-    //   "-----------------------------------------------------------------------");
-
     return FutureBuilder(
       future: getDataFromServer(),
       builder: (context, snapshot) {
@@ -1080,7 +1019,7 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
           );
         } else {
           return UnconstrainedBox(
-            child: Container(
+            child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.85,
               height: 100,
               child: Center(
@@ -1097,13 +1036,13 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 
 //展示列表数据接口
 // ignore: must_be_immutable
-class BloodPressureDataWidget extends StatefulWidget {
+class ActivityDataWidget extends StatefulWidget {
   final int accountId;
   final String nickname;
   DateTime date;
   final VoidCallback updateView;
   final VoidCallback updateData;
-  BloodPressureDataWidget({
+  ActivityDataWidget({
     Key? key,
     required this.accountId,
     required this.nickname,
@@ -1113,11 +1052,10 @@ class BloodPressureDataWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodPressureDataWidget> createState() =>
-      _BloodPressureDataWidgetState();
+  State<ActivityDataWidget> createState() => _ActivityDataWidgetState();
 }
 
-class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
+class _ActivityDataWidgetState extends State<ActivityDataWidget> {
   int showMore = 0;
   List<String> buttonText = ["展开", "收起"];
   List<String> buttonIcon = [
@@ -1128,24 +1066,21 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    //dataWidgetList = BloodPressureDataList(date: widget.date, showMore: 1);
   }
 
   @override
   Widget build(BuildContext context) {
-    dataWidgetList = BloodPressureDataList(
+    dataWidgetList = ActivityDataList(
       accountId: widget.accountId,
       nickname: widget.nickname,
       date: widget.date,
       showMore: showMore,
       updateData: widget.updateData,
     );
-    print('血压展示列表数据更新: ${widget.date}');
 
     return Center(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(
           children: [
@@ -1164,29 +1099,14 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
                 GestureDetector(
                   onTap: () {
                     if (showMore == 0) {
-                      //print("展开");
                       showMore = 1;
                     } else {
-                      //  print("收起");
                       showMore = 0;
                     }
 
-                    // TODO
-                    /* if (widget.date != DateTime(2022, 1, 1)) {
-                      widget.date = DateTime(2022, 1, 1);
-                    } */
-                    /* setState(() {
-                      //widget.date = DateTime(2022, 1, 1);
-                    }); */
-                    //widget.updateView();
-                    setState(() {
-                      //dataWidgetList = BloodPressureDataList(
-                      //date: widget.date, showMore: showMore);
-                    });
+                    setState(() {});
                   },
                   child: Container(
-                    //alignment: Alignment.bottomCenter,
-                    // color: Colors.yellow,
                     alignment: Alignment.center,
                     child: Row(
                       children: [
@@ -1210,7 +1130,6 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
               ],
             ),
 
-            ///BloodPressureDataList(date: widget.date, showMore: showMore),
             dataWidgetList,
           ],
         ),
@@ -1220,14 +1139,14 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
 }
 
 // 统计血压次数图表
-class BloodPressureStaticGraph extends StatefulWidget {
+class ActivityStaticGraph extends StatefulWidget {
   final DateTime date;
   final String selectedDays;
   final String seriesName;
   final UpdateDateCallback updateDate;
   final List<int> dataTimes;
   final int type;
-  const BloodPressureStaticGraph({
+  const ActivityStaticGraph({
     Key? key,
     required this.date,
     required this.selectedDays,
@@ -1238,11 +1157,10 @@ class BloodPressureStaticGraph extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodPressureStaticGraph> createState() =>
-      _BloodPressureStaticGraphState();
+  State<ActivityStaticGraph> createState() => _ActivityStaticGraphState();
 }
 
-class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
+class _ActivityStaticGraphState extends State<ActivityStaticGraph> {
   List<String> labelExercising = ["少于30", "30-60", "60-120", "大于120"];
   List<String> labelSteps = ["少于500", "500-1000", "1000-3000", "大于3000"];
 
@@ -1266,10 +1184,6 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
               radius: '60%',
               center: ['65%', '50%'], //第一个是左右，第二个上下
               data: [
-               // { value:  ${widget.dataTimes[0]}, name: '偏高' },
-              //  { value:  ${widget.dataTimes[1]}, name: '正常' },
-               // { value:  ${widget.dataTimes[2]}, name: '偏低' },
-               // { value:  ${widget.dataTimes[3]}, name: '异常' },
                { value:  ${widget.dataTimes[0]}, name: '${label[0]}' },
                 { value:  ${widget.dataTimes[1]}, name:  '${label[1]}'  },
                 { value:  ${widget.dataTimes[2]}, name:  '${label[2]}' },
@@ -1297,8 +1211,6 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
 
   @override
   Widget build(BuildContext context) {
-    //print("血压统计饼图更新 ${widget.date} ${widget.selectedDays}");
-
     return Container(
       width: MediaQuery.of(context).size.width * 0.85,
       height: MediaQuery.of(context).size.height * 0.25,
@@ -1320,7 +1232,7 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
 
 // 血压的基础统计组件
 // ignore: must_be_immutable
-class BloodPressureStaticWidget extends StatefulWidget {
+class ActivityStaticWidget extends StatefulWidget {
   bool refreshData = true;
   final DateTime date;
   final String selectedDays;
@@ -1328,7 +1240,7 @@ class BloodPressureStaticWidget extends StatefulWidget {
   final UpdateDateCallback updateDate;
   final int accountId;
 
-  BloodPressureStaticWidget({
+  ActivityStaticWidget({
     Key? key,
     required this.refreshData,
     required this.date,
@@ -1339,17 +1251,18 @@ class BloodPressureStaticWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodPressureStaticWidget> createState() =>
-      _BloodPressureStaticWidgetState();
+  State<ActivityStaticWidget> createState() => _ActivityStaticWidgetState();
 }
 
-class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
+class _ActivityStaticWidgetState extends State<ActivityStaticWidget> {
   String title = "";
   int pageNum = 0;
 
   List<dynamic> data = [];
   List<String> seriesName = ["运动时长", "步数"];
+  // ignore: non_constant_identifier_names
   List<int> SBPTimes = [0, 0, 0, 0];
+  // ignore: non_constant_identifier_names
   List<int> DBPTimes = [0, 0, 0, 0];
   List<int> heartRateTimes = [0, 0, 0, 0];
   List<int> stepTimes = [0, 0, 0, 0];
@@ -1384,7 +1297,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     if (widget.accountId != -1) {
       params["accountId"] = widget.accountId.toString();
     }
-    // List<dynamic> testData = [];
 
     try {
       response = await dio.post(
@@ -1392,26 +1304,13 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
           data: params);
 
       if (response.data["code"] == 200) {
-        //print("获取血压数据成功（饼图）");
-        //print(response.data["data"]);
-        //data = response.data["data"]["countedDataList"];
-        // print("?????????????????????????????????");
-        //print(response.data["data"]["countedDataList"]);
         data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
       } else {
-        print(response);
         data = [];
       }
     } catch (e) {
-      print(e);
       data = [];
     }
-
-    //return;
-
-    print("================================================================");
-    print(data);
 
     stepTimes = [];
     exerciseTimes = [];
@@ -1424,11 +1323,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     total = [];
     //{name: steps, less: 7, fewer: 0, medium: 1, more: 0},
     //{name: exercise, less: 6, fewer: 1, medium: 0, more: 1}
-
-    /* [
-    {name: sbp, min: 88, max: 111, avg: 101, high: 0, medium: 8, low: 1, abnormal: 0, count: 9}, 
-    {name: dbp, min: 70, max: 111, avg: 83, high: 5, medium: 3, low: 0, abnormal: 1, count: 9}, 
-    {name: heart_rate, min: 72, max: 108, avg: 91, high: 1, medium: 8, low: 0, abnormal: 0, count: 9}] */
 
     for (int i = 0; i < data.length; i++) {
       if (data[i]["name"] == "steps") {
@@ -1447,16 +1341,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     for (int i = 0; i < stepTimes.length; i++) {
       totalTimes += stepTimes[i];
     }
-
-    /* for (int i = 0; i < exerciseTimes.length; i++) {
-      totalTimes += exerciseTimes[i];
-    } */
-
-    /*  print("SBPTimes: $SBPTimes");
-    print("DBPTimes: $DBPTimes");
-    print("heartRateTimes: $heartRateTimes");
-    print("total: $total");
-    print("avg: $avg"); */
   }
 
   Future<void> getDataFromServer() async {
@@ -1488,38 +1372,22 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     try {
       response = await dio.post(
         "http://43.138.75.58:8080/api/blood-pressure/get-by-filter",
-        /*  data: {
-          "startDate": requestStartDate,
-          "endDate": requestEndDate,
-        }, */
         data: params,
       );
       if (response.data["code"] == 200) {
-        //print("获取血压数据成功（饼图）");
-        //print(response.data["data"]);
         data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
       } else {
-        print(response);
         data = [];
       }
     } catch (e) {
-      print(e);
       data = [];
     }
-
-    //print(data);
 
     SBPTimes = [];
     DBPTimes = [];
     heartRateTimes = [];
     avg = [];
     total = [];
-
-    /* [
-    {name: sbp, min: 88, max: 111, avg: 101, high: 0, medium: 8, low: 1, abnormal: 0, count: 9}, 
-    {name: dbp, min: 70, max: 111, avg: 83, high: 5, medium: 3, low: 0, abnormal: 1, count: 9}, 
-    {name: heart_rate, min: 72, max: 108, avg: 91, high: 1, medium: 8, low: 0, abnormal: 0, count: 9}] */
 
     for (int i = 0; i < data.length; i++) {
       if (i == 0) {
@@ -1739,9 +1607,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      /* pageNum == 0
-                          ? '${bloodPressureTimes[0]} '
-                          : '${heartRateTimes[0]} ', */
                       '${getTimesData(pageNum, 0)} ',
                       style: const TextStyle(
                           fontSize: 18,
@@ -1770,9 +1635,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      /* pageNum == 0
-                          ? '${bloodPressureTimes[1]} '
-                          : '${heartRateTimes[1]} ', */
                       '${getTimesData(pageNum, 1)} ',
                       style: const TextStyle(
                           fontSize: 18,
@@ -1807,9 +1669,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      /* pageNum == 0
-                          ? '${bloodPressureTimes[2]} '
-                          : '${heartRateTimes[2]} ', */
                       '${getTimesData(pageNum, 2)} ',
                       style: const TextStyle(
                           fontSize: 18,
@@ -1838,9 +1697,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      /* pageNum == 0
-                          ? '${bloodPressureTimes[3]} '
-                          : '${heartRateTimes[3]} ', */
                       '${getTimesData(pageNum, 3)} ',
                       style: const TextStyle(
                           fontSize: 18,
@@ -1862,7 +1718,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
         ),
 
         // 血压/心率图表
-        BloodPressureStaticGraph(
+        ActivityStaticGraph(
           date: widget.date,
           selectedDays: widget.selectedDays,
           seriesName: seriesName[pageNum],
@@ -2117,22 +1973,20 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 }
 
 // 更多数据按钮
-class BloodPressureMoreInfoButton extends StatefulWidget {
+class ActivityMoreInfoButton extends StatefulWidget {
   final int accountId;
   final String nickname;
-  const BloodPressureMoreInfoButton({
+  const ActivityMoreInfoButton({
     Key? key,
     required this.accountId,
     required this.nickname,
   }) : super(key: key);
 
   @override
-  State<BloodPressureMoreInfoButton> createState() =>
-      _BloodPressureMoreInfoButtonState();
+  State<ActivityMoreInfoButton> createState() => _ActivityMoreInfoButtonState();
 }
 
-class _BloodPressureMoreInfoButtonState
-    extends State<BloodPressureMoreInfoButton> {
+class _ActivityMoreInfoButtonState extends State<ActivityMoreInfoButton> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -2143,14 +1997,12 @@ class _BloodPressureMoreInfoButtonState
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: () {
-                //Navigator.pushNamed(context, 'homePage/BloodPressure/MoreData');
-
                 var args = {
                   "accountId": widget.accountId,
                   "nickname": widget.nickname,
                 };
 
-                Navigator.pushNamed(context, 'homePage/Activity/MoreData',
+                Navigator.pushNamed(context, '/homePage/Activity/MoreData',
                     arguments: args);
               },
               child: Container(
@@ -2237,17 +2089,11 @@ class _StepCountWidgetState extends State<StepCountWidget> {
       );
       if (response.data["code"] == 200) {
         accountId = response.data["data"]["id"];
-        print("获取accountId成功：$accountId");
       } else {
-        print(response);
+        return;
       }
     } catch (e) {
-      print(e);
-    }
-
-    String? test = await storage.read(key: 'test');
-    if (test != null) {
-      print("test:$test");
+      return;
     }
   }
 
@@ -2269,16 +2115,10 @@ class _StepCountWidgetState extends State<StepCountWidget> {
               "http://43.138.75.58:8080/api/sports/steps",
             );
       if (response.data["code"] == 200) {
-        //print("%%%%%%%%%%%%%%%%%%%");
-        //print("获取最近一次的步数数据成功：${response.data["data"]}");
         lastStepCount = response.data["data"][0]["steps"];
-        print("获取最近一次的步数数据成功：$lastStepCount");
-      } else {
-        print(response);
-      }
-    } catch (e) {
-      print(e);
-    }
+      } else {}
+      // ignore: empty_catches
+    } catch (e) {}
 
     if (widget.accountId >= 0) {
       _steps = '0';
@@ -2292,7 +2132,6 @@ class _StepCountWidgetState extends State<StepCountWidget> {
     await getSteps();
 
     // 根据accountId存储至shared_preferences
-    //await storage.write(key: 'stepData', value: stepData.toString());
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> stepData = {
       "last": lastStepCount,
@@ -2300,19 +2139,13 @@ class _StepCountWidgetState extends State<StepCountWidget> {
     };
     // 存储accountId与对应的stepData
     prefs.setString('$accountId', json.encode(stepData));
-    print("存储步数数据：accountId:$accountId  last:$lastStepCount  steps:$_steps");
   }
 
   // 更新步数数据
   Future<void> updateStepCount(int steps) async {
     // 从shared_preferences中获取accountId对应的stepData
 
-    // ...
-    // .get('stepCount':step);
-    //lastStepCount += steps;
-
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
@@ -2327,16 +2160,9 @@ class _StepCountWidgetState extends State<StepCountWidget> {
         },
       );
       if (response.data["code"] == 200) {
-        // print("获取血压数据成功（饼图）");
-        //data = response.data["data"]["countedDataList"];
-      } else {
-        print(response);
-      }
-    } catch (e) {
-      print(e);
-    }
-
-    // 后端的stepCount+=step
+      } else {}
+      // ignore: empty_catches
+    } catch (e) {}
   }
 
   @override
@@ -2364,9 +2190,7 @@ class _StepCountWidgetState extends State<StepCountWidget> {
     final jsonString = prefs.getString('$accountId');
     if (jsonString != null) {
       Map<String, dynamic> stepData = json.decode(jsonString);
-      //print("获取getSteps前:$accountId steps:$_steps");
       _steps = stepData["steps"].toString();
-      // print("获取getSteps后:$accountId steps:${stepData["steps"]}");
     } else {
       _steps = '0';
     }
@@ -2395,11 +2219,9 @@ class _StepCountWidgetState extends State<StepCountWidget> {
     // 计算偏移量
     if (offset < 0 && event.steps > int.parse(_steps)) {
       offset = event.steps - int.parse(_steps);
-      print("offset:$offset = ${event.steps} - $_steps");
       return;
     }
     _steps = (event.steps - offset).toString();
-    print('步数更新：$_steps = ${event.steps} - $offset');
     // 距离上次更新时间内的步数
     int newSteps = int.parse(_steps);
     // 存入shared_preferences
@@ -2411,9 +2233,6 @@ class _StepCountWidgetState extends State<StepCountWidget> {
       stepData["steps"] = newSteps;
       prefs.setString('$accountId', json.encode(stepData));
 
-      print(
-          "更新步数数据：accountId:$accountId  last:${stepData["last"]}  steps:${stepData["steps"]}");
-
       // 每500步更新一次
       if (newSteps > 50) {
         // 更新后端数据
@@ -2421,7 +2240,6 @@ class _StepCountWidgetState extends State<StepCountWidget> {
             .then((value) => getStepCountFromServer());
         offset = event.steps;
         newSteps = 0;
-        // 更新lastStepCount
       }
     }
     if (mounted) {
@@ -2457,7 +2275,6 @@ class _StepCountWidgetState extends State<StepCountWidget> {
             ),
           ],
         ),
-        //alignment: Alignment.centerLeft,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Row(
@@ -2481,14 +2298,11 @@ class _StepCountWidgetState extends State<StepCountWidget> {
                     height: 50,
                     alignment: Alignment.center,
                     child: Text(
-                      //'$steps2',
                       _steps == "Step Count not available"
                           ? "-"
-                          //: lastStepCount.toString() + _steps,
                           : (lastStepCount + int.parse(_steps)).toString(),
                       style: const TextStyle(
                         fontSize: 35,
-                        //fontSize: 15,
                         fontFamily: "BalooBhai",
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 70, 165, 119),
@@ -2536,7 +2350,6 @@ class _StepCountWidgetState extends State<StepCountWidget> {
             ),
           ],
         ),
-        //alignment: Alignment.centerLeft,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Row(
@@ -2563,7 +2376,6 @@ class _StepCountWidgetState extends State<StepCountWidget> {
                       "-",
                       style: TextStyle(
                         fontSize: 35,
-                        //fontSize: 15,
                         fontFamily: "BalooBhai",
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 70, 165, 119),
@@ -2593,7 +2405,6 @@ class _StepCountWidgetState extends State<StepCountWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print("build offset = $offset");
     return FutureBuilder(
         future: Future.wait([
           getAccountId(),
@@ -2627,53 +2438,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
   int exercisingHours = 1;
   int exercisingMins = 55;
   bool isExercising = false;
-  List<String> items = [
-    '不选',
-    '跑步',
-    '散步',
-    '骑行',
-    '游泳',
-    '跳水',
-    '篮球',
-    '足球',
-    '羽毛球',
-    '乒乓球',
-    '网球',
-    '台球',
-    '壁球',
-    '排球',
-    '藤球',
-    '毽子',
-    '健身',
-    '瑜伽',
-    '跳绳',
-    '爬山',
-    '太极',
-    '武术',
-    '散手',
-    '气功',
-    '八段锦',
-    '跆拳道',
-    '空手道',
-    '拳击',
-    '柔道',
-    '飞盘',
-    '滑板',
-    '轮滑',
-    '滑雪',
-    '滑冰',
-    '攀岩',
-    '高尔夫',
-    '保龄球',
-    '桌球',
-    '棒球',
-    '垒球',
-    '橄榄球',
-    '曲棍球',
-    '冰球',
-    '板球',
-    '其他'
-  ];
   int selectedType = 0;
   bool isPause = false;
   String startTime = "2023-01-01 00:00";
@@ -2702,23 +2466,19 @@ class _TodayActivitiesState extends State<TodayActivities> {
             : "http://43.138.75.58:8080/api/sports/exercise/duration",
       );
       if (response.data["code"] == 200) {
-        //print("============今日已经运动时长===============");
-        //print(response.data["data"]);
         int totalMinutes = response.data["data"];
         exercisingHours = totalMinutes ~/ 60;
         exercisingMins = totalMinutes % 60;
-        // print('total:$totalMinutes  ==> $exercisingHours:$exercisingMins ');
       } else {
-        print(response);
+        return;
       }
     } catch (e) {
-      print(e);
+      return;
     }
   }
 
   // 获取当前有没有运动，有则获取开始时间，类型，是否暂停等
   Future<void> getTodayCurrentExercising() async {
-    // print("=======getTodayCurrentExercising===========");
     var token = await storage.read(key: 'token');
 
     //从后端获取数据
@@ -2733,13 +2493,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
             : "http://43.138.75.58:8080/api/sports/exercise/current",
       );
       if (response.data["code"] == 200) {
-        //print("============!!!!!!===============");
-        //print(response.data["data"]);
-        //int totalMinutes = response.data["data"];
-        //exercisingHours = totalMinutes ~/ 60;
-        //exercisingMins = totalMinutes % 60;
-        // print("=======getTodayCurrentExercising===========");
-        //  print(response.data["data"]);
         if (response.data["data"] == null) {
           isExercising = false;
           isPause = false;
@@ -2754,10 +2507,10 @@ class _TodayActivitiesState extends State<TodayActivities> {
           selectedType = response.data["data"]["type"];
         }
       } else {
-        print(response);
+        return;
       }
     } catch (e) {
-      print(e);
+      return;
     }
   }
 
@@ -2781,26 +2534,18 @@ class _TodayActivitiesState extends State<TodayActivities> {
       arguments["accountId"] = (widget.accountId).toString();
     }
 
-    print("=========startExercising===========");
-    print(arguments);
-
     try {
       response = await dio.post(
           "http://43.138.75.58:8080/api/sports/exercise/start",
           queryParameters: arguments);
       if (response.data["code"] == 200) {
-        print("==========开始运动成功===============");
-        //data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-
-    return false;
   }
 
   // 暂停运动
@@ -2820,26 +2565,18 @@ class _TodayActivitiesState extends State<TodayActivities> {
       arguments["accountId"] = (widget.accountId.toString());
     }
 
-    print("=========pauseExercising===========");
-    print(arguments);
-
     try {
       response = await dio.post(
           "http://43.138.75.58:8080/api/sports/exercise/pause",
           queryParameters: arguments);
       if (response.data["code"] == 200) {
-        print("==========暂停运动成功===============");
-        //data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-
-    return false;
   }
 
   // 继续运动
@@ -2858,27 +2595,18 @@ class _TodayActivitiesState extends State<TodayActivities> {
     if (widget.accountId >= 0) {
       arguments["accountId"] = (widget.accountId.toString());
     }
-
-    print("=========continueExercising===========");
-    print(arguments);
-
     try {
       response = await dio.post(
           "http://43.138.75.58:8080/api/sports/exercise/continue",
           queryParameters: arguments);
       if (response.data["code"] == 200) {
-        print("==========恢复运动成功===============");
-        //data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-
-    return false;
   }
 
   // 结束运动
@@ -2907,26 +2635,18 @@ class _TodayActivitiesState extends State<TodayActivities> {
       arguments["accountId"] = widget.accountId;
     }
 
-    // print("=========endExercising===========");
-    // print(arguments);
-
     try {
       response = await dio.post(
           "http://43.138.75.58:8080/api/sports/exercise/end",
           queryParameters: arguments);
       if (response.data["code"] == 200) {
-        print("==========结束运动成功===============");
-        //data = response.data["data"]["countedDataList"];
-        //bpdata = response.data["data"];
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-
-    return false;
   }
 
   //=========================================
@@ -2948,11 +2668,9 @@ class _TodayActivitiesState extends State<TodayActivities> {
         left: 0,
         child: Material(
           color: Colors.transparent,
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            //color: const Color.fromARGB(156, 255, 255, 255),
-            //child: getTypeSelector2(),
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
@@ -2960,7 +2678,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Color.fromARGB(217, 131, 131, 131)),
+                  border: Border.all(
+                      color: const Color.fromARGB(217, 131, 131, 131)),
                   boxShadow: const [
                     BoxShadow(
                       color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -3010,14 +2729,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
             TextButton(
               onPressed: () {
                 // 结束运动
-                /* isExercising = false;
-                isPause = false;
-                watchTimer.onStopTimer();
-                print(
-                    "结束运动 类型:${items[selectedType]}  开始/结束：${startTime} ~ ${DateTime.now()}");
-
-                setState(() {});
-                Navigator.pop(context); */
 
                 feelings = 1;
                 exercisingFeelingsRemarksOverlay(context);
@@ -3033,7 +2744,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
   // 运动类型枚举选择
   Widget exercisingTypeSelector2() {
     //网格布局，将items中的数据放入网格中
-    return Container(
+    return SizedBox(
       width: MediaQuery.of(context).size.width * 0.65,
       height: MediaQuery.of(context).size.height * 0.5,
       child: GridView.count(
@@ -3045,19 +2756,13 @@ class _TodayActivitiesState extends State<TodayActivities> {
           return GestureDetector(
             onTap: () {
               selectedType = items.indexOf(item);
-              print(items[selectedType]);
-              /* setState(() {
-                // 更新被选中的运动类型
-
-                //
-              }); */
               overlayEntry?.markNeedsBuild();
             },
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: item == items[selectedType]
-                    ? Color.fromARGB(255, 253, 184, 255)
+                    ? const Color.fromARGB(255, 253, 184, 255)
                     : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
@@ -3082,7 +2787,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
   Widget getTypeSelector2() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -3122,7 +2827,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 // 取消运动
                 ElevatedButton(
                   onPressed: () {
-                    //setState(() {});
                     overlayEntry?.remove();
                   },
                   style: ButtonStyle(
@@ -3135,33 +2839,23 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 //确定开始运动
                 ElevatedButton(
                   onPressed: () async {
-                    /* isExpanded = false;
-                    isExercising = true;
-                    setState(() {});
-                    overlayEntry?.markNeedsBuild();
-                    overlayEntry?.remove();
-                    return; */
-                    // 开始timer
-                    //startTime = DateTime.now();
-                    //watchTimer.onStartTimer();
-
                     bool status = await startExercising();
                     if (status) {
-                      //print("开始运动成功");
                       isExercising = true;
                       setState(() {});
                       overlayEntry?.markNeedsBuild();
                       overlayEntry?.remove();
+                      setState(() {});
                     } else {
-                      print("开始运动失败");
                       overlayEntry?.remove();
+                      setState(() {});
                     }
                   },
                   style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all(Colors.greenAccent),
                   ),
-                  child: Text('开始'),
+                  child: const Text('开始'),
                 ),
               ],
             ),
@@ -3183,8 +2877,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            //color: const Color.fromARGB(156, 255, 255, 255),
-            //child: getTypeSelector2(),
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
@@ -3193,7 +2885,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(
-                      color: const Color.fromARGB(217, 131, 131, 131)),
+                    color: const Color.fromARGB(217, 131, 131, 131),
+                  ),
                   boxShadow: const [
                     BoxShadow(
                       color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -3257,9 +2950,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          print("开心");
                           feelings = 0;
-                          //setState(() {});
                           overlayEntry?.markNeedsBuild();
                         },
                         child: Container(
@@ -3271,8 +2962,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
                                 : const Color.fromRGBO(218, 218, 218, 0.66),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color:
-                                    const Color.fromRGBO(122, 119, 119, 0.43)),
+                              color: const Color.fromRGBO(122, 119, 119, 0.43),
+                            ),
                           ),
                           child: const Center(
                             child: Text(
@@ -3288,9 +2979,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          print("还好");
                           feelings = 1;
-                          // setState(() {});
                           overlayEntry?.markNeedsBuild();
                         },
                         child: Container(
@@ -3302,8 +2991,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
                                 : const Color.fromRGBO(218, 218, 218, 0.66),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color:
-                                    const Color.fromRGBO(122, 119, 119, 0.43)),
+                              color: const Color.fromRGBO(122, 119, 119, 0.43),
+                            ),
                           ),
                           child: const Center(
                             child: Text(
@@ -3319,9 +3008,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          print("不好");
                           feelings = 2;
-                          // setState(() {});
                           overlayEntry?.markNeedsBuild();
                         },
                         child: Container(
@@ -3333,8 +3020,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
                                 : const Color.fromRGBO(218, 218, 218, 0.66),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color:
-                                    const Color.fromRGBO(122, 119, 119, 0.43)),
+                              color: const Color.fromRGBO(122, 119, 119, 0.43),
+                            ),
                           ),
                           child: const Center(
                             child: Text(
@@ -3375,14 +3062,14 @@ class _TodayActivitiesState extends State<TodayActivities> {
                     height: 40,
                     child: TextFormField(
                       controller: remarksController,
-                      //initialValue: widget.SBloodpressure,
                       decoration: const InputDecoration(
-                          counterText: "",
-                          hintText: "-",
-                          hintStyle: TextStyle(
-                            color: Color.fromARGB(255, 167, 166, 166),
-                          ),
-                          contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 6)),
+                        counterText: "",
+                        hintText: "-",
+                        hintStyle: TextStyle(
+                          color: Color.fromARGB(255, 167, 166, 166),
+                        ),
+                        contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 6),
+                      ),
                       textAlign: TextAlign.center,
                       textAlignVertical: TextAlignVertical.bottom,
                       style: const TextStyle(
@@ -3402,7 +3089,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
                   // 取消
                   ElevatedButton(
                     onPressed: () {
-                      //setState(() {});
                       overlayEntry?.remove();
                     },
                     style: ButtonStyle(
@@ -3415,33 +3101,17 @@ class _TodayActivitiesState extends State<TodayActivities> {
                   //确定
                   ElevatedButton(
                     onPressed: () async {
-                      /* setState(() {});
-                        overlayEntry?.markNeedsBuild();
-                        overlayEntry?.remove();
-                        Navigator.pop(context); */
-
-                      /* isExercising = false;
-                      isPause = false;
-                      watchTimer.onStopTimer();
-                      print(
-                          "结束运动 类型:${items[selectedType]}  开始/结束：${startTime} ~ ${DateTime.now()}");
-
-                      overlayEntry?.remove();
-                      setState(() {});
-                      Navigator.pop(context);
-                      return; */
-
                       bool status = await endExercising();
                       if (status) {
                         isExercising = false;
                         isPause = false;
                         overlayEntry?.remove();
-                        //setState(() {});
                         widget.updateData();
 
+                        // ignore: use_build_context_synchronously
                         Navigator.pop(context);
+                        setState(() {});
                       } else {
-                        print("结束运动失败");
                         overlayEntry?.remove();
                       }
                     },
@@ -3449,7 +3119,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                       backgroundColor:
                           MaterialStateProperty.all(Colors.greenAccent),
                     ),
-                    child: Text('确定'),
+                    child: const Text('确定'),
                   ),
                 ],
               ),
@@ -3499,9 +3169,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // 今日运动 + 运动时长
-                  Container(
+                  SizedBox(
                     height: 50,
-                    //color: Colors.indigo,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -3585,9 +3254,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
                           //color: Colors.amber,
                           child: GestureDetector(
                             onTap: () {
-                              /* setState(() {
-                                    isExpanded = !isExpanded;
-                                  }); */
                               exercisingTypeOverlay(context);
                             },
                             child: Container(
@@ -3624,7 +3290,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
                             ),
                             // 计时器
                             Container(
-                              // color: Colors.greenAccent,
                               height: 40,
                               alignment: Alignment.center,
                               child: Row(
@@ -3639,7 +3304,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
                                     ),
                                   ),
                                   Container(
-                                    //color: Colors.greenAccent,
                                     height: 40,
                                     alignment: Alignment.center,
                                     child: Text(
@@ -3657,7 +3321,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
 
                             // 运动类型
                             Container(
-                              //color: Colors.yellowAccent,
                               height: 40,
                               alignment: Alignment.center,
                               child: Text(
@@ -3675,8 +3338,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
                             ),
 
                             // 暂停与结束运动按钮
-                            Container(
-                              //color: Colors.deepPurpleAccent,
+                            SizedBox(
                               height: 40,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -3702,17 +3364,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
                                           }
                                         }
                                         setState(() {});
-                                        /*  setState(() {
-                                          /* if (isPause == false) {
-                                            isPause = true;
-                                            //watchTimer.onStopTimer();
-                                            print("暂停运动");
-                                          } else {
-                                            isPause = false;
-                                            //watchTimer.onStartTimer();
-                                            print("继续运动");
-                                          } */
-                                        }); */
                                       },
                                       child: Container(
                                         width: 100,
@@ -3756,22 +3407,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
                                         if (isExercising == false) {
                                           setState(() {});
                                         }
-
-                                        /* setState(() {
-                                              isExercising = false;
-                                              watchTimer.onStopTimer();
-                                              final displayTime =
-                                                  StopWatchTimer.getDisplayTime(
-                                                      watchTimer.rawTime.value,
-                                                      hours: true,
-                                                      minute: true,
-                                                      second: true,
-                                                      milliSecond: false);
-
-                                              watchTimer.onResetTimer();
-                                              print(
-                                                  "结束运动 类型:${items[selectedType]}  开始/结束：${startTime} ~ ${DateTime.now()} 时长：${displayTime}");
-                                            }); */
                                       },
                                       child: Container(
                                         width: 100,
@@ -3823,11 +3458,8 @@ class _TodayActivitiesState extends State<TodayActivities> {
     );
   }
 
-  //Future<void>
   @override
   Widget build(BuildContext context) {
-    // var permissionStatus = await Permission.activityRecognition.request().isGranted;
-
     return FutureBuilder(
         future: Future.wait([
           getActivityRecognitionPermission(),
@@ -3840,7 +3472,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
             return Column(
               children: [
                 UnconstrainedBox(
-                  child: Container(
+                  child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.85,
                     child: const PageTitle(
                       title: "今日活动",
@@ -3869,7 +3501,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
           else {
             return Column(children: [
               UnconstrainedBox(
-                child: Container(
+                child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.85,
                   child: const PageTitle(
                     title: "今日活动",
@@ -3906,19 +3538,17 @@ class ActivityDetails extends StatefulWidget {
 class _ActivityDetailsState extends State<ActivityDetails> {
   DateTime date = DateTime.now();
   String selectedDays = "最近7天";
-  late Widget bloodPressureGraphtWidget;
+  late Widget activityGraphtWidget;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    //print('主要：${widget.arguments}');
     if (widget.arguments["date"] == null) {
       date = DateTime.now();
     } else {
       date = widget.arguments["date"];
     }
-    bloodPressureGraphtWidget = BloodPressureGraphWidget(
+    activityGraphtWidget = ActivityGraphWidget(
       accountId: widget.arguments["accountId"],
       date: date,
       selectedDays: selectedDays,
@@ -3931,7 +3561,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
   // 更新数据
   void updateData() {
     setState(() {
-      bloodPressureGraphtWidget = BloodPressureGraphWidget(
+      activityGraphtWidget = ActivityGraphWidget(
         accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
@@ -3943,7 +3573,6 @@ class _ActivityDetailsState extends State<ActivityDetails> {
   }
 
   void updateView() {
-    //print("血压详情页面更新");
     setState(() {});
   }
 
@@ -3953,7 +3582,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
     }
     setState(() {
       date = newDate;
-      bloodPressureGraphtWidget = BloodPressureGraphWidget(
+      activityGraphtWidget = ActivityGraphWidget(
         accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
@@ -3965,13 +3594,12 @@ class _ActivityDetailsState extends State<ActivityDetails> {
   }
 
   void updateDays(String newDays) {
-    //print("血压详情页面更新天数 ${newDays}");
     if (newDays == selectedDays) {
       return;
     }
     setState(() {
       selectedDays = newDays;
-      bloodPressureGraphtWidget = BloodPressureGraphWidget(
+      activityGraphtWidget = ActivityGraphWidget(
         accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
@@ -3984,7 +3612,6 @@ class _ActivityDetailsState extends State<ActivityDetails> {
 
   @override
   Widget build(BuildContext context) {
-    print("活动详情页面rebuild");
     return Scaffold(
       appBar: widget.arguments["accountId"] < 0
           ? getAppBar(0, true, "TriGuard")
@@ -4022,7 +3649,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
           ),
 
           // 步数与运动时长数据图
-          bloodPressureGraphtWidget,
+          activityGraphtWidget,
 
           // 血压图表组件
           const SizedBox(
@@ -4030,7 +3657,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
           ),
 
           //数据列表组件
-          BloodPressureDataWidget(
+          ActivityDataWidget(
             accountId: widget.arguments["accountId"],
             nickname: widget.arguments["nickname"],
             date: date,
@@ -4043,7 +3670,7 @@ class _ActivityDetailsState extends State<ActivityDetails> {
           ),
 
           //统计组件
-          BloodPressureStaticWidget(
+          ActivityStaticWidget(
               accountId: widget.arguments["accountId"],
               refreshData: true,
               date: date,
@@ -4051,33 +3678,10 @@ class _ActivityDetailsState extends State<ActivityDetails> {
               updateView: updateView,
               updateDate: updateDate),
 
-          BloodPressureMoreInfoButton(
+          ActivityMoreInfoButton(
             accountId: widget.arguments["accountId"],
             nickname: widget.arguments["nickname"],
           ),
-
-          /* bloodPressureGraphtWidget,
-
-          const SizedBox(
-            height: 10,
-          ),
-
-          //数据列表组件
-          BloodPressureDataWidget(
-            date: date,
-            updateView: updateView,
-            updateData: updateData,
-          ),
-
-          //统计组件
-          BloodPressureStaticWidget(
-              refreshData: true,
-              date: date,
-              selectedDays: selectedDays,
-              updateView: updateView,
-              updateDate: updateDate),
-
-          BloodPressureMoreInfoButton(), */
         ]),
       ),
     );

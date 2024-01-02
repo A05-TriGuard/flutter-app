@@ -5,8 +5,6 @@ import 'package:excel/excel.dart' as ExcelPackage;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-//import 'package:syncfusion_flutter_xlsio/xlsio.dart'
-//    hide Column, Row, Border, Stack;
 import 'package:dio/dio.dart';
 import 'package:triguard/account/token.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -15,8 +13,6 @@ import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/other.dart';
 
-//typedef UpdateDateCallback = void Function(DateTime newDate);
-//typedef UpdateDaysCallback = void Function(String newDays);
 typedef UpdateHeartRateFilterCallback = void Function(
     int minHeartRate, int maxHeartRate);
 typedef UpdateArmFilterCallback = void Function(List<bool> armsSelected);
@@ -192,13 +188,13 @@ class BloodPressureRecordWidget extends StatefulWidget {
   BloodPressureFilterParam filterParam;
   bool oldParam = false;
   final VoidCallback updateGraph;
-  BloodPressureRecordWidget(
-      {Key? key,
-      required this.accountId,
-      required this.filterParam,
-      required this.oldParam,
-      required this.updateGraph})
-      : super(key: key);
+  BloodPressureRecordWidget({
+    Key? key,
+    required this.accountId,
+    required this.filterParam,
+    required this.oldParam,
+    required this.updateGraph,
+  }) : super(key: key);
 
   @override
   State<BloodPressureRecordWidget> createState() =>
@@ -243,7 +239,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       await Permission.storage.request();
     }
 
-    // if (!await Permission.storage.request().isGranted) {
     if (!status1) {
       await Permission.manageExternalStorage.status;
     }
@@ -252,7 +247,6 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
       await Permission.manageExternalStorage.request();
     }
 
-    // if (!await Permission.manageExternalStorage.request().isGranted) {
     if (!status3) {
       await Permission.manageExternalStorage.status;
     }
@@ -975,34 +969,12 @@ class _BloodPressureRecordWidgetState extends State<BloodPressureRecordWidget> {
   }
 }
 
-// 统计情况
-class BloodPressureStatisticsWidget extends StatefulWidget {
-  const BloodPressureStatisticsWidget({super.key});
-
-  @override
-  State<BloodPressureStatisticsWidget> createState() =>
-      _BloodPressureStatisticsWidgetState();
-}
-
-class _BloodPressureStatisticsWidgetState
-    extends State<BloodPressureStatisticsWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
 // 手臂选择按钮
 // ignore: must_be_immutable
 class ArmButtonsWidget extends StatefulWidget {
-  //final VoidCallback onPressed;
-  //final String iconPath;
-  //final bool isSelected;
   List<bool> isSelected = [false, false, false, true];
   ArmButtonsWidget({
     Key? key,
-    //required this.onPressed,
-    //required this.iconPath,
     required this.isSelected,
   }) : super(key: key);
 
@@ -1040,38 +1012,36 @@ class _ArmButtonsWidgetState extends State<ArmButtonsWidget> {
           }
         });
       },
-      child: Container(
-        child: Row(children: [
-          Container(
-            height: 40,
-            width: 50,
-            padding: const EdgeInsets.all(0.0),
-            decoration: BoxDecoration(
-              color: widget.isSelected[index] == true
-                  ? const Color.fromRGBO(253, 134, 255, 0.66)
-                  : const Color.fromRGBO(218, 218, 218, 0.66),
-              borderRadius: BorderRadius.circular(10.0),
-              border:
-                  Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
-            ),
-            alignment: Alignment.center,
-            child: Center(
-              child: Text(
-                buttonText[index],
-                style: TextStyle(
-                  color: widget.isSelected[index] == true
-                      ? const Color.fromRGBO(66, 9, 119, 0.773)
-                      : const Color.fromRGBO(94, 68, 68, 100),
-                  fontSize: 16.0,
-                  fontFamily: 'Blinker',
-                ),
-                textAlign: TextAlign.center,
+      child: Row(children: [
+        Container(
+          height: 40,
+          width: 50,
+          padding: const EdgeInsets.all(0.0),
+          decoration: BoxDecoration(
+            color: widget.isSelected[index] == true
+                ? const Color.fromRGBO(253, 134, 255, 0.66)
+                : const Color.fromRGBO(218, 218, 218, 0.66),
+            borderRadius: BorderRadius.circular(10.0),
+            border:
+                Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
+          ),
+          alignment: Alignment.center,
+          child: Center(
+            child: Text(
+              buttonText[index],
+              style: TextStyle(
+                color: widget.isSelected[index] == true
+                    ? const Color.fromRGBO(66, 9, 119, 0.773)
+                    : const Color.fromRGBO(94, 68, 68, 100),
+                fontSize: 16.0,
+                fontFamily: 'Blinker',
               ),
+              textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(width: 5),
-        ]),
-      ),
+        ),
+        const SizedBox(width: 5),
+      ]),
     );
   }
 
@@ -1144,38 +1114,36 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
           }
         });
       },
-      child: Container(
-        child: Row(children: [
-          Container(
-            height: 40,
-            width: 50,
-            padding: const EdgeInsets.all(0.0),
-            decoration: BoxDecoration(
-              color: widget.newFilterParam.feelingsSelected[index] == true
-                  ? const Color.fromRGBO(253, 134, 255, 0.66)
-                  : const Color.fromRGBO(218, 218, 218, 0.66),
-              borderRadius: BorderRadius.circular(10.0),
-              border:
-                  Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
-            ),
-            alignment: Alignment.center,
-            child: Center(
-              child: Text(
-                buttonText[index],
-                style: TextStyle(
-                  color: widget.newFilterParam.feelingsSelected[index] == true
-                      ? const Color.fromRGBO(66, 9, 119, 0.773)
-                      : const Color.fromRGBO(94, 68, 68, 100),
-                  fontSize: 16.0,
-                  fontFamily: 'Blinker',
-                ),
-                textAlign: TextAlign.center,
+      child: Row(children: [
+        Container(
+          height: 40,
+          width: 50,
+          padding: const EdgeInsets.all(0.0),
+          decoration: BoxDecoration(
+            color: widget.newFilterParam.feelingsSelected[index] == true
+                ? const Color.fromRGBO(253, 134, 255, 0.66)
+                : const Color.fromRGBO(218, 218, 218, 0.66),
+            borderRadius: BorderRadius.circular(10.0),
+            border:
+                Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
+          ),
+          alignment: Alignment.center,
+          child: Center(
+            child: Text(
+              buttonText[index],
+              style: TextStyle(
+                color: widget.newFilterParam.feelingsSelected[index] == true
+                    ? const Color.fromRGBO(66, 9, 119, 0.773)
+                    : const Color.fromRGBO(94, 68, 68, 100),
+                fontSize: 16.0,
+                fontFamily: 'Blinker',
               ),
+              textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(width: 5),
-        ]),
-      ),
+        ),
+        const SizedBox(width: 5),
+      ]),
     );
   }
 
@@ -1192,12 +1160,6 @@ class _FeelingsButtonsWidgetState extends State<FeelingsButtonsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    //print('感觉里面：${widget.isSelected}');
-
-    /* if (widget.reset) {
-      widget.isSelected = widget.prevIsSelected;
-    } */
-
     return Container(
       alignment: Alignment.center,
       height: 41,
@@ -1213,19 +1175,17 @@ class PulseFilterWidget extends StatefulWidget {
   int maxHeartRate = 1000;
   TextEditingController minHeartRateController = TextEditingController();
   TextEditingController maxHeartRateController = TextEditingController();
-  PulseFilterWidget(
-      {Key? key,
-      required this.minHeartRateController,
-      required this.maxHeartRateController})
-      : super(key: key);
+  PulseFilterWidget({
+    Key? key,
+    required this.minHeartRateController,
+    required this.maxHeartRateController,
+  }) : super(key: key);
 
   @override
   State<PulseFilterWidget> createState() => _PulseFilterWidgetState();
 }
 
 class _PulseFilterWidgetState extends State<PulseFilterWidget> {
-  // final TextEditingController minHeartRateController = TextEditingController();
-  // final TextEditingController maxHeartRateController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1243,7 +1203,6 @@ class _PulseFilterWidgetState extends State<PulseFilterWidget> {
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ],
-              //initialValue: widget.heartRate,
               decoration: const InputDecoration(
                   counterText: "",
                   hintText: "-",
@@ -1269,7 +1228,6 @@ class _PulseFilterWidgetState extends State<PulseFilterWidget> {
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ],
-              //initialValue: widget.heartRate,
               decoration: const InputDecoration(
                   counterText: "",
                   hintText: "-",
@@ -1319,7 +1277,6 @@ class _SBPFilterWidgetState extends State<SBPFilterWidget> {
             child: TextFormField(
               maxLength: 3,
               controller: widget.minSBPController,
-              //initialValue: widget.heartRate,
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
@@ -1345,7 +1302,6 @@ class _SBPFilterWidgetState extends State<SBPFilterWidget> {
             child: TextFormField(
               maxLength: 3,
               controller: widget.maxSBPController,
-              //initialValue: widget.heartRate,
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
@@ -1386,8 +1342,6 @@ class DBPFilterWidget extends StatefulWidget {
 }
 
 class _DBPFilterWidgetState extends State<DBPFilterWidget> {
-  // final TextEditingController minHeartRateController = TextEditingController();
-  // final TextEditingController maxHeartRateController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1401,50 +1355,50 @@ class _DBPFilterWidgetState extends State<DBPFilterWidget> {
             child: TextFormField(
               maxLength: 3,
               controller: widget.minDBPController,
-              //initialValue: widget.heartRate,
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ],
-              decoration: InputDecoration(
-                  counterText: "",
-                  hintText: "-",
-                  contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              decoration: const InputDecoration(
+                counterText: "",
+                hintText: "-",
+                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5),
+              ),
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.bottom,
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
             ),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           const Text(
             "至",
-            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
+            style: TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           SizedBox(
             width: 75,
             height: 40,
             child: TextFormField(
               maxLength: 3,
               controller: widget.maxDBPController,
-              //initialValue: widget.heartRate,
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ],
-              decoration: InputDecoration(
-                  counterText: "",
-                  hintText: "-",
-                  contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5)),
+              decoration: const InputDecoration(
+                counterText: "",
+                hintText: "-",
+                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 5),
+              ),
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.bottom,
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
             ),
           ),
-          SizedBox(width: 2),
+          const SizedBox(width: 2),
           const Text(
             "mmHg",
-            style: const TextStyle(fontSize: 16, fontFamily: "Blinker"),
+            style: TextStyle(fontSize: 16, fontFamily: "Blinker"),
           ),
         ],
       ),
@@ -1454,135 +1408,19 @@ class _DBPFilterWidgetState extends State<DBPFilterWidget> {
 
 // 时间选择
 // ignore: must_be_immutable
-class TimeFilterWidget extends StatefulWidget {
-  TextEditingController startHourController = TextEditingController();
-  TextEditingController startMinuteController = TextEditingController();
-  TextEditingController endHourController = TextEditingController();
-  TextEditingController endMinuteController = TextEditingController();
-  TimeFilterWidget({
-    Key? key,
-    required this.startHourController,
-    required this.startMinuteController,
-    required this.endHourController,
-    required this.endMinuteController,
-  }) : super(key: key);
-
-  @override
-  State<TimeFilterWidget> createState() => _TimeFilterWidgetState();
-}
-
-class _TimeFilterWidgetState extends State<TimeFilterWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      //mainAxisAlignment: MainAxisAlignment.start,
-      //crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 50,
-          height: 50,
-          child: TextField(
-            maxLength: 2,
-            controller: widget.startHourController,
-            //initialValue: widget.hour,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "00",
-                contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 2)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
-          ),
-        ),
-        const SizedBox(width: 2),
-        const Text(
-          "时",
-          style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
-        ),
-        SizedBox(
-          width: 50,
-          child: TextField(
-            maxLength: 2,
-            controller: widget.startMinuteController,
-            //initialValue: widget.minute,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "00",
-                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 2)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
-          ),
-        ),
-        const Text(
-          "分",
-          style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
-        ),
-        const SizedBox(width: 5),
-        const Text(
-          "至",
-          style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
-        ),
-        const SizedBox(width: 5),
-        SizedBox(
-          width: 50,
-          height: 50,
-          child: TextField(
-            maxLength: 2,
-            controller: widget.endHourController,
-            //initialValue: widget.hour,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "24",
-                contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 2)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
-          ),
-        ),
-        const SizedBox(width: 2),
-        const Text(
-          "时",
-          style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
-        ),
-        SizedBox(
-          width: 50,
-          child: TextField(
-            maxLength: 2,
-            controller: widget.endMinuteController,
-            //initialValue: widget.minute,
-            decoration: InputDecoration(
-                counterText: "",
-                hintText: "00",
-                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 2)),
-            textAlign: TextAlign.center,
-            textAlignVertical: TextAlignVertical.bottom,
-            style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
-          ),
-        ),
-        const Text(
-          "分",
-          style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
-        ),
-      ],
-    );
-  }
-}
-
-// ignore: must_be_immutable
 class TimeFilterWidget2 extends StatefulWidget {
   DateTime startTime = DateTime.now();
   DateTime endTime = DateTime.now();
   final UpdateDateCallback updateStartTime;
   final UpdateDateCallback updateEndTime;
 
-  TimeFilterWidget2(
-      {Key? key,
-      required this.startTime,
-      required this.endTime,
-      required this.updateStartTime,
-      required this.updateEndTime})
-      : super(key: key);
+  TimeFilterWidget2({
+    Key? key,
+    required this.startTime,
+    required this.endTime,
+    required this.updateStartTime,
+    required this.updateEndTime,
+  }) : super(key: key);
 
   @override
   State<TimeFilterWidget2> createState() => _TimeFilterWidget2State();
@@ -1601,7 +1439,7 @@ class _TimeFilterWidget2State extends State<TimeFilterWidget2> {
           const SizedBox(width: 5),
           const Text(
             "至",
-            style: const TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
+            style: TextStyle(fontSize: 16, fontFamily: "BaloonBhai"),
           ),
           const SizedBox(width: 5),
           TimePicker(time: widget.endTime, updateTime: widget.updateEndTime),
@@ -1654,35 +1492,15 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
         ],
       ),
     );
-    /* return Container(
-      alignment: Alignment.center,
-      height: 41,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          DatePicker2(
-              date: widget.startDate, updateDate: widget.updateStartDate),
-          // const SizedBox(width: 10),
-          //const SizedBox(width: 10),
-          DatePicker2(date: widget.endDate, updateDate: widget.updateEndDate),
-        ],
-      ),
-    ); */
   }
 }
 
 // 手臂选择按钮
 // ignore: must_be_immutable
 class RemarksButtonsWidget extends StatefulWidget {
-  //final VoidCallback onPressed;
-  //final String iconPath;
-  //final bool isSelected;
   List<bool> isSelected = [false, false, true];
   RemarksButtonsWidget({
     Key? key,
-    //required this.onPressed,
-    //required this.iconPath,
     required this.isSelected,
   }) : super(key: key);
 
@@ -1720,37 +1538,36 @@ class _RemarksButtonsWidgetState extends State<RemarksButtonsWidget> {
           }
         });
       },
-      child: Container(
-        child: Row(children: [
-          Container(
-            height: 40,
-            width: 68,
-            padding: EdgeInsets.all(0.0),
-            decoration: BoxDecoration(
-              color: widget.isSelected[index] == true
-                  ? const Color.fromRGBO(253, 134, 255, 0.66)
-                  : Color.fromRGBO(218, 218, 218, 0.66),
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
-            ),
-            alignment: Alignment.center,
-            child: Center(
-              child: Text(
-                buttonText[index],
-                style: TextStyle(
-                  color: widget.isSelected[index] == true
-                      ? Color.fromRGBO(66, 9, 119, 0.773)
-                      : Color.fromRGBO(94, 68, 68, 100),
-                  fontSize: 16.0,
-                  fontFamily: 'Blinker',
-                ),
-                textAlign: TextAlign.center,
+      child: Row(children: [
+        Container(
+          height: 40,
+          width: 68,
+          padding: const EdgeInsets.all(0.0),
+          decoration: BoxDecoration(
+            color: widget.isSelected[index] == true
+                ? const Color.fromRGBO(253, 134, 255, 0.66)
+                : const Color.fromRGBO(218, 218, 218, 0.66),
+            borderRadius: BorderRadius.circular(10.0),
+            border:
+                Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
+          ),
+          alignment: Alignment.center,
+          child: Center(
+            child: Text(
+              buttonText[index],
+              style: TextStyle(
+                color: widget.isSelected[index] == true
+                    ? const Color.fromRGBO(66, 9, 119, 0.773)
+                    : const Color.fromRGBO(94, 68, 68, 100),
+                fontSize: 16.0,
+                fontFamily: 'Blinker',
               ),
+              textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(width: 5),
-        ]),
-      ),
+        ),
+        const SizedBox(width: 5),
+      ]),
     );
   }
 
@@ -1821,14 +1638,12 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
         Container(
           width: MediaQuery.of(context).size.width * 0.85,
           alignment: Alignment.center,
-          //child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 重置按钮
               GestureDetector(
                 onTap: () {
-                  print("重置");
                   widget.filterParam.reset();
                   invalidParam = 0;
 
@@ -1839,7 +1654,7 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
                   width: 50,
                   padding: const EdgeInsets.all(0.0),
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 209, 212, 212),
+                    color: const Color.fromARGB(255, 209, 212, 212),
                     borderRadius: BorderRadius.circular(10.0),
                     border: Border.all(
                         color: const Color.fromRGBO(122, 119, 119, 0.43)),
@@ -1865,13 +1680,10 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
               // 确定按钮
               GestureDetector(
                 onTap: () {
-                  print("确定");
                   // 进行数据表的刷新
                   widget.filterParam.refresh = true;
 
                   invalidParam = widget.filterParam.checkInvalidParam();
-                  //print("invalidParam: $invalidParam");
-                  //widget.updateGraph();
 
                   if (invalidParam == 0) {
                     widget.updateFilterWidgetView(false);
@@ -1905,7 +1717,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
               ),
             ],
           ),
-          //),
         ),
 
         // 警告信息
@@ -1916,7 +1727,6 @@ class _OKCancelButtonsWidgetState extends State<OKCancelButtonsWidget> {
             fontSize: 12.0,
             fontFamily: 'Blinker',
           ),
-          //textAlign: TextAlign.center,
         ),
       ],
     );
@@ -1961,15 +1771,15 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
   bool isExpanded = true;
 
   // 标题
-  Widget getTitle(String TitleChn, String TitleEng) {
+  Widget getTitle(String titleChn, String titleEng) {
     return Column(
       children: [
         Text(
-          "${TitleChn}",
+          titleChn,
           style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
         ),
         Text(
-          "${TitleEng}",
+          titleEng,
           style: const TextStyle(
               fontSize: 14,
               fontFamily: "Blinker",
@@ -1989,7 +1799,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
             height: 10,
           ),
           // 过滤器标题
-          Container(
+          SizedBox(
             width: MediaQuery.of(context).size.width * 0.85,
             //alignment: Alignment.centerLeft,
             child: Row(
@@ -2010,39 +1820,6 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                     ),
                   ],
                 ),
-
-                // 筛选按钮
-                /* GestureDetector(
-                  onTap: () {
-                    print("展开/收起");
-                    //isExpanded = !isExpanded;
-                    //setState(() {});
-                  },
-                  child: Container(
-                    height: 25,
-                    width: 40,
-                    padding: const EdgeInsets.all(0.0),
-                    /* decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 216, 219, 218),
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(
-                        color: const Color.fromRGBO(122, 119, 119, 0.43),
-                      ),
-                    ), */
-                    alignment: Alignment.center,
-                    child: Center(
-                      child: Text(
-                        isExpanded ? "收起" : "展开",
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 15.0,
-                          fontFamily: 'Blinker',
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ), */
               ],
             ),
           ),
@@ -2060,7 +1837,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
             decoration: BoxDecoration(
               border: Border.all(
                 //color: const Color.fromARGB(255, 129, 127, 127),
-                color: Color.fromARGB(255, 196, 195, 195),
+                color: const Color.fromARGB(255, 196, 195, 195),
               ),
               borderRadius: BorderRadius.circular(15),
             ),
@@ -2082,8 +1859,6 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                 children: [
                                   Column(
                                     children: [
-                                      // getTitle("起始日期", "START DATE"),
-                                      //getTitle("结束日期", "END DATE"),
                                       getTitle("日期", "DATE"),
                                       getTitle("时间", "TIME"),
                                       getTitle("收缩压", "SBP"),
@@ -2115,16 +1890,6 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                       const SizedBox(height: 10),
 
                                       //时间
-                                      /* TimeFilterWidget(
-                                        startHourController: widget
-                                            .filterParam.startHourController,
-                                        startMinuteController: widget
-                                            .filterParam.startMinuteController,
-                                        endHourController: widget
-                                            .filterParam.endHourController,
-                                        endMinuteController: widget
-                                            .filterParam.endMinuteController,
-                                      ), */
                                       TimeFilterWidget2(
                                           startTime:
                                               widget.filterParam.startTime,
@@ -2181,21 +1946,12 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
                                     ],
                                   )
                                 ]),
-                            /* OKCancelButtonsWidget(
-                              filterParam: widget.filterParam,
-                              updateGraph: widget.updateGraph,
-                              prevArmsSelected: widget.prevArmsSelected,
-                              prevFeelingsSelected: widget.prevFeelingsSelected,
-                              updateFilterWidgetView:
-                                  widget.updateFilterWidgetView,
-                            ), */
                           ],
                         ),
                       ),
                     ),
                   )
                 : Center(
-                    // child: Text("..."),
                     child: Image.asset(
                       "assets/icons/filter1.png",
                       height: 25,
@@ -2223,6 +1979,7 @@ class _BloodPressureFilterWidgetState extends State<BloodPressureFilterWidget> {
   }
 }
 
+// 导出excel文件
 class ExportExcelWiget extends StatefulWidget {
   final int accountId;
   final String nickname;
@@ -2239,9 +1996,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
   String exportPath = "";
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
-    //var status1 = await Permission.storage.request().isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
-    //var status3 = await Permission.manageExternalStorage.request().isGranted;
 
     if (!status) {
       await Permission.storage.request();
@@ -2255,7 +2010,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     var dir = await getApplicationSupportDirectory();
     var folderPath = Directory("${dir.path}/bloodPressure");
 
-    print("folderPath: ${folderPath.path}");
+    //print("folderPath: ${folderPath.path}");
 
     // 判断文件夹是否存在
     if (!await folderPath.exists()) {
@@ -2272,18 +2027,16 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
     //检测文件是否存在
     if (await File(fileNamePath).exists()) {
       var downloadPath = await getDownloadsDirectory();
-      await File(fileNamePath)
-          //.copy('/storage/emulated/0/Download/bloodPressure.xlsx');
-          .copy(
-              '${downloadPath!.path}/bloodPressure_${nickname}_${exportTime}.xlsx');
+      await File(fileNamePath).copy(
+          '${downloadPath!.path}/bloodPressure_${nickname}_${exportTime}.xlsx');
       // 检测文件是否存在
-      //if (await File('/storage/emulated/0/Download/bloodPressure.xlsx')
       if (await File(
               '${downloadPath.path}/bloodPressure_${nickname}_${exportTime}.xlsx')
           .exists()) {
         exportPath =
             '${downloadPath.path}/bloodPressure_${nickname}_${exportTime}.xlsx';
-        print("export bloodPressure.xlsx successfully");
+        print(
+            "export ${downloadPath.path}/bloodPressure_${nickname}_${exportTime}.xlsx successfully");
         return true;
       }
     }
@@ -2294,9 +2047,8 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
   @override
   Widget build(BuildContext context) {
     return UnconstrainedBox(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
-        //alignment: Alignment.center,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -2323,7 +2075,6 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
                   border: Border.all(
                       color: const Color.fromRGBO(122, 119, 119, 0.43)),
                 ),
-                //alignment: Alignment.centerRight,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -2410,7 +2161,6 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
   void updateStartDate(DateTime newDate) {
     setState(() {
       filterParam.startDate = newDate;
-      print('设置新起始日期：${filterParam.startDate}');
     });
   }
 
@@ -2471,13 +2221,6 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
                     Center(
                       child: GestureDetector(
                         onTap: () {
-                          //print("哈哈哈哈");
-
-                          if (showFilterWidget == false) {
-                            print("展开");
-                          } else {
-                            print("隐藏");
-                          }
                           showFilterWidget = !showFilterWidget;
                           setState(() {});
                         },

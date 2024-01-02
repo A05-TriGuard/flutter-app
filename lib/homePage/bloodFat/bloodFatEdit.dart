@@ -8,6 +8,10 @@ import '../../component/header/header.dart';
 import '../../account/token.dart';
 import "../../other/other.dart";
 
+//
+typedef UpdateTimeCallback = void Function(DateTime newTime);
+typedef UpdateDateCallback = void Function(DateTime newDate);
+
 // 删除 取消 确定
 List<String> feelingButtonTypes = ["较好", "还好", "较差"];
 List<String> functionButtonTypes = ["删除", "取消", "确定"];
@@ -28,21 +32,16 @@ List<dynamic> data = [];
 List<Widget> dataWidget = [];
 
 late Widget titleDateWidget;
-Widget addDataButtonWidget = addDataButton();
-int randomId = 100;
-typedef UpdateTimeCallback = void Function(DateTime newTime);
-typedef UpdateDateCallback = void Function(DateTime newDate);
+bool deleteDataMark = false;
 
+// ignore: camel_case_types
 class newValue {
   int id = 0;
-  //int hour = 0;
-  //int minute = 0;
   DateTime time = DateTime.now();
   double tc = 0;
   double tg = 0;
   double ldl = 0;
   double hdl = 0;
-
   int feelingIndex = 0;
   String remarks = "";
 
@@ -67,36 +66,6 @@ class newValue {
     feelingIndex = 0;
     remarks = "";
   }
-
-  void printValue() {
-    print("id: $id");
-    print("time: $time");
-    print("tc: $tc");
-    print("tg: $tg");
-    print("ldl: $ldl");
-    print("hdl: $hdl");
-    print("feelingIndex: $feelingIndex");
-    print("remarks: $remarks");
-  }
-}
-
-String getRemarById(int id) {
-  for (int i = 0; i < data.length; i++) {
-    if (data[i]["id"] == id) {
-      return data[i]["remark"];
-    }
-  }
-  return "";
-}
-
-void setRemrakById(int id, String newRemarks) {
-  for (int i = 0; i < data.length; i++) {
-    if (data[i]["id"] == id) {
-      data[i]["remark"] = newRemarks;
-      return;
-    }
-  }
-  print("set failed");
 }
 
 // 获取某个id的数据
@@ -113,107 +82,50 @@ void setDataById(int id, String type, int value) {
   for (int i = 0; i < data.length; i++) {
     if (data[i]["id"] == id) {
       data[i][type] = value;
-      //print('${id}:${bpdata[i][type]}');
       return;
     }
   }
-  print("set failed");
 }
 
-void setTimeById(int id, DateTime time) {
-  for (int i = 0; i < data.length; i++) {
-    if (data[i]["id"] == id) {
-      data[i]["time"] =
-          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
-      return;
-    }
-  }
-  print("set failed");
-}
-
-late newValue afterEditedValue; //= newValue(0, "0", "0", "0", "0", "0", 0, 0);
-bool deleteDataMark = false;
-
-int invalidValue(newValue value) {
-  return 0;
-}
+late newValue afterEditedValue;
 
 // =================================================================================
 
-// 添加数据按钮
-class addDataButton extends StatefulWidget {
-  const addDataButton({super.key});
-
-  @override
-  State<addDataButton> createState() => _addDataButtonState();
-}
-
-class _addDataButtonState extends State<addDataButton> {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        print("我要添加数据");
-      },
-      child: UnconstrainedBox(
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.15,
-          width: MediaQuery.of(context).size.width * 0.85,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            //color: Colors.white,
-            color: const Color.fromARGB(255, 167, 167, 167),
-            borderRadius: BorderRadius.circular(20.0),
-            boxShadow: const [
-              BoxShadow(
-                color: Color.fromARGB(120, 151, 151, 151),
-                offset: Offset(0, 5),
-                blurRadius: 5.0,
-                spreadRadius: 0.0,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.add,
-            size: 50,
-            color: Color.fromARGB(255, 17, 17, 17),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 // 添加数据的 填写框
-// ignore: must_be_immutable
+// ignore: must_be_immutable, camel_case_types
 class addDataWidget extends StatefulWidget {
   final int accountId;
   DateTime date;
   final VoidCallback updateData;
   DateTime time = DateTime.now();
 
-  addDataWidget(
-      {Key? key,
-      required this.accountId,
-      required this.updateData,
-      required this.time,
-      required this.date})
-      : super(key: key);
+  addDataWidget({
+    Key? key,
+    required this.accountId,
+    required this.updateData,
+    required this.time,
+    required this.date,
+  }) : super(key: key);
 
   @override
   State<addDataWidget> createState() => _addDataWidgetState();
 }
 
+// ignore: camel_case_types
 class _addDataWidgetState extends State<addDataWidget> {
   // 输入框的控制器
   // ignore: non_constant_identifier_names
   final TextEditingController tcController = TextEditingController();
+  // ignore: non_constant_identifier_names
   final TextEditingController tc_Controller = TextEditingController();
   final TextEditingController tgController = TextEditingController();
+  // ignore: non_constant_identifier_names
   final TextEditingController tg_Controller = TextEditingController();
   final TextEditingController ldlController = TextEditingController();
+  // ignore: non_constant_identifier_names
   final TextEditingController ldl_Controller = TextEditingController();
   final TextEditingController hdlController = TextEditingController();
+  // ignore: non_constant_identifier_names
   final TextEditingController hdl_Controller = TextEditingController();
   final TextEditingController remarkController = TextEditingController();
 
@@ -234,10 +146,10 @@ class _addDataWidgetState extends State<addDataWidget> {
           "${widget.date.year}-${widget.date.month.toString().padLeft(2, '0')}-${widget.date.day.toString().padLeft(2, '0')}",
       "time":
           "${widget.time.hour.toString().padLeft(2, '0')}:${widget.time.minute.toString().padLeft(2, '0')}",
-      "tc": double.parse(tcController.text + "." + tc_Controller.text),
-      "tg": double.parse(tgController.text + "." + tg_Controller.text),
-      "ldl": double.parse(ldlController.text + "." + ldl_Controller.text),
-      "hdl": double.parse(hdlController.text + "." + hdl_Controller.text),
+      "tc": double.parse("${tcController.text}.${tc_Controller.text}"),
+      "tg": double.parse("${tgController.text}.${tg_Controller.text}"),
+      "ldl": double.parse("${ldlController.text}.${ldl_Controller.text}"),
+      "hdl": double.parse("${hdlController.text}.${hdl_Controller.text}"),
       "feeling": feelingsButtons.getSelectedButtonIndex(),
     };
 
@@ -259,26 +171,18 @@ class _addDataWidgetState extends State<addDataWidget> {
       dio.options.headers["Authorization"] = "Bearer $token";
       Response response = await dio.post(
         addDataApi,
-        //queryParameters: newVal,
         data: newVal,
       );
 
-      print(response.data);
-
       if (response.data['code'] == 200) {
-        print("添加数据成功");
-      } else {
-        print("添加数据失败");
+        return;
       }
     } on DioException catch (error) {
       final response = error.response;
       if (response != null) {
-        print(response.data);
-        print("添加数据请求失败1");
+        return;
       } else {
-        print(error.requestOptions);
-        print(error.message);
-        print("添加数据请求失败2");
+        return;
       }
     }
   }
@@ -294,7 +198,7 @@ class _addDataWidgetState extends State<addDataWidget> {
   Widget getEditWidget(TextEditingController controller,
       TextEditingController controller_, String hintText, String hintText_) {
     double height = 41;
-    return Container(
+    return SizedBox(
       height: height,
       child: Row(
         children: [
@@ -309,25 +213,21 @@ class _addDataWidgetState extends State<addDataWidget> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               decoration: InputDecoration(
-                  counterText: "",
-                  hintText: hintText,
-                  hintStyle: const TextStyle(
-                    color: Color.fromARGB(255, 167, 166, 166),
-                  ),
-                  contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                counterText: "",
+                hintText: hintText,
+                hintStyle: const TextStyle(
+                  color: Color.fromARGB(255, 167, 166, 166),
+                ),
+                contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+              ),
               textAlign: TextAlign.right,
               textAlignVertical: TextAlignVertical.bottom,
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
             ),
           ),
-          Container(
+          SizedBox(
             height: 40,
             width: 10,
-            /* child: const Text(
-              " . ",
-              style: TextStyle(fontSize: 35, fontFamily: "Blinker"),
-            ), */
-            //alignment: Alignment.bottomCenter,
             child: Column(
               children: [
                 Container(
@@ -350,12 +250,13 @@ class _addDataWidgetState extends State<addDataWidget> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               decoration: InputDecoration(
-                  counterText: "",
-                  hintText: hintText_,
-                  hintStyle: const TextStyle(
-                    color: Color.fromARGB(255, 167, 166, 166),
-                  ),
-                  contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5)),
+                counterText: "",
+                hintText: hintText_,
+                hintStyle: const TextStyle(
+                  color: Color.fromARGB(255, 167, 166, 166),
+                ),
+                contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+              ),
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.bottom,
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
@@ -372,20 +273,20 @@ class _addDataWidgetState extends State<addDataWidget> {
   }
 
   // 获取标题 中文+英文
-  Widget getTitle(String TitleChn, String TitleEng) {
-    if (TitleChn.length > 4) {
+  Widget getTitle(String titleChn, String titleEng) {
+    if (titleChn.length > 4) {
       return Column(
         children: [
           Text(
-            "${TitleChn.substring(0, 4)}", //前四个字
+            titleChn.substring(0, 4), //前四个字
             style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
           ),
           Text(
-            "${TitleChn.substring(4)}",
+            titleChn.substring(4),
             style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
           ),
           Text(
-            "${TitleEng}",
+            titleEng,
             style: const TextStyle(
                 fontSize: 14,
                 fontFamily: "Blinker",
@@ -397,11 +298,11 @@ class _addDataWidgetState extends State<addDataWidget> {
     return Column(
       children: [
         Text(
-          "${TitleChn}",
+          titleChn,
           style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
         ),
         Text(
-          "${TitleEng}",
+          titleEng,
           style: const TextStyle(
               fontSize: 14,
               fontFamily: "Blinker",
@@ -420,10 +321,8 @@ class _addDataWidgetState extends State<addDataWidget> {
         children: [
           Container(
             width: MediaQuery.of(context).size.width * 0.85,
-            // height: MediaQuery.of(context).size.height * 0.62,
             height: 460,
             decoration: BoxDecoration(
-              //color: Colors.white,
               color: Colors.white,
               borderRadius: BorderRadius.circular(20.0),
               boxShadow: const [
@@ -436,7 +335,7 @@ class _addDataWidgetState extends State<addDataWidget> {
               ],
             ),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -444,116 +343,108 @@ class _addDataWidgetState extends State<addDataWidget> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Container(
-                        child: Column(
-                          children: [
-                            getTitle("时间", "TIME"),
-                            getTitle("总胆固醇", "TC"),
-                            getTitle("甘油三酯", "TG"),
-                            getTitle("低密度脂蛋白胆固醇", "LDL"),
-                            getTitle("高密度脂蛋白胆固醇", "HDL"), //高密度脂蛋白胆固醇
-                            getTitle("感觉", "FEELINGS"),
-                            getTitle("备注", "REMARKS"),
-                          ],
-                        ),
+                      Column(
+                        children: [
+                          getTitle("时间", "TIME"),
+                          getTitle("总胆固醇", "TC"),
+                          getTitle("甘油三酯", "TG"),
+                          getTitle("低密度脂蛋白胆固醇", "LDL"),
+                          getTitle("高密度脂蛋白胆固醇", "HDL"), //高密度脂蛋白胆固醇
+                          getTitle("感觉", "FEELINGS"),
+                          getTitle("备注", "REMARKS"),
+                        ],
                       ),
 
                       const SizedBox(width: 5),
 
                       // 右边的子容器
-                      Container(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 时间
-                            Container(
-                              height: 41,
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                                child: TimePicker(
-                                    time: widget.time, updateTime: updateTime),
-                              ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 时间
+                          SizedBox(
+                            height: 41,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                              child: TimePicker(
+                                  time: widget.time, updateTime: updateTime),
                             ),
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
+                          ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
 
-                            // 修改收缩压
-                            // 修改tc
-                            getEditWidget(
-                                tcController, tc_Controller, "4", "1"),
+                          // 修改tc
+                          getEditWidget(tcController, tc_Controller, "4", "1"),
 
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
 
-                            // 修改tg
-                            getEditWidget(
-                                tgController, tg_Controller, "1", "0"),
+                          // 修改tg
+                          getEditWidget(tgController, tg_Controller, "1", "0"),
 
-                            //
-                            const SizedBox(
-                              height: 15,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 15,
+                          ),
 
-                            // 修改ldl
-                            getEditWidget(
-                                ldlController, ldl_Controller, "2", "5"),
+                          // 修改ldl
+                          getEditWidget(
+                              ldlController, ldl_Controller, "2", "5"),
 
-                            //
-                            const SizedBox(
-                              height: 15,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 15,
+                          ),
 
-                            // 修改hdl
-                            getEditWidget(
-                                hdlController, hdl_Controller, "1", "3"),
+                          // 修改hdl
+                          getEditWidget(
+                              hdlController, hdl_Controller, "1", "3"),
 
-                            //
-                            const SizedBox(
-                              height: 20,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 20,
+                          ),
 
-                            //修改感觉
-                            feelingsButtons,
+                          //修改感觉
+                          feelingsButtons,
 
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
 
-                            //备注
-                            Container(
-                              height: 41,
-                              child: SizedBox(
-                                width: 150,
-                                height: 40,
-                                child: TextFormField(
-                                  controller: remarkController,
-                                  //initialValue: widget.SBloodpressure,
-                                  decoration: const InputDecoration(
-                                      counterText: "",
-                                      hintText: "-",
-                                      hintStyle: TextStyle(
-                                        color:
-                                            Color.fromARGB(255, 167, 166, 166),
-                                      ),
-                                      contentPadding:
-                                          EdgeInsets.fromLTRB(0, 0, 0, 6)),
-                                  textAlign: TextAlign.center,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  style: const TextStyle(
-                                      fontSize: 20, fontFamily: "BalooBhai"),
+                          //备注
+                          SizedBox(
+                            height: 41,
+                            child: SizedBox(
+                              width: 150,
+                              height: 40,
+                              child: TextFormField(
+                                controller: remarkController,
+                                decoration: const InputDecoration(
+                                  counterText: "",
+                                  hintText: "-",
+                                  hintStyle: TextStyle(
+                                    color: Color.fromARGB(255, 167, 166, 166),
+                                  ),
+                                  contentPadding:
+                                      EdgeInsets.fromLTRB(0, 0, 0, 6),
                                 ),
+                                textAlign: TextAlign.center,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                style: const TextStyle(
+                                    fontSize: 20, fontFamily: "BalooBhai"),
                               ),
                             ),
-                            //
-                            const SizedBox(height: 10),
-                          ],
-                        ),
+                          ),
+                          //
+                          const SizedBox(height: 10),
+                        ],
                       ),
                     ],
                   ),
@@ -579,82 +470,61 @@ class _addDataWidgetState extends State<addDataWidget> {
                   const SizedBox(height: 10),
 
                   //删除，取消，确定
-                  Container(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        //取消添加数据
-                        OtherButton(
-                            onPressed: () {
-                              print("取消添加数据");
-                              setState(() {
-                                // 不显示 添加数据的填写框
-                                dataWidget.removeAt(1);
-                                widget.updateData();
-                              });
-                            },
-                            type: 1),
-                        const SizedBox(width: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      //取消添加数据
+                      OtherButton(
+                          onPressed: () {
+                            setState(() {
+                              // 不显示 添加数据的填写框
+                              dataWidget.removeAt(1);
+                              widget.updateData();
+                            });
+                          },
+                          type: 1),
+                      const SizedBox(width: 5),
 
-                        //确定添加
-                        OtherButton(
-                            onPressed: () {
-                              // 检测是否正确填写
+                      //确定添加
+                      OtherButton(
+                          onPressed: () {
+                            // 检测是否正确填写
 
-                              randomId += 1;
+                            if (tcController.text == "" ||
+                                tc_Controller.text == "") {
+                              invalidValueType = 1;
+                            } else if (tgController.text == "" ||
+                                tg_Controller.text == "") {
+                              invalidValueType = 2;
+                            } else if (ldlController.text == "" ||
+                                ldl_Controller.text == "") {
+                              invalidValueType = 3;
+                            } else if (hdlController.text == "" ||
+                                hdl_Controller.text == "") {
+                              invalidValueType = 4;
+                            } else {
+                              invalidValueType = 0;
+                            }
 
-                              if (tcController.text == "" ||
-                                  tc_Controller.text == "") {
-                                invalidValueType = 1;
-                              } else if (tgController.text == "" ||
-                                  tg_Controller.text == "") {
-                                invalidValueType = 2;
-                              } else if (ldlController.text == "" ||
-                                  ldl_Controller.text == "") {
-                                invalidValueType = 3;
-                              } else if (hdlController.text == "" ||
-                                  hdl_Controller.text == "") {
-                                invalidValueType = 4;
+                            if (invalidValueType > 0) {
+                              setState(() {});
+                              return;
+                            }
+
+                            // 添加数据至后端
+
+                            addBloodPressureData().then((_) {
+                              if (data.isEmpty) {
+                                dataWidget.removeLast();
+                                dataWidget.removeLast();
                               } else {
-                                invalidValueType = 0;
+                                dataWidget.removeAt(1);
                               }
-
-                              if (invalidValueType > 0) {
-                                print(
-                                    "invalidvalue: $invalidValueType ${invalidValueText[invalidValueType]}");
-                                setState(() {});
-                                return;
-                              }
-
-                              // 添加数据至后端
-                              /* addBloodPressureData();
-
-                              setState(() {
-                                print("更新已添加的数据");
-                                if (data.isEmpty) {
-                                  print('长度: ${dataWidget.length}');
-                                  dataWidget.removeLast();
-                                  dataWidget.removeLast();
-                                } else {
-                                  dataWidget.removeAt(1);
-                                }
-                                widget.updateData();
-                              }); */
-
-                              addBloodPressureData().then((_) {
-                                if (data.isEmpty) {
-                                  //print('长度: ${dataWidget.length}');
-                                  dataWidget.removeLast();
-                                  dataWidget.removeLast();
-                                } else {
-                                  dataWidget.removeAt(1);
-                                }
-                                widget.updateData();
-                              });
-                            },
-                            type: 2),
-                      ],
-                    ),
+                              widget.updateData();
+                            });
+                          },
+                          type: 2),
+                    ],
                   ),
                 ],
               ),
@@ -674,12 +544,12 @@ class TitleDate extends StatefulWidget {
   final DateTime date;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
-  const TitleDate(
-      {Key? key,
-      required this.date,
-      required this.updateView,
-      required this.updateDate})
-      : super(key: key);
+  const TitleDate({
+    Key? key,
+    required this.date,
+    required this.updateView,
+    required this.updateDate,
+  }) : super(key: key);
 
   @override
   State<TitleDate> createState() => _TitleDateState();
@@ -689,7 +559,6 @@ class _TitleDateState extends State<TitleDate> {
   DateTime date = DateTime.now();
   DateTime oldDate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-  //DateTime newDate = DateTime(2023, 11, 11);
 
   String getWeekDay() {
     switch (widget.date.weekday) {
@@ -737,7 +606,7 @@ class _TitleDateState extends State<TitleDate> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-        child: Container(
+        child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.85,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -745,141 +614,115 @@ class _TitleDateState extends State<TitleDate> {
               const SizedBox(
                 height: 5,
               ),
-              Container(
-                child: Row(
-                    //mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "修改血脂",
-                        style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 5),
-                      Image.asset("assets/icons/bloodFat.png",
-                          width: 20, height: 20),
-                    ]),
-              ),
+              Row(children: [
+                const Text(
+                  "修改血脂",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 5),
+                Image.asset("assets/icons/bloodFat.png", width: 20, height: 20),
+              ]),
               const SizedBox(
                 height: 10,
               ),
-              Container(
-                child: Row(
-                    //mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        //"${widget.date.year}年${widget.date.month}月${widget.date.day}日",
-                        '${date.year}年${date.month}月${date.day}日 ${getWeekDay()}',
-                        style: const TextStyle(
-                            fontSize: 18,
-                            fontFamily: "BalooBhai",
-                            color: Color.fromRGBO(48, 48, 48, 1)),
-                      ),
-                      const SizedBox(width: 2),
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: IconButton(
-                          padding: const EdgeInsets.all(0),
-                          icon: const Icon(Icons.calendar_month),
-                          iconSize: 25,
-                          /* onPressed: () {
-                            print("editDate");
-                          }, */
-
-                          onPressed: () => _showDialog(Column(
+              Row(children: [
+                Text(
+                  '${date.year}年${date.month}月${date.day}日 ${getWeekDay()}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontFamily: "BalooBhai",
+                    color: Color.fromRGBO(48, 48, 48, 1),
+                  ),
+                ),
+                const SizedBox(width: 2),
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: IconButton(
+                    padding: const EdgeInsets.all(0),
+                    icon: const Icon(Icons.calendar_month),
+                    iconSize: 25,
+                    onPressed: () => _showDialog(Column(
+                      children: [
+                        Expanded(
+                          child: CupertinoDatePicker(
+                            initialDateTime: date,
+                            maximumDate: DateTime.now(),
+                            mode: CupertinoDatePickerMode.date,
+                            use24hFormat: true,
+                            showDayOfWeek: true,
+                            onDateTimeChanged: (DateTime newDate) {
+                              date = newDate;
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                          width: 320,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Expanded(
-                                //height: 220,
-                                child: CupertinoDatePicker(
-                                  initialDateTime: date,
-                                  maximumDate: DateTime.now(),
-                                  mode: CupertinoDatePickerMode.date,
-                                  use24hFormat: true,
-                                  // This shows day of week alongside day of month
-                                  showDayOfWeek: true,
-                                  // This is called when the user changes the date.
-                                  onDateTimeChanged: (DateTime newDate) {
-                                    // setState(() => date = newDate);
-                                    date = newDate;
+                              SizedBox(
+                                width: 120,
+                                child: TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      date = oldDate;
+                                    });
+
+                                    Navigator.of(context).pop();
                                   },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                      const Color.fromARGB(255, 221, 223, 223),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    '取消',
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 15),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
                               SizedBox(
-                                height: 40,
-                                width: 320,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Container(
-                                      width: 120,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            date = oldDate;
-                                          });
+                                width: 120,
+                                child: TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      oldDate = date;
+                                    });
+                                    Navigator.of(context).pop();
 
-                                          Navigator.of(context).pop();
-                                        },
-                                        style: ButtonStyle(
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                            const Color.fromARGB(
-                                                255, 221, 223, 223),
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          '取消',
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 15),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
+                                    // 后端
+                                    widget.updateDate(date);
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                      const Color.fromARGB(255, 118, 241, 250),
                                     ),
-                                    Container(
-                                      width: 120,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            oldDate = date;
-                                          });
-                                          Navigator.of(context).pop();
-                                          // bpdata
-                                          // widget.updateDate(date);
-                                          //widget.updateView();
-
-                                          // 后端
-                                          widget.updateDate(date);
-                                          //widget.updateView();
-                                        },
-                                        style: ButtonStyle(
-                                            backgroundColor:
-                                                MaterialStateProperty.all<
-                                                        Color>(
-                                                    const Color.fromARGB(
-                                                        255, 118, 241, 250))),
-                                        child: const Text(
-                                          '确定',
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 15),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
+                                  child: const Text(
+                                    '确定',
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 15),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(
-                                height: 5,
-                              ),
                             ],
-                          )),
+                          ),
                         ),
-                      )
-                    ]),
-              )
+                        const SizedBox(
+                          height: 5,
+                        ),
+                      ],
+                    )),
+                  ),
+                )
+              ])
             ],
           ),
         ),
@@ -910,17 +753,17 @@ class _OtherButtonState extends State<OtherButton> {
       child: Container(
         height: 25,
         width: 40,
-        padding: EdgeInsets.all(0.0),
+        padding: const EdgeInsets.all(0.0),
         decoration: BoxDecoration(
           color: functionButtonColors[widget.type],
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+          border: Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
         ),
         alignment: Alignment.center,
         child: Center(
           child: Text(
             functionButtonTypes[widget.type],
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 12.0,
               fontFamily: 'Blinker',
@@ -940,10 +783,11 @@ class FeelingsButton extends StatefulWidget {
   final bool isSelected;
 
   const FeelingsButton({
+    Key? key,
     required this.onPressed,
     required this.iconPath,
     required this.isSelected,
-  });
+  }) : super(key: key);
 
   @override
   State<FeelingsButton> createState() => _FeelingsButtonState();
@@ -959,21 +803,18 @@ class _FeelingsButtonState extends State<FeelingsButton> {
       child: Container(
         height: 40,
         width: 50,
-        padding: EdgeInsets.all(0.0),
+        padding: const EdgeInsets.all(0.0),
         decoration: BoxDecoration(
           color: widget.isSelected
               ? const Color.fromRGBO(253, 134, 255, 0.66)
-              : Color.fromRGBO(218, 218, 218, 0.66),
+              : const Color.fromRGBO(218, 218, 218, 0.66),
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Color.fromRGBO(122, 119, 119, 0.43)),
+          border: Border.all(color: const Color.fromRGBO(122, 119, 119, 0.43)),
         ),
         alignment: Alignment.center,
-        child: Container(
+        child: SizedBox(
           height: 25,
           width: 25,
-          // color: widget.isSelected
-          //     ? Color.fromRGBO(66, 9, 119, 0.773)
-          //     : Color.fromRGBO(94, 68, 68, 100),
           child: Image.asset(
             widget.iconPath,
           ),
@@ -988,9 +829,10 @@ class _FeelingsButtonState extends State<FeelingsButton> {
 class FeelingsButtonsRow extends StatefulWidget {
   int selectedIndex;
 
-  FeelingsButtonsRow({required this.selectedIndex});
+  FeelingsButtonsRow({Key? key, required this.selectedIndex}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _FeelingsButtonsRowState createState() => _FeelingsButtonsRowState();
 
   int getSelectedButtonIndex() {
@@ -1002,12 +844,11 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
   @override
   void initState() {
     super.initState();
-    //selectedButtonIndex = widget.selectedIndex;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 41,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -1017,7 +858,6 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 0;
               });
-              print("开心按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-nice.png",
             isSelected: widget.selectedIndex == 0,
@@ -1028,7 +868,6 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 1;
               });
-              print("还好按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-ok.png",
             isSelected: widget.selectedIndex == 1,
@@ -1039,7 +878,6 @@ class _FeelingsButtonsRowState extends State<FeelingsButtonsRow> {
               setState(() {
                 widget.selectedIndex = 2;
               });
-              print("不好按钮被点击了！");
             },
             iconPath: "assets/icons/emoji-bad.png",
             isSelected: widget.selectedIndex == 2,
@@ -1097,9 +935,7 @@ class BloodFatEditWidget extends StatefulWidget {
 }
 
 class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
-  //bool isExpanded = false;
-  Widget? BPEditWidget;
-
+  // 删除数据
   Future<void> deleteData(int id) async {
     var token = await storage.read(key: 'token');
 
@@ -1111,14 +947,13 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
         ? "http://43.138.75.58:8080/api/blood-lipids/delete?id=$id&accountId=${widget.accountId}"
         : "http://43.138.75.58:8080/api/blood-lipids/delete?id=$id");
     if (response.data["code"] == 200) {
-      print("删除血脂数据成功");
+      return;
     } else {
-      print(response);
-      print("删除血脂数据失败");
-      //data = [];
+      return;
     }
   }
 
+  // 修改数据
   Future<void> editData(int id, newValue afterEditedValue) async {
     var token = await storage.read(key: 'token');
 
@@ -1149,140 +984,103 @@ class _BloodFatEditWidgetState extends State<BloodFatEditWidget> {
       );
 
       if (response.data['code'] == 200) {
-        print("修改数据成功");
+        return;
       } else {
-        print("修改数据失败");
+        return;
       }
     } on DioException catch (error) {
       final response = error.response;
       if (response != null) {
-        print(response.data);
-        print("修改数据请求失败1");
+        return;
       } else {
-        print(error.requestOptions);
-        print(error.message);
-        print("修改数据请求失败2");
+        return;
       }
     }
   }
 
-  void printBF() {
-    print("***************************************");
-    print("id: ${widget.id}");
-    print("date: ${widget.date}");
-    print("time: ${widget.time}");
-    print("tc: ${widget.tc}");
-    print("tg: ${widget.tg}");
-    print("ldl: ${widget.ldl}");
-    print("hdl: ${widget.hdl}");
-    print("feeling: ${widget.feeling}");
-    print("remark: ${widget.remark}");
-    print("isExpanded: ${widget.isExpanded}");
-    print("***************************************");
-  }
-
   @override
   Widget build(BuildContext context) {
-    //printBP();
     return GestureDetector(
-        onTap: () {
-          // 当收起时，点击任意地方可以展开
+      onTap: () {
+        // 当收起时，点击任意地方可以展开
 
-          if (getDataById(widget.id, "isExpanded") == 0) {
-            setState(() {
-              setDataById(widget.id, "isExpanded", 1);
+        if (getDataById(widget.id, "isExpanded") == 0) {
+          setState(() {
+            setDataById(widget.id, "isExpanded", 1);
 
-              // 其他的一律收起
-              for (int i = 0; i < data.length; i++) {
-                if (data[i]["id"] != widget.id) {
-                  setDataById(data[i]["id"], "isExpanded", 0);
-                }
+            // 其他的一律收起
+            for (int i = 0; i < data.length; i++) {
+              if (data[i]["id"] != widget.id) {
+                setDataById(data[i]["id"], "isExpanded", 0);
               }
-            });
-            widget.updateParent();
-          }
-        },
-        //child: BPEditWidget,
-        child: Column(
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeIn,
-              height: getDataById(widget.id, "isExpanded") == 1
-                  ? 470 //MediaQuery.of(context).size.height * 0.65
-                  //: MediaQuery.of(context).size.height * 0.15,
-                  : 200,
-              // height: MediaQuery.of(context).size.height * 0.15,
-              width: MediaQuery.of(context).size.width * 0.85,
+            }
+          });
+          widget.updateParent();
+        }
+      },
+      child: Column(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeIn,
+            height: getDataById(widget.id, "isExpanded") == 1 ? 470 : 200,
+            width: MediaQuery.of(context).size.width * 0.85,
 
-              alignment: Alignment.center,
-              //https://stackoverflow.com/questions/56298325/overflow-warning-in-animatedcontainer-adjusting-height
-              //切换的一瞬间会overflow，用SingleChildScrollView包裹一下解决
-              child: getDataById(widget.id, "isExpanded") == 1
-                  ? SingleChildScrollView(
-                      child: BloodFatEditWidgetMore(
-                        id: widget.id,
-                        time: widget.time,
-                        tc: widget.tc,
-                        tc_: widget.tc_,
-                        tg: widget.tg,
-                        tg_: widget.tg_,
-                        ldl: widget.ldl,
-                        ldl_: widget.ldl_,
-                        hdl: widget.hdl,
-                        hdl_: widget.hdl_,
-                        feeling: widget.feeling,
-                        remark: widget.remark,
-                        deleteData: () {
-                          /* setState(() {
-                            setDataById(widget.id, "isExpanded", 0);
-                            print('删除 ${widget.id}');
-                            // 删除id为widget.id的数据
-                            /* bpdata.removeWhere(
-                                (element) => element["id"] == widget.id);
-                            print(bpdata); */
-                            deleteData(widget.id);
-
-                            widget.updateData();
-                          }); */
-
-                          deleteData(widget.id).then((_) {
-                            widget.updateData();
-                          });
-                        },
-                        cancelEditData: () {
-                          setState(() {
-                            setDataById(widget.id, "isExpanded", 0);
-                          });
-                        },
-                        confirmEditData: () {
-                          //afterEditedValue.printValue();
-
-                          editData(widget.id, afterEditedValue).then((_) {
-                            widget.updateData();
-                          });
-                        },
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      child: BloodFatEditWidgetLess(
-                        id: widget.id,
-                        time: widget.time,
-                        tc: widget.tc,
-                        tc_: widget.tc_,
-                        tg: widget.tg,
-                        tg_: widget.tg_,
-                        ldl: widget.ldl,
-                        ldl_: widget.ldl_,
-                        hdl: widget.hdl,
-                        hdl_: widget.hdl_,
-                        feeling: widget.feeling,
-                        remark: widget.remark,
-                      ),
+            alignment: Alignment.center,
+            //https://stackoverflow.com/questions/56298325/overflow-warning-in-animatedcontainer-adjusting-height
+            //切换的一瞬间会overflow，用SingleChildScrollView包裹一下解决
+            child: getDataById(widget.id, "isExpanded") == 1
+                ? SingleChildScrollView(
+                    child: BloodFatEditWidgetMore(
+                      id: widget.id,
+                      time: widget.time,
+                      tc: widget.tc,
+                      tc_: widget.tc_,
+                      tg: widget.tg,
+                      tg_: widget.tg_,
+                      ldl: widget.ldl,
+                      ldl_: widget.ldl_,
+                      hdl: widget.hdl,
+                      hdl_: widget.hdl_,
+                      feeling: widget.feeling,
+                      remark: widget.remark,
+                      deleteData: () {
+                        deleteData(widget.id).then((_) {
+                          widget.updateData();
+                        });
+                      },
+                      cancelEditData: () {
+                        setState(() {
+                          setDataById(widget.id, "isExpanded", 0);
+                        });
+                      },
+                      confirmEditData: () {
+                        editData(widget.id, afterEditedValue).then((_) {
+                          widget.updateData();
+                        });
+                      },
                     ),
-            )
-          ],
-        ));
+                  )
+                : SingleChildScrollView(
+                    child: BloodFatEditWidgetLess(
+                      id: widget.id,
+                      time: widget.time,
+                      tc: widget.tc,
+                      tc_: widget.tc_,
+                      tg: widget.tg,
+                      tg_: widget.tg_,
+                      ldl: widget.ldl,
+                      ldl_: widget.ldl_,
+                      hdl: widget.hdl,
+                      hdl_: widget.hdl_,
+                      feeling: widget.feeling,
+                      remark: widget.remark,
+                    ),
+                  ),
+          )
+        ],
+      ),
+    );
   }
 }
 
@@ -1302,21 +1100,21 @@ class BloodFatEditWidgetLess extends StatefulWidget {
   final int feeling;
   final String remark;
 
-  BloodFatEditWidgetLess(
-      {Key? key,
-      required this.id,
-      required this.time,
-      required this.tc,
-      required this.tc_,
-      required this.tg,
-      required this.tg_,
-      required this.ldl,
-      required this.ldl_,
-      required this.hdl,
-      required this.hdl_,
-      required this.feeling,
-      required this.remark})
-      : super(key: key);
+  BloodFatEditWidgetLess({
+    Key? key,
+    required this.id,
+    required this.time,
+    required this.tc,
+    required this.tc_,
+    required this.tg,
+    required this.tg_,
+    required this.ldl,
+    required this.ldl_,
+    required this.hdl,
+    required this.hdl_,
+    required this.feeling,
+    required this.remark,
+  }) : super(key: key);
 
   @override
   State<BloodFatEditWidgetLess> createState() => _BloodFatEditWidgetLessState();
@@ -1330,11 +1128,8 @@ class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
 
   Widget getInfoPage() {
     return Container(
-      //duration: Duration(milliseconds: 1000),
-      //curve: Curves.easeInOut,
       height: 180,
       width: MediaQuery.of(context).size.width * 0.85,
-
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
@@ -1356,47 +1151,60 @@ class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
               children: [
                 Row(
                   children: [
-                    const Text('总胆固醇: ',
-                        style:
-                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                    Text('${widget.tc}.${widget.tc_}',
-                        style: const TextStyle(
-                            fontSize: 20, fontFamily: "BalooBhai")),
+                    const Text(
+                      '总胆固醇: ',
+                      style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                    ),
+                    Text(
+                      '${widget.tc}.${widget.tc_}',
+                      style: const TextStyle(
+                          fontSize: 20, fontFamily: "BalooBhai"),
+                    ),
                   ],
                 ),
                 Row(
                   children: [
-                    const Text('甘油三酯: ',
-                        style:
-                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                    Text('${widget.tg}.${widget.tg_}',
-                        style: const TextStyle(
-                            fontSize: 20, fontFamily: "BalooBhai")),
+                    const Text(
+                      '甘油三酯: ',
+                      style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                    ),
+                    Text(
+                      '${widget.tg}.${widget.tg_}',
+                      style: const TextStyle(
+                          fontSize: 20, fontFamily: "BalooBhai"),
+                    ),
                   ],
                 ),
                 Row(
                   children: [
-                    const Text('低密度脂蛋白胆固醇: ',
-                        style:
-                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                    Text('${widget.ldl}.${widget.ldl_}',
-                        style: const TextStyle(
-                            fontSize: 20, fontFamily: "BalooBhai")),
+                    const Text(
+                      '低密度脂蛋白胆固醇: ',
+                      style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                    ),
+                    Text(
+                      '${widget.ldl}.${widget.ldl_}',
+                      style: const TextStyle(
+                          fontSize: 20, fontFamily: "BalooBhai"),
+                    ),
                   ],
                 ),
                 Row(
                   children: [
-                    const Text('高密度脂蛋白胆固醇: ',
-                        style:
-                            TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                    Text('${widget.hdl}.${widget.hdl_}',
-                        style: const TextStyle(
-                            fontSize: 20, fontFamily: "BalooBhai")),
+                    const Text(
+                      '高密度脂蛋白胆固醇: ',
+                      style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                    ),
+                    Text(
+                      '${widget.hdl}.${widget.hdl_}',
+                      style: const TextStyle(
+                          fontSize: 20, fontFamily: "BalooBhai"),
+                    ),
                   ],
                 ),
-                Text('感觉: ${feelingButtonTypes[widget.feeling]}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                Text(
+                  '感觉: ${feelingButtonTypes[widget.feeling]}',
+                  style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                ),
               ],
             ),
           ],
@@ -1520,7 +1328,6 @@ class _BloodFatEditWidgetLessState extends State<BloodFatEditWidgetLess> {
                 ],
               ),
               SizedBox(
-                //height: 5,
                 child: getPageNum(showRemark),
               ),
             ],
@@ -1579,12 +1386,16 @@ class BloodFatEditWidgetMore extends StatefulWidget {
 class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
   int invalidValueType = 0;
   TextEditingController tcController = TextEditingController();
+  // ignore: non_constant_identifier_names
   TextEditingController tc_Controller = TextEditingController(); // 小数
   TextEditingController tgController = TextEditingController();
+  // ignore: non_constant_identifier_names
   TextEditingController tg_Controller = TextEditingController(); // 小数
   TextEditingController ldlController = TextEditingController();
+  // ignore: non_constant_identifier_names
   TextEditingController ldl_Controller = TextEditingController(); // 小数
   TextEditingController hdlController = TextEditingController();
+  // ignore: non_constant_identifier_names
   TextEditingController hdl_Controller = TextEditingController(); // 小数
   TextEditingController remarkController = TextEditingController();
   FeelingsButtonsRow feelingsButtons = FeelingsButtonsRow(
@@ -1626,7 +1437,7 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
   Widget getEditWidget(TextEditingController controller,
       TextEditingController controller_, String hintText, String hintText_) {
     double height = 41;
-    return Container(
+    return SizedBox(
       height: height,
       child: Row(
         children: [
@@ -1652,14 +1463,9 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
               style: const TextStyle(fontSize: 30, fontFamily: "BalooBhai"),
             ),
           ),
-          Container(
+          SizedBox(
             height: 40,
             width: 10,
-            /* child: const Text(
-              " . ",
-              style: TextStyle(fontSize: 35, fontFamily: "Blinker"),
-            ), */
-            //alignment: Alignment.bottomCenter,
             child: Column(
               children: [
                 Container(
@@ -1705,24 +1511,25 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
   }
 
   // 获取标题 中文+英文
-  Widget getTitle(String TitleChn, String TitleEng) {
-    if (TitleChn.length > 4) {
+  Widget getTitle(String titleChn, String titleEng) {
+    if (titleChn.length > 4) {
       return Column(
         children: [
           Text(
-            "${TitleChn.substring(0, 4)}", //前四个字
+            titleChn.substring(0, 4), //前四个字
             style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
           ),
           Text(
-            "${TitleChn.substring(4)}",
+            titleChn.substring(4),
             style: const TextStyle(fontSize: 14, fontFamily: "BalooBhai"),
           ),
           Text(
-            "${TitleEng}",
+            titleEng,
             style: const TextStyle(
-                fontSize: 14,
-                fontFamily: "Blinker",
-                color: Color.fromARGB(255, 109, 109, 109)),
+              fontSize: 14,
+              fontFamily: "Blinker",
+              color: Color.fromARGB(255, 109, 109, 109),
+            ),
           )
         ],
       );
@@ -1730,15 +1537,16 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
     return Column(
       children: [
         Text(
-          "${TitleChn}",
+          titleChn,
           style: const TextStyle(fontSize: 18, fontFamily: "BalooBhai"),
         ),
         Text(
-          "${TitleEng}",
+          titleEng,
           style: const TextStyle(
-              fontSize: 14,
-              fontFamily: "Blinker",
-              color: Color.fromARGB(255, 109, 109, 109)),
+            fontSize: 14,
+            fontFamily: "Blinker",
+            color: Color.fromARGB(255, 109, 109, 109),
+          ),
         )
       ],
     );
@@ -1749,7 +1557,6 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
     // 输入的controller
     getBeforeEditValue();
 
-    //DateTime time = DateTime.now();
     return UnconstrainedBox(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1758,7 +1565,6 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
           Container(
             width: MediaQuery.of(context).size.width * 0.85,
             decoration: BoxDecoration(
-              //color: Colors.white,
               color: Colors.white,
               borderRadius: BorderRadius.circular(20.0),
               border: Border.all(
@@ -1783,114 +1589,106 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       // 左边标题
-                      Container(
-                        child: Column(
-                          children: [
-                            getTitle("时间", "TIME"),
-                            getTitle("总胆固醇", "TC"),
-                            getTitle("甘油三酯", "TG"),
-                            getTitle("低密度脂蛋白胆固醇", "LDL"),
-                            getTitle("高密度脂蛋白胆固醇", "HDL"), //高密度脂蛋白胆固醇
-                            getTitle("感觉", "FEELINGS"),
-                            getTitle("备注", "REMARKS"),
-                          ],
-                        ),
+                      Column(
+                        children: [
+                          getTitle("时间", "TIME"),
+                          getTitle("总胆固醇", "TC"),
+                          getTitle("甘油三酯", "TG"),
+                          getTitle("低密度脂蛋白胆固醇", "LDL"),
+                          getTitle("高密度脂蛋白胆固醇", "HDL"), //高密度脂蛋白胆固醇
+                          getTitle("感觉", "FEELINGS"),
+                          getTitle("备注", "REMARKS"),
+                        ],
                       ),
 
                       const SizedBox(width: 5),
 
                       // 右边的子容器 （值）
-                      Container(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 时间
-                            Container(
-                              height: 41,
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                                child: TimePicker(
-                                    time: widget.time, updateTime: updateTime),
-                              ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 时间
+                          SizedBox(
+                            height: 41,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                              child: TimePicker(
+                                  time: widget.time, updateTime: updateTime),
                             ),
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
+                          ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
 
-                            // 修改tc
-                            getEditWidget(tcController, tc_Controller,
-                                widget.tc.toString(), widget.tc_.toString()),
+                          // 修改tc
+                          getEditWidget(tcController, tc_Controller,
+                              widget.tc.toString(), widget.tc_.toString()),
 
-                            //
-                            const SizedBox(
-                              height: 5,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 5,
+                          ),
 
-                            // 修改tg
-                            getEditWidget(tgController, tg_Controller,
-                                widget.tg.toString(), widget.tg_.toString()),
+                          // 修改tg
+                          getEditWidget(tgController, tg_Controller,
+                              widget.tg.toString(), widget.tg_.toString()),
 
-                            //
-                            const SizedBox(
-                              height: 15,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 15,
+                          ),
 
-                            // 修改ldl
-                            getEditWidget(ldlController, ldl_Controller,
-                                widget.ldl.toString(), widget.ldl_.toString()),
+                          // 修改ldl
+                          getEditWidget(ldlController, ldl_Controller,
+                              widget.ldl.toString(), widget.ldl_.toString()),
 
-                            //
-                            const SizedBox(
-                              height: 15,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 15,
+                          ),
 
-                            // 修改hdl
-                            getEditWidget(hdlController, hdl_Controller,
-                                widget.hdl.toString(), widget.hdl_.toString()),
+                          // 修改hdl
+                          getEditWidget(hdlController, hdl_Controller,
+                              widget.hdl.toString(), widget.hdl_.toString()),
 
-                            //
-                            const SizedBox(
-                              height: 20,
-                            ),
+                          //
+                          const SizedBox(
+                            height: 20,
+                          ),
 
-                            //修改感觉
-                            feelingsButtons,
+                          //修改感觉
+                          feelingsButtons,
 
-                            //
-                            //const SizedBox(height: 5),
-
-                            // 备注
-                            Container(
-                              height: 41,
-                              child: SizedBox(
-                                width: 150,
-                                height: 40,
-                                child: TextFormField(
-                                  controller: remarkController,
-                                  //initialValue: widget.SBloodpressure,
-                                  decoration: const InputDecoration(
-                                      counterText: "",
-                                      hintText: "-",
-                                      hintStyle: TextStyle(
-                                        color:
-                                            Color.fromARGB(255, 167, 166, 166),
-                                      ),
-                                      contentPadding:
-                                          EdgeInsets.fromLTRB(0, 0, 0, 6)),
-                                  textAlign: TextAlign.center,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  style: const TextStyle(
-                                      fontSize: 20, fontFamily: "BalooBhai"),
+                          // 备注
+                          SizedBox(
+                            height: 41,
+                            child: SizedBox(
+                              width: 150,
+                              height: 40,
+                              child: TextFormField(
+                                controller: remarkController,
+                                decoration: const InputDecoration(
+                                  counterText: "",
+                                  hintText: "-",
+                                  hintStyle: TextStyle(
+                                    color: Color.fromARGB(255, 167, 166, 166),
+                                  ),
+                                  contentPadding:
+                                      EdgeInsets.fromLTRB(0, 0, 0, 6),
                                 ),
+                                textAlign: TextAlign.center,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                style: const TextStyle(
+                                    fontSize: 20, fontFamily: "BalooBhai"),
                               ),
                             ),
+                          ),
 
-                            //
-                            const SizedBox(height: 10),
-                          ],
-                        ),
+                          //
+                          const SizedBox(height: 10),
+                        ],
                       ),
                     ],
                   ),
@@ -1928,55 +1726,50 @@ class _BloodFatEditWidgetMoreState extends State<BloodFatEditWidgetMore> {
                           type: 0),
 
                       // 确定修改数据
-                      Container(
-                        child: Row(
-                          // mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            OtherButton(
-                                onPressed: widget.cancelEditData, type: 1),
-                            const SizedBox(width: 5),
-                            OtherButton(
-                                onPressed: () {
-                                  if (tcController.text == "" ||
-                                      tc_Controller.text == "") {
-                                    invalidValueType = 1;
-                                  } else if (tgController.text == "" ||
-                                      tg_Controller.text == "") {
-                                    invalidValueType = 2;
-                                  } else if (ldlController.text == "" ||
-                                      ldl_Controller.text == "") {
-                                    invalidValueType = 3;
-                                  } else if (hdlController.text == "" ||
-                                      hdl_Controller.text == "") {
-                                    invalidValueType = 4;
-                                  } else {
-                                    invalidValueType = 0;
-                                  }
+                      Row(
+                        children: [
+                          OtherButton(
+                              onPressed: widget.cancelEditData, type: 1),
+                          const SizedBox(width: 5),
+                          OtherButton(
+                              onPressed: () {
+                                if (tcController.text == "" ||
+                                    tc_Controller.text == "") {
+                                  invalidValueType = 1;
+                                } else if (tgController.text == "" ||
+                                    tg_Controller.text == "") {
+                                  invalidValueType = 2;
+                                } else if (ldlController.text == "" ||
+                                    ldl_Controller.text == "") {
+                                  invalidValueType = 3;
+                                } else if (hdlController.text == "" ||
+                                    hdl_Controller.text == "") {
+                                  invalidValueType = 4;
+                                } else {
+                                  invalidValueType = 0;
+                                }
 
-                                  if (invalidValueType > 0) {
-                                    print(
-                                        "invalidvalue: $invalidValueType ${invalidValueText[invalidValueType]}");
-                                    setState(() {});
-                                    return;
-                                  }
-                                  afterEditedValue = newValue(
-                                      widget.id,
-                                      widget.time,
-                                      int.parse(tcController.text) +
-                                          int.parse(tc_Controller.text) / 10,
-                                      int.parse(tgController.text) +
-                                          int.parse(tg_Controller.text) / 10,
-                                      int.parse(ldlController.text) +
-                                          int.parse(ldl_Controller.text) / 10,
-                                      int.parse(hdlController.text) +
-                                          int.parse(hdl_Controller.text) / 10,
-                                      feelingsButtons.getSelectedButtonIndex(),
-                                      remarkController.text);
-                                  widget.confirmEditData();
-                                },
-                                type: 2),
-                          ],
-                        ),
+                                if (invalidValueType > 0) {
+                                  setState(() {});
+                                  return;
+                                }
+                                afterEditedValue = newValue(
+                                    widget.id,
+                                    widget.time,
+                                    int.parse(tcController.text) +
+                                        int.parse(tc_Controller.text) / 10,
+                                    int.parse(tgController.text) +
+                                        int.parse(tg_Controller.text) / 10,
+                                    int.parse(ldlController.text) +
+                                        int.parse(ldl_Controller.text) / 10,
+                                    int.parse(hdlController.text) +
+                                        int.parse(hdl_Controller.text) / 10,
+                                    feelingsButtons.getSelectedButtonIndex(),
+                                    remarkController.text);
+                                widget.confirmEditData();
+                              },
+                              type: 2),
+                        ],
                       )
                     ],
                   ),
@@ -2019,9 +1812,10 @@ class NoDataWidget extends StatelessWidget {
           child: Text(
             "暂无数据",
             style: TextStyle(
-                fontSize: 20,
-                fontFamily: "BalooBhai",
-                color: Color.fromRGBO(48, 48, 48, 1)),
+              fontSize: 20,
+              fontFamily: "BalooBhai",
+              color: Color.fromRGBO(48, 48, 48, 1),
+            ),
           ),
         ),
       ),
@@ -2044,6 +1838,7 @@ class BloodFatEdit extends StatefulWidget {
 
   const BloodFatEdit({Key? key, required this.arguments}) : super(key: key);
   @override
+  // ignore: library_private_types_in_public_api
   _BloodFatEditState createState() => _BloodFatEditState();
 }
 
@@ -2053,11 +1848,8 @@ class _BloodFatEditState extends State<BloodFatEdit> {
   int bfDataId = -1;
 
   void getDataFromServer() async {
-    // print(
-    //    '血脂修改请求日期：${date.year}-${date.month}-${date.day}....................................');
     String requestDate = getFormattedDate(date);
 
-    // 提取登录获取的token
     var token = await storage.read(key: 'token');
 
     //从后端获取数据
@@ -2069,29 +1861,19 @@ class _BloodFatEditState extends State<BloodFatEdit> {
       widget.arguments["accountId"] >= 0
           ? "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate&accountId=${widget.arguments["accountId"]}"
           : "http://43.138.75.58:8080/api/blood-lipids/get-by-date?date=$requestDate",
-      /* queryParameters: {
-        "startDate": requestDate,
-        "endDate": requestDate,
-      }, */
     );
     if (response.data["code"] == 200) {
-      //print("获取血脂lipids数据成功EDIT");
-      //print(response.data["data"]);
       data = response.data["data"];
-      //bpdata = response.data["data"];
     } else {
-      print(response);
       data = [];
     }
     titleDateWidget =
         TitleDate(date: date, updateView: updateView, updateDate: updateDate);
     dataWidget = [];
     dataWidget.add(titleDateWidget);
-    //data = [];
 
     for (int i = 0; i < data.length; i++) {
       int id_ = data[i]["id"];
-      // String date_ = data[i]["date"];
       String timeStr = data[i]["time"];
       int hour = int.parse(timeStr.split(":")[0]);
       int minute = int.parse(timeStr.split(":")[1]);
@@ -2108,18 +1890,6 @@ class _BloodFatEditState extends State<BloodFatEdit> {
         data[i]["isExpanded"] = 1;
         widget.arguments["bfDataId"] = -1;
       }
-
-      /* print("第$i条数据");
-      print("id: $id_");
-      print("date: $date_");
-      print("time: $time_");
-      print("sbp: $sbp_");
-      print("dbp: $dbp_");
-      print("heartRate: $heartRate_");
-      print("arm: $arm_");
-      print("feeling: $feeling_");
-      print("remark: $remark_");
-      print("============"); */
 
       dataWidget.add(UnconstrainedBox(
         child: BloodFatEditWidget(
@@ -2146,7 +1916,7 @@ class _BloodFatEditState extends State<BloodFatEdit> {
     }
 
     if (data.isEmpty) {
-      dataWidget.add(NoDataWidget());
+      dataWidget.add(const NoDataWidget());
     }
 
     setState(() {});
@@ -2162,23 +1932,18 @@ class _BloodFatEditState extends State<BloodFatEdit> {
   }
 
   void updateDate(DateTime newDate) {
-    // print("new date: $newDate");
     date = newDate;
     getDataFromServer();
   }
 
   void updateData() {
-    //print("刷新，日期：${date.year}年${date.month}月${date.day}日");
     getDataFromServer();
   }
 
   // 控制同一时间只有一个能展开进行编辑，不会影响数据
   void updateView() {
-    //print("updateView");
-
     List<int> isExpandedArray = [];
     for (int i = 0; i < data.length; i++) {
-      //print("展开状态 isExpanded: ${data[i]["id"]} ${data[i]["isExpanded"]}");
       isExpandedArray.add(data[i]["isExpanded"]);
     }
 
@@ -2216,8 +1981,8 @@ class _BloodFatEditState extends State<BloodFatEdit> {
       ));
     }
 
-    if (data.length == 0) {
-      dataWidget.add(NoDataWidget());
+    if (data.isEmpty) {
+      dataWidget.add(const NoDataWidget());
     }
 
     dataWidget = dataWidgetTemp;
@@ -2227,20 +1992,7 @@ class _BloodFatEditState extends State<BloodFatEdit> {
 
   @override
   Widget build(BuildContext context) {
-    // print("血压修改页面刷新");
     return Scaffold(
-      /* appBar: AppBar(
-        title: const Text(
-          "TriGuard",
-          style: TextStyle(
-            fontFamily: 'BalooBhai',
-            fontSize: 26,
-            color: Colors.black,
-          ),
-        ),
-        flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-            (MediaQuery.of(context).size.height * 0.1 + 11)),
-      ), */
       appBar: widget.arguments["accountId"] < 0
           ? getAppBar(0, true, "TriGuard")
           : getAppBar(1, true, widget.arguments["nickname"]),
@@ -2259,16 +2011,16 @@ class _BloodFatEditState extends State<BloodFatEdit> {
       // 添加数据的按钮
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print("我要添加血脂数据");
           setState(() {
             dataWidget.insert(
-                1,
-                addDataWidget(
-                  accountId: widget.arguments["accountId"],
-                  date: date,
-                  time: addTime,
-                  updateData: updateData,
-                ));
+              1,
+              addDataWidget(
+                accountId: widget.arguments["accountId"],
+                date: date,
+                time: addTime,
+                updateData: updateData,
+              ),
+            );
           });
         },
         shape: const CircleBorder(),

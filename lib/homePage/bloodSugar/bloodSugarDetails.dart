@@ -10,7 +10,6 @@ import '../../account/token.dart';
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/other.dart';
-//import '../bloodPressure/bloodPressureEdit.dart';
 import './bloodSugarEdit.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
@@ -20,17 +19,15 @@ typedef UpdateDaysCallback = void Function(String newDays);
 // 图表天数选择
 // ignore: must_be_immutable
 class GraphDayDropdownButton extends StatefulWidget {
-  //final UpdateDateCallback updateDate;
   final VoidCallback updateView;
   final UpdateDaysCallback updateDays;
   String? selectedValue = '最近7天';
-  //const GraphDayDropdownButton({Key? key, required this.updateDate}):super(key: key);
-  GraphDayDropdownButton(
-      {Key? key,
-      required this.updateView,
-      required this.updateDays,
-      this.selectedValue})
-      : super(key: key);
+  GraphDayDropdownButton({
+    Key? key,
+    required this.updateView,
+    required this.updateDays,
+    this.selectedValue,
+  }) : super(key: key);
   @override
   State<GraphDayDropdownButton> createState() => _GraphDayDropdownButtonState();
 
@@ -51,15 +48,12 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
 
   @override
   Widget build(BuildContext context) {
-    //print("血压图表天数显示刷新 ${widget.selectedValue}");
     return Row(
-      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
           "显示：",
           style: TextStyle(fontSize: 15, fontFamily: "BalooBhai"),
         ),
-
         DropdownButtonHideUnderline(
           child: DropdownButton2<String>(
             isExpanded: true,
@@ -85,8 +79,6 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
             onChanged: (String? value) {
               setState(() {
                 widget.selectedValue = value;
-                //print("更改为 ${widget.selectedValue}");
-                //widget.updateView();
                 widget.updateDays(widget.selectedValue!);
               });
             },
@@ -94,15 +86,12 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
               padding: EdgeInsets.symmetric(horizontal: 16),
               height: 40,
               width: 140,
-              // decoration:
-              //     BoxDecoration(borderRadius: BorderRadius.circular(10)),
             ),
             menuItemStyleData: const MenuItemStyleData(
               height: 40,
             ),
           ),
         ),
-        // DatePicker(),
       ],
     );
   }
@@ -110,25 +99,25 @@ class _GraphDayDropdownButtonState extends State<GraphDayDropdownButton> {
 
 // 血压图表
 // ignore: must_be_immutable
-class BloodPressureGraph extends StatefulWidget {
+class BloodSugarGraph extends StatefulWidget {
   final int accountId;
   DateTime date;
 
   final String selectedDays;
   final UpdateDateCallback updateDate;
-  BloodPressureGraph(
-      {Key? key,
-      required this.accountId,
-      required this.date,
-      required this.selectedDays,
-      required this.updateDate})
-      : super(key: key);
+  BloodSugarGraph({
+    Key? key,
+    required this.accountId,
+    required this.date,
+    required this.selectedDays,
+    required this.updateDate,
+  }) : super(key: key);
 
   @override
-  State<BloodPressureGraph> createState() => _BloodPressureGraphState();
+  State<BloodSugarGraph> createState() => _BloodSugarGraphState();
 }
 
-class _BloodPressureGraphState extends State<BloodPressureGraph> {
+class _BloodSugarGraphState extends State<BloodSugarGraph> {
   // 从后端请求得到的原始数据
   List<dynamic> data = [];
 
@@ -141,10 +130,12 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
   Future<void> getDataFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestEndDate = getFormattedDate(widget.date);
-    //print(
-    //    '请求日期：$requestStartDate ~~~ $requestEndDate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
-    // 提取登录获取的token
+    if (widget.selectedDays == "当前的月") {
+      requestEndDate = getFormattedDate(
+          DateTime(widget.date.year, widget.date.month + 1, 0));
+    }
+
     var token = await storage.read(key: 'token');
 
     //从后端获取数据
@@ -159,14 +150,11 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
             : "http://43.138.75.58:8080/api/blood-sugar/get-by-date-range?startDate=$requestStartDate&endDate=$requestEndDate",
       );
       if (response.data["code"] == 200) {
-        //print("获取血糖数据成功");
         data = response.data["data"];
       } else {
-        print(response);
         data = [];
       }
     } catch (e) {
-      print(e);
       data = [];
     }
 
@@ -175,7 +163,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
     bloodSugarData = [];
 
     for (int i = data.length - 1; i >= 0; i--) {
-      // int id_ = data[i]["id"];
       String date_ = data[i]["date"];
       int month_ = int.parse(date_.split("-")[1]);
       int day_ = int.parse(date_.split("-")[2]);
@@ -185,8 +172,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
       monthData.add(month_);
       bloodSugarData.add(bs_);
     }
-
-    //print("bloodSugarData: $bloodSugarData");
 
     if (data.isEmpty) {
       dayData.add(widget.date.day);
@@ -202,8 +187,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
   @override
   Widget build(BuildContext context) {
-    //print('血压折线图更新build：${widget.date}，天数：${widget.selectedDays}');
-
     return FutureBuilder(
       future: getDataFromServer(),
       builder: (context, snapshot) {
@@ -217,9 +200,11 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 alignment: Alignment.centerRight,
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 255, 255, 255),
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(15),
+                  ),
                   border: Border.all(
-                    color: Color.fromRGBO(0, 0, 0, 0.2),
+                    color: const Color.fromRGBO(0, 0, 0, 0.2),
                   ),
                   boxShadow: const [
                     BoxShadow(
@@ -233,83 +218,83 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    Container(
+                    SizedBox(
                       width: dayData.length <= 5 ? 325 : dayData.length * 65,
                       height: MediaQuery.of(context).size.height * 0.35,
                       child: Echarts(
                         extraScript: '''
-                  var month = $monthData;
-                  var day = $dayData;
-                  
-''',
+                         var month = $monthData;
+                          var day = $dayData;
+                      
+                         ''',
                         option: '''
-              {
-                animation:false,
+                        {
+                          animation:false,
 
-                title: {
-                  text: '血糖',
-                  top:'5%',
-                  left:'10',
-                },
+                          title: {
+                            text: '血糖',
+                            top:'5%',
+                            left:'10',
+                          },
 
-                legend: {
-                  data: ['血糖'],
-                  top:'6%',
-                  left:'70',
-                },
+                          legend: {
+                            data: ['血糖'],
+                            top:'6%',
+                            left:'70',
+                          },
 
-                  grid: {
-                  left: '3%',
-                  right: '4%',
-                  bottom: '5%',
-                  containLabel: true,
-                },
-                tooltip: {
-                  trigger: 'axis'
-                },
+                            grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '5%',
+                            containLabel: true,
+                          },
+                          tooltip: {
+                            trigger: 'axis'
+                          },
 
-                xAxis: {
-                  type: 'category',
-                  boundaryGap: true,
-                  axisLabel: {
-                   interval: 0,
-                   textStyle: {
-                      color: '#000000'
-                  },
-                   formatter: function(index) {
-                        // 自定义显示格式
-                         return day[index] + '/' + month[index]; // 取日期的第一部分
-                   }
-                  },
+                          xAxis: {
+                            type: 'category',
+                            boundaryGap: true,
+                            axisLabel: {
+                            interval: 0,
+                            textStyle: {
+                                color: '#000000'
+                            },
+                            formatter: function(index) {
+                                  // 自定义显示格式
+                                  return day[index] + '/' + month[index]; // 取日期的第一部分
+                            }
+                            },
 
-                },
+                          },
 
-                yAxis: {
-                  type: 'value',
-                  axisLabel:{
-                    textStyle: {
-                        color: '#000000'
-                    },
-                  },
-                    ${data.isEmpty ? "min: 0, max: 120," : ""}
-                },
-                series: [{
-                  name: '血糖',
-                  data: $bloodSugarData,
-                  type: 'line',
-                  smooth: true,
-                  itemStyle: {
-                      normal: {
-                          color: "#E437B4",
-                          lineStyle: {
-                              color: "#F87CE4"
+                          yAxis: {
+                            type: 'value',
+                            axisLabel:{
+                              textStyle: {
+                                  color: '#000000'
+                              },
+                            },
+                              ${data.isEmpty ? "min: 0, max: 120," : ""}
+                          },
+                          series: [{
+                            name: '血糖',
+                            data: $bloodSugarData,
+                            type: 'line',
+                            smooth: true,
+                            itemStyle: {
+                                normal: {
+                                    color: "#E437B4",
+                                    lineStyle: {
+                                        color: "#F87CE4"
+                                    }
+                                }
+                            },
+                          },
+                          ]
                           }
-                      }
-                  },
-                },
-                ]
-                }
-            ''',
+                      ''',
                       ),
                     ),
                   ],
@@ -318,7 +303,6 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
             ),
           );
         } else {
-          //return CircularProgressIndicator();
           return Center(
             child: LoadingAnimationWidget.staggeredDotsWave(
                 color: Colors.pink, size: 25),
@@ -331,63 +315,49 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> {
 
 // 日期选择器 与 血压图表 组件
 // ignore: must_be_immutable
-class BloodPressureGraphWidget extends StatefulWidget {
+class BloodSugarGraphWidget extends StatefulWidget {
   final int accountId;
   DateTime date;
   final VoidCallback updateView;
   final UpdateDateCallback updateDate;
   final UpdateDaysCallback updateDays;
   String selectedDays = "最近7天";
-  BloodPressureGraphWidget(
-      {Key? key,
-      required this.accountId,
-      required this.date,
-      required this.selectedDays,
-      required this.updateView,
-      required this.updateDate,
-      required this.updateDays})
-      : super(key: key);
+  BloodSugarGraphWidget({
+    Key? key,
+    required this.accountId,
+    required this.date,
+    required this.selectedDays,
+    required this.updateView,
+    required this.updateDate,
+    required this.updateDays,
+  }) : super(key: key);
 
   @override
-  State<BloodPressureGraphWidget> createState() =>
-      _BloodPressureGraphWidgetState();
+  State<BloodSugarGraphWidget> createState() => _BloodSugarGraphWidgetState();
 }
 
-class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
+class _BloodSugarGraphWidgetState extends State<BloodSugarGraphWidget> {
   String selectedDays2 = "最近7天";
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    //setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    // print('血压图表组件更新（日期与图表） ${widget.date}, ${widget.selectedDays}');
-
-    /* BloodPressureGraph graph =  BloodPressureGraph(
-      date: widget.date,
-      selectedDays: widget.selectedDays,
-      updateDate: widget.updateDate,
-    ); */
-
     GraphDayDropdownButton selectDaysButton = GraphDayDropdownButton(
       updateView: widget.updateView,
       updateDays: widget.updateDays,
-      //selectedValue: selectedDays2,
       selectedValue: widget.selectedDays,
     );
 
     return UnconstrainedBox(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(children: [
           Column(
-            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              //GraphDayDropdownButton(updateView: widget.updateView),
               const SizedBox(height: 5),
               DatePicker2(date: widget.date, updateDate: widget.updateDate),
               selectDaysButton,
@@ -395,10 +365,9 @@ class _BloodPressureGraphWidgetState extends State<BloodPressureGraphWidget> {
             ],
           ),
           //graph,
-          BloodPressureGraph(
+          BloodSugarGraph(
             accountId: widget.accountId,
             date: widget.date,
-            //selectedDays: selectedDays2,
             selectedDays: widget.selectedDays,
             updateDate: widget.updateDate,
           ),
@@ -422,7 +391,7 @@ class BloodSugarData extends StatefulWidget {
   final String remark;
   final VoidCallback updateData;
 
-  BloodSugarData({
+  const BloodSugarData({
     Key? key,
     required this.accountId,
     required this.nickname,
@@ -464,37 +433,33 @@ class _BloodSugarDataState extends State<BloodSugarData> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Text(
-                '${widget.hour < 10 ? "0${widget.hour}" : widget.hour}:${widget.minute < 10 ? "0${widget.minute}" : widget.minute}',
-                style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai")),
-            /* Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('血糖: ${widget.bloodSugar}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-              ],
-            ), */
-
+              '${widget.hour < 10 ? "0${widget.hour}" : widget.hour}:${widget.minute < 10 ? "0${widget.minute}" : widget.minute}',
+              style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai"),
+            ),
             Row(
               children: [
-                const Text('血糖: ',
-                    style: TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                Text('${widget.bloodSugar}',
-                    style:
-                        const TextStyle(fontSize: 20, fontFamily: "BalooBhai")),
+                const Text(
+                  '血糖: ',
+                  style: TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                ),
+                Text(
+                  '${widget.bloodSugar}',
+                  style: const TextStyle(fontSize: 20, fontFamily: "BalooBhai"),
+                ),
               ],
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('进食: ${mealButtonTypes[widget.meal]}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
-                Text('感觉: ${feelingButtonTypes[widget.feeling]}',
-                    style:
-                        const TextStyle(fontSize: 16, fontFamily: "BalooBhai")),
+                Text(
+                  '进食: ${mealButtonTypes[widget.meal]}',
+                  style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                ),
+                Text(
+                  '感觉: ${feelingButtonTypes[widget.feeling]}',
+                  style: const TextStyle(fontSize: 16, fontFamily: "BalooBhai"),
+                ),
               ],
             ),
           ],
@@ -621,7 +586,6 @@ class _BloodSugarDataState extends State<BloodSugarData> {
                     ],
                   ),
                   SizedBox(
-                    //height: 5,
                     child: getPageNum(showRemark),
                   ),
                 ],
@@ -635,8 +599,6 @@ class _BloodSugarDataState extends State<BloodSugarData> {
           // Edit
           GestureDetector(
             onTap: () {
-              //print("编辑 ${widget.id}");
-
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -650,24 +612,13 @@ class _BloodSugarDataState extends State<BloodSugarData> {
                   ),
                 ),
               ).then((_) {
-                //print("哈哈哈");
                 widget.updateData();
               });
-
-              /* var args = {
-                "accountId": widget.accountId >= 0 ? widget.accountId : -1,
-                "nickname":
-                    widget.accountId >= 0 ? widget.nickname : "TriGuard",
-                "date": widget.date,
-                "bpDataId": -1,
-              }; */
             },
-            child: Container(
-              child: Image.asset(
-                "assets/icons/pencil.png",
-                width: 20,
-                height: 20,
-              ),
+            child: Image.asset(
+              "assets/icons/pencil.png",
+              width: 20,
+              height: 20,
             ),
           ),
         ],
@@ -705,32 +656,16 @@ class NoDataWidget extends StatelessWidget {
               child: Text(
                 "暂无数据",
                 style: TextStyle(
-                    fontSize: 20,
-                    fontFamily: "BalooBhai",
-                    color: Color.fromRGBO(48, 48, 48, 1)),
+                  fontSize: 20,
+                  fontFamily: "BalooBhai",
+                  color: Color.fromRGBO(48, 48, 48, 1),
+                ),
               ),
             ),
           ),
           GestureDetector(
-            onTap: () {
-              // print("添加数据");
-              /* Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BloodPressureEdit(
-                    arguments: {
-                      "bpDataId": -1,
-                      "date": DateTime.now(),
-                      "prevPage": 0,
-                    },
-                  ),
-                ),
-              ).then((_) {
-                //print("哈哈哈");
-                widget.updateData();
-              }); */
-            },
-            child: Container(
+            onTap: () {},
+            child: SizedBox(
               height: 20,
               width: 20,
               child: Image.asset("assets/icons/add.png", width: 20, height: 20),
@@ -796,7 +731,6 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
             ),
             GestureDetector(
               onTap: () {
-                //  print("添加数据");
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -811,11 +745,10 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
                     ),
                   ),
                 ).then((_) {
-                  //print("哈哈哈");
                   widget.updateData();
                 });
               },
-              child: Container(
+              child: SizedBox(
                 height: 20,
                 width: 20,
                 child:
@@ -831,38 +764,35 @@ class _NoDataListWidgetState extends State<NoDataListWidget> {
 
 // 展示所有
 // ignore: must_be_immutable
-class BloodPressureDataList extends StatefulWidget {
+class BloodSugarDataList extends StatefulWidget {
   final int accountId;
   final String nickname;
   DateTime date;
   int showMore;
   final VoidCallback updateData;
-  BloodPressureDataList(
-      {Key? key,
-      required this.accountId,
-      required this.nickname,
-      required this.date,
-      required this.showMore,
-      required this.updateData})
-      : super(key: key);
+  BloodSugarDataList({
+    Key? key,
+    required this.accountId,
+    required this.nickname,
+    required this.date,
+    required this.showMore,
+    required this.updateData,
+  }) : super(key: key);
 
   @override
-  State<BloodPressureDataList> createState() => _BloodPressureDataListState();
+  State<BloodSugarDataList> createState() => _BloodSugarDataListState();
 }
 
-class _BloodPressureDataListState extends State<BloodPressureDataList> {
+class _BloodSugarDataListState extends State<BloodSugarDataList> {
   List<dynamic> data = [];
   List<Widget> dataWidget = [];
   int length = 1;
 
   Future<void> getDataFromServer() async {
-    //print(
-    //    '请求日期：${widget.date.year}-${widget.date.month}-${widget.date.day}....................................');
     String requestDate = getFormattedDate(widget.date);
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
@@ -874,30 +804,19 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
         widget.accountId >= 0
             ? "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate&accountId=${widget.accountId}"
             : "http://43.138.75.58:8080/api/blood-sugar/get-by-date?date=$requestDate",
-        /* queryParameters: {
-          "startDate": requestDate,
-          "endDate": requestDate,
-        }, */
       );
       if (response.data["code"] == 200) {
-        //print("获取血压数据成功");
-        //print(response.data["data"]);
         data = response.data["data"];
-        //bpdata = response.data["data"];
       } else {
-        print(response);
         data = [];
       }
     } catch (e) {
-      print(e);
       data = [];
     }
   }
 
   @override
   void initState() {
-    // TODO: 从后端请求数据
-
     super.initState();
     getDataFromServer().then((_) {
       getdataWidgetList();
@@ -907,8 +826,6 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
   void getdataWidgetList() {
     dataWidget = [];
 
-    //TODO 要考虑到当天没有数据的情况
-
     // 收起时就显示一个
     if (widget.showMore == 1) {
       length = data.length;
@@ -917,7 +834,6 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
     }
 
     if (data.isEmpty) {
-      //dataWidget.add(NoDataWidget());
       dataWidget.add(NoDataListWidget(
         accountId: widget.accountId,
         nickname: widget.accountId >= 0 ? widget.nickname : "TriGuard",
@@ -934,24 +850,11 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
       String timeStr = data[i]["time"];
       int hour_ = int.parse(timeStr.split(":")[0]);
       int minute_ = int.parse(timeStr.split(":")[1]);
-      // DateTime time_ = DateTime(2023, 01, 01, hour_, minute_);
       double bloodSugar_ = data[i]["bs"];
       int meal_ = data[i]["meal"];
       int feeling_ = data[i]["feeling"];
       String remark_ = data[i]["remark"] ?? "暂无备注";
       data[i]["isExpanded"] = 0; // 默认收起
-
-      /* print("=====第$i条数据=====");
-      print("id: $id_");
-      print("date: $date_");
-      print("time: $time_");
-      print("sbp: $sbp_");
-      print("dbp: $dbp_");
-      print("heartRate: $heartRate_");
-      print("arm: $arm_");
-      print("feeling: $feeling_");
-      print("remark: $remark_");
-      print("==================="); */
 
       dataWidget.add(BloodSugarData(
         accountId: widget.accountId,
@@ -967,39 +870,16 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
         updateData: widget.updateData,
       ));
     }
-
-    //setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    // print(
-    //    "-----------------------------------------------------------------------");
-    /* getDataFromServer().then((_) {
-      getdataWidgetList();
-    });
-
-    // 收起展开的动画
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      height: length == 1 ? 95 : 95.0 * length,
-      curve: Curves.easeInOut,
-      child: SingleChildScrollView(
-        child: Column(
-          children: dataWidget,
-        ),
-      ),
-    ); */
-
     return FutureBuilder(
-      // Replace getDataFromServer with the Future you want to wait for
       future: getDataFromServer(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          // getDataFromServer is complete, now call getdataWidgetList
           getdataWidgetList();
 
-          // Return the AnimatedContainer here
           return AnimatedContainer(
             duration: const Duration(milliseconds: 1500),
             height: length == 1 ? 95 : 95.0 * length,
@@ -1011,16 +891,10 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
             ),
           );
         } else {
-          // You can return a loading indicator or placeholder here
-          //return CircularProgressIndicator();
-          //return Container();
           return UnconstrainedBox(
-            child: Container(
+            child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.85,
               height: 100,
-              /* child: const Center(
-                child: CircularProgressIndicator(),
-              ), */
               child: Center(
                 child: LoadingAnimationWidget.staggeredDotsWave(
                     color: Colors.pink, size: 25),
@@ -1035,13 +909,13 @@ class _BloodPressureDataListState extends State<BloodPressureDataList> {
 
 //展示列表数据接口
 // ignore: must_be_immutable
-class BloodPressureDataWidget extends StatefulWidget {
+class BloodSugarDataWidget extends StatefulWidget {
   final int accountId;
   final String nickname;
   DateTime date;
   final VoidCallback updateView;
   final VoidCallback updateData;
-  BloodPressureDataWidget(
+  BloodSugarDataWidget(
       {Key? key,
       required this.accountId,
       required this.nickname,
@@ -1051,11 +925,10 @@ class BloodPressureDataWidget extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<BloodPressureDataWidget> createState() =>
-      _BloodPressureDataWidgetState();
+  State<BloodSugarDataWidget> createState() => _BloodSugarDataWidgetState();
 }
 
-class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
+class _BloodSugarDataWidgetState extends State<BloodSugarDataWidget> {
   int showMore = 0;
   List<String> buttonText = ["展开", "收起"];
   List<String> buttonIcon = [
@@ -1071,17 +944,16 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
 
   @override
   Widget build(BuildContext context) {
-    dataWidgetList = BloodPressureDataList(
+    dataWidgetList = BloodSugarDataList(
       accountId: widget.accountId,
       nickname: widget.nickname,
       date: widget.date,
       showMore: showMore,
       updateData: widget.updateData,
     );
-    //print('血压展示列表数据更新: ${widget.date}');
 
     return Center(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(
           children: [
@@ -1108,8 +980,6 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
                     setState(() {});
                   },
                   child: Container(
-                    //alignment: Alignment.bottomCenter,
-                    // color: Colors.yellow,
                     alignment: Alignment.center,
                     child: Row(
                       children: [
@@ -1142,13 +1012,13 @@ class _BloodPressureDataWidgetState extends State<BloodPressureDataWidget> {
 }
 
 // 统计血压次数图表
-class BloodPressureStaticGraph extends StatefulWidget {
+class BloodSugarStaticGraph extends StatefulWidget {
   final DateTime date;
   final String selectedDays;
   final String seriesName;
   final UpdateDateCallback updateDate;
   final List<int> dataTimes;
-  const BloodPressureStaticGraph({
+  const BloodSugarStaticGraph({
     Key? key,
     required this.date,
     required this.selectedDays,
@@ -1158,11 +1028,10 @@ class BloodPressureStaticGraph extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodPressureStaticGraph> createState() =>
-      _BloodPressureStaticGraphState();
+  State<BloodSugarStaticGraph> createState() => _BloodSugarStaticGraphState();
 }
 
-class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
+class _BloodSugarStaticGraphState extends State<BloodSugarStaticGraph> {
   Future<Widget> getEchart() async {
     return Echarts(option: '''
         {
@@ -1232,7 +1101,7 @@ class _BloodPressureStaticGraphState extends State<BloodPressureStaticGraph> {
 
 // 血压的基础统计组件
 // ignore: must_be_immutable
-class BloodPressureStaticWidget extends StatefulWidget {
+class BloodSugarStaticWidget extends StatefulWidget {
   final int accountId;
   final DateTime date;
   final String selectedDays;
@@ -1240,7 +1109,7 @@ class BloodPressureStaticWidget extends StatefulWidget {
   final UpdateDateCallback updateDate;
   bool refreshData = true;
 
-  BloodPressureStaticWidget({
+  BloodSugarStaticWidget({
     Key? key,
     required this.accountId,
     required this.date,
@@ -1251,11 +1120,10 @@ class BloodPressureStaticWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BloodPressureStaticWidget> createState() =>
-      _BloodPressureStaticWidgetState();
+  State<BloodSugarStaticWidget> createState() => _BloodSugarStaticWidgetState();
 }
 
-class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
+class _BloodSugarStaticWidgetState extends State<BloodSugarStaticWidget> {
   String title = "";
   int pageNum = 0;
 
@@ -1268,12 +1136,14 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
   Future<void> getDataFromServer() async {
     String requestStartDate = getStartDate(widget.date, widget.selectedDays);
     String requestEndDate = getFormattedDate(widget.date);
-    //print(
-    //    '请求日期：$requestStartDate ~~~ $requestEndDate ??????????????????????????????????');
+
+    if (widget.selectedDays == "当前的月") {
+      requestEndDate = getFormattedDate(
+          DateTime(widget.date.year, widget.date.month + 1, 0));
+    }
 
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
@@ -1295,27 +1165,17 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
         data: params,
       );
       if (response.data["code"] == 200) {
-        //print("获取血糖数据成功（饼图）");
         data = response.data["data"]["countedDataList"];
       } else {
-        print(response);
         data = [];
       }
     } catch (e) {
-      print(e);
       data = [];
     }
-
-    print(data);
 
     avg = 0;
     total = 0;
     bloodSugarTimes = [];
-
-    /* [
-    {name: sbp, min: 88, max: 111, avg: 101, high: 0, medium: 8, low: 1, abnormal: 0, count: 9}, 
-    {name: dbp, min: 70, max: 111, avg: 83, high: 5, medium: 3, low: 0, abnormal: 1, count: 9}, 
-    {name: heart_rate, min: 72, max: 108, avg: 91, high: 1, medium: 8, low: 0, abnormal: 0, count: 9}] */
 
     bloodSugarTimes.add(data[0]["high"]);
     bloodSugarTimes.add(data[0]["medium"]);
@@ -1324,10 +1184,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     total = data[0]["count"];
     // 保留两位小数
     avg = data[0]["avg"];
-
-    // print("bloodSugarTimes: $bloodSugarTimes");
-    // print("total: $total");
-    //print("avg: $avg");
   }
 
   @override
@@ -1336,7 +1192,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
     bloodSugarTimes = [0, 0, 0, 0];
     total = 0;
     avg = 0;
-    //print("饼图 initstate");
   }
 
   void setTitle() {
@@ -1351,14 +1206,12 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
   Widget getDataStaticWidget() {
     return Column(
-      //mainAxisAlignment: MainAxisAlignment.start,
-      //crossAxisAlignment: CrossAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // 标题（舒张压，收缩压，心率）
+            // 标题
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1395,7 +1248,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
             // 总次数
             Row(
-              //crossAxisAlignment: CrossAxisAlignment.,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
@@ -1406,7 +1258,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                       fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  //'${totalTimes} ',
                   total.toString(),
                   style: const TextStyle(
                       fontSize: 18,
@@ -1448,7 +1299,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          //mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
               "平均值：",
@@ -1480,12 +1330,10 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Column(
-              //mainAxisAlignment: MainAxisAlignment.centerLeft,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 偏低
                 Row(
-                  //crossAxisAlignment: CrossAxisAlignment.,
                   children: [
                     const Text(
                       '偏低：',
@@ -1513,7 +1361,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
                 // 正常
                 Row(
-                  //crossAxisAlignment: CrossAxisAlignment.,
                   children: [
                     const Text(
                       '正常：',
@@ -1575,7 +1422,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
                 // 异常
                 Row(
-                  //crossAxisAlignment: CrossAxisAlignment.,
                   children: [
                     const Text(
                       '异常：',
@@ -1605,21 +1451,8 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
           ],
         ),
 
-        // 血压/心率图表
-        /* pageNum == 0
-            ? BloodPressureStaticGraph(
-                date: widget.date,
-                selectedDays: widget.selectedDays,
-                seriesName: "血压",
-                dataTimes: SBPTimes,
-                updateDate: widget.updateDate)
-            : BloodPressureStaticGraph(
-                date: widget.date,
-                selectedDays: widget.selectedDays,
-                seriesName: "心率",
-                dataTimes: heartRateTimes,
-                updateDate: widget.updateDate), */
-        BloodPressureStaticGraph(
+        // 图表
+        BloodSugarStaticGraph(
             date: widget.date,
             selectedDays: widget.selectedDays,
             seriesName: "血糖",
@@ -1631,7 +1464,7 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
   Widget getDataStaticWholeWidget() {
     return Center(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(
           children: [
@@ -1645,8 +1478,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
             // 血压统计图表文字
             Container(
               width: MediaQuery.of(context).size.width * 0.85,
-              //height: MediaQuery.of(context).size.height * 0.55,
-              //height: 300,
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border.all(
@@ -1675,8 +1506,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 
   @override
   Widget build(BuildContext context) {
-    //print('血压饼图pie更新build：${widget.date}，天数：${widget.selectedDays}');
-
     // 需要重新获取数据
     if (widget.refreshData) {
       widget.refreshData = false;
@@ -1687,7 +1516,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
               setTitle();
               return getDataStaticWholeWidget();
             } else {
-              //return CircularProgressIndicator();
               return UnconstrainedBox(
                 child: Column(
                   children: [
@@ -1704,7 +1532,6 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
                       child: SizedBox(
                         width: 40,
                         height: 40,
-                        //child: CircularProgressIndicator(),
                         child: LoadingAnimationWidget.staggeredDotsWave(
                             color: Colors.pink, size: 25),
                       ),
@@ -1727,20 +1554,19 @@ class _BloodPressureStaticWidgetState extends State<BloodPressureStaticWidget> {
 }
 
 // 更多数据按钮
-class BloodPressureMoreInfoButton extends StatefulWidget {
+class BloodSugarMoreInfoButton extends StatefulWidget {
   final int accountId;
   final String nickname;
-  const BloodPressureMoreInfoButton(
+  const BloodSugarMoreInfoButton(
       {Key? key, required this.accountId, required this.nickname})
       : super(key: key);
 
   @override
-  State<BloodPressureMoreInfoButton> createState() =>
-      _BloodPressureMoreInfoButtonState();
+  State<BloodSugarMoreInfoButton> createState() =>
+      _BloodSugarMoreInfoButtonState();
 }
 
-class _BloodPressureMoreInfoButtonState
-    extends State<BloodPressureMoreInfoButton> {
+class _BloodSugarMoreInfoButtonState extends State<BloodSugarMoreInfoButton> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -1751,7 +1577,6 @@ class _BloodPressureMoreInfoButtonState
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: () {
-                // Navigator.pushNamed(context, 'homePage/BloodSugar/MoreData');
                 var args = {
                   "accountId": widget.accountId,
                   "nickname": widget.nickname,
@@ -1764,7 +1589,7 @@ class _BloodPressureMoreInfoButtonState
                   height: 35,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 156, 248, 243),
+                    color: const Color.fromARGB(255, 156, 248, 243),
                     border: Border.all(
                       color: const Color.fromRGBO(0, 0, 0, 0.2),
                     ),
@@ -1825,19 +1650,17 @@ class BloodSugarDetails extends StatefulWidget {
 class _BloodSugarDetailsState extends State<BloodSugarDetails> {
   DateTime date = DateTime.now();
   String selectedDays = "最近7天";
-  late Widget bloodPressureGraphtWidget;
+  late Widget bloodSugarGraphtWidget;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    //print('主要：${widget.arguments}');
     if (widget.arguments["date"] == null) {
       date = DateTime.now();
     } else {
       date = widget.arguments["date"];
     }
-    bloodPressureGraphtWidget = BloodPressureGraphWidget(
+    bloodSugarGraphtWidget = BloodSugarGraphWidget(
       accountId: widget.arguments["accountId"],
       date: date,
       selectedDays: selectedDays,
@@ -1850,7 +1673,7 @@ class _BloodSugarDetailsState extends State<BloodSugarDetails> {
   // 更新数据
   void updateData() {
     setState(() {
-      bloodPressureGraphtWidget = BloodPressureGraphWidget(
+      bloodSugarGraphtWidget = BloodSugarGraphWidget(
         accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
@@ -1862,7 +1685,6 @@ class _BloodSugarDetailsState extends State<BloodSugarDetails> {
   }
 
   void updateView() {
-    //print("血压详情页面更新");
     setState(() {});
   }
 
@@ -1872,7 +1694,7 @@ class _BloodSugarDetailsState extends State<BloodSugarDetails> {
     }
     setState(() {
       date = newDate;
-      bloodPressureGraphtWidget = BloodPressureGraphWidget(
+      bloodSugarGraphtWidget = BloodSugarGraphWidget(
         accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
@@ -1884,13 +1706,12 @@ class _BloodSugarDetailsState extends State<BloodSugarDetails> {
   }
 
   void updateDays(String newDays) {
-    //print("血压详情页面更新天数 ${newDays}");
     if (newDays == selectedDays) {
       return;
     }
     setState(() {
       selectedDays = newDays;
-      bloodPressureGraphtWidget = BloodPressureGraphWidget(
+      bloodSugarGraphtWidget = BloodSugarGraphWidget(
         accountId: widget.arguments["accountId"],
         date: date,
         selectedDays: selectedDays,
@@ -1903,18 +1724,7 @@ class _BloodSugarDetailsState extends State<BloodSugarDetails> {
 
   @override
   Widget build(BuildContext context) {
-    //print("血压详情页面rebuild");
     return Scaffold(
-      /* appBar: AppBar(
-        title: const Text(
-          "TriGuard",
-          style: TextStyle(
-              fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-        ),
-        flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-            (MediaQuery.of(context).size.height * 0.1 + 11)),
-      ), */
-
       appBar: widget.arguments["accountId"] < 0
           ? getAppBar(0, true, "TriGuard")
           : getAppBar(1, true, widget.arguments["nickname"]),
@@ -1939,15 +1749,15 @@ class _BloodSugarDetailsState extends State<BloodSugarDetails> {
             ),
           ),
 
-          // 血压图表组件
-          bloodPressureGraphtWidget,
+          // 图表组件
+          bloodSugarGraphtWidget,
 
           const SizedBox(
             height: 10,
           ),
 
           //数据列表组件
-          BloodPressureDataWidget(
+          BloodSugarDataWidget(
             accountId: widget.arguments["accountId"],
             nickname: widget.arguments["accountId"] >= 0
                 ? widget.arguments["nickname"]
@@ -1958,7 +1768,7 @@ class _BloodSugarDetailsState extends State<BloodSugarDetails> {
           ),
 
           //统计组件
-          BloodPressureStaticWidget(
+          BloodSugarStaticWidget(
               accountId: widget.arguments["accountId"],
               refreshData: true,
               date: date,
@@ -1970,7 +1780,7 @@ class _BloodSugarDetailsState extends State<BloodSugarDetails> {
             height: 20,
           ),
 
-          BloodPressureMoreInfoButton(
+          BloodSugarMoreInfoButton(
             accountId: widget.arguments["accountId"],
             nickname: widget.arguments["accountId"] >= 0
                 ? widget.arguments["nickname"]
