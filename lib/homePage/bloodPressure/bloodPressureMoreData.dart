@@ -2202,6 +2202,8 @@ class _BloodPressureMoreDataState extends State<BloodPressureMoreData> {
             : getAppBar(1, true, widget.arguments["nickname"]),
         body: Container(
           color: Colors.white,
+          constraints:
+              BoxConstraints(minHeight: MediaQuery.of(context).size.height),
           child: ListView(shrinkWrap: true, children: [
             const SizedBox(height: 5),
             // 标题组件

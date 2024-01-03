@@ -156,11 +156,9 @@ class _MyBloodPressureState extends State<MyBloodPressure> {
         //print("获取血压数据成功");
         data = response.data["data"];
       } else {
-        print(response);
         data = [];
       }
     } catch (e) {
-      print(e);
       data = [];
     }
 
@@ -468,11 +466,9 @@ class _MyBloodSugarState extends State<MyBloodSugar> {
         //print("获取血糖数据成功");
         data = response.data["data"];
       } else {
-        print(response);
         data = [];
       }
     } catch (e) {
-      print(e);
       data = [];
     }
 
@@ -764,11 +760,9 @@ class _MyBloodFatState extends State<MyBloodFat> {
         //print("获取血脂数据成功");
         data = response.data["data"];
       } else {
-        print(response);
         data = [];
       }
     } catch (e) {
-      print(e);
       data = [];
     }
 
@@ -863,8 +857,7 @@ class _MyBloodFatState extends State<MyBloodFat> {
                     ],
                   ),
                   child: ListView(scrollDirection: Axis.horizontal, children: [
-                    Container(
-                      // width: MediaQuery.of(context).size.width * 1.5,
+                    SizedBox(
                       width: dayData.length * 65 <= 550
                           ? 550
                           : dayData.length * 65,
@@ -1083,7 +1076,6 @@ class _MyActivitiesState extends State<MyActivities> {
     if (response.data["code"] == 200) {
       data = response.data["data"];
     } else {
-      print(response);
       data = [];
     }
 
@@ -1332,8 +1324,7 @@ class _MyActivitiesState extends State<MyActivities> {
                   "activityDataId": -1,
                 },
                 refreshData: refreshData,
-              ), //TODO
-
+              ),
               const SizedBox(
                 height: 5,
               ),
@@ -1496,7 +1487,6 @@ class _MyDietState extends State<MyDiet> {
         GestureDetector(
           onTap: () {
             var passId = widget.accountId == -1 ? curUserId : widget.accountId;
-            print("accountId = $passId");
             var arguments = {
               "accountId": passId,
               "isOwner": widget.accountId == -1,
@@ -1591,15 +1581,11 @@ class _HomePageState extends State<HomePage> {
       if (response.data["code"] == 200) {
         wardInfos = response.data["data"]["wardInfos"];
       } else {
-        print(response);
         wardInfos = [];
       }
     } catch (e) {
-      print(e);
       wardInfos = [];
     }
-
-    //print("监护人成员列表：$wardInfos");
 
     allWardInfo.clear();
 
@@ -1610,7 +1596,6 @@ class _HomePageState extends State<HomePage> {
           nickname: wardInfos[i]["nickname"],
           image: wardInfos[i]["image"] ??
               "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png"));
-      //print("监护人列表：${allWardInfo[i].nickname} ${allWardInfo[i].accountId}");
     }
 
     getWardInfoWidgets();
@@ -1650,7 +1635,6 @@ class _HomePageState extends State<HomePage> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        //print(selectedDate);
       });
     }
   }
@@ -1680,43 +1664,15 @@ class _HomePageState extends State<HomePage> {
 
     // 群内成员
     for (int i = 0; i < allWardInfo.length; i++) {
-      print("image: ${allWardInfo[i].image}");
       allWardInfoWidgets.add(ListTile(
-        /*  leading: Container(
-          constraints: const BoxConstraints(
-            maxHeight: 30,
-            maxWidth: 40,
-          ),
-          decoration: BoxDecoration(
-            //borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: const Color.fromRGBO(0, 0, 0, 0.2),
-            ),
-          ),
-          child: Image.network(
-            allWardInfo[i].image,
-            //width: 40,
-            //height: 30,
-            fit: BoxFit.cover,
-          ),
-        ), */
-        /* leading: CircleAvatar(
-          backgroundImage: NetworkImage(
-              'http://43.138.75.58:8080/static/${allWardInfo[i].image}'),
-          radius: 20,
-        ), */
         leading: Container(
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            //borderRadius: BorderRadius.circular(15),
             shape: BoxShape.circle,
             image: DecorationImage(
-              //image: AssetImage(
-              //    "assets/images/loginBg1.png"),
               image: NetworkImage(
                   'http://43.138.75.58:8080/static/${allWardInfo[i].image}'),
-              // ####
               fit: BoxFit.cover,
             ),
             border: Border.all(
@@ -1727,7 +1683,6 @@ class _HomePageState extends State<HomePage> {
         ),
         title: Text(allWardInfo[i].nickname),
         onTap: () {
-          print("切换成员：${allWardInfo[i].nickname} ${allWardInfo[i].accountId}");
           Navigator.pop(context);
           setState(() {
             widget.arguments["nickname"] = allWardInfo[i].nickname;
@@ -1791,30 +1746,26 @@ class _HomePageState extends State<HomePage> {
 
               // 日期选择
               Container(
-                child: Container(
-                  alignment: Alignment.center,
-                  color: Colors.transparent,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          //getFormattedDate(selectedDate),
-                          formattedDate,
-                          style: const TextStyle(
-                              fontSize: 20, fontFamily: "BalooBhai"),
-                        ),
-                        SizedBox(
-                          width: 40,
-                          child: TextButton(
-                            onPressed: () => _selectDate(context),
-                            child: const Icon(
-                              Icons.calendar_month,
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ),
-                        ),
-                      ]),
-                ),
+                alignment: Alignment.center,
+                color: Colors.transparent,
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text(
+                    formattedDate,
+                    style:
+                        const TextStyle(fontSize: 20, fontFamily: "BalooBhai"),
+                  ),
+                  SizedBox(
+                    width: 40,
+                    child: TextButton(
+                      onPressed: () => _selectDate(context),
+                      child: const Icon(
+                        Icons.calendar_month,
+                        color: Color.fromARGB(255, 0, 0, 0),
+                      ),
+                    ),
+                  ),
+                ]),
               ),
 
               // 今日血压

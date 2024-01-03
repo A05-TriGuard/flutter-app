@@ -1847,6 +1847,7 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
   String exportTime = "";
   String exportPath = "";
 
+  // 创建导出文件
   Future<bool> createExportFile() async {
     var status = await Permission.storage.status.isGranted;
     var status2 = await Permission.manageExternalStorage.status.isGranted;
@@ -1881,7 +1882,9 @@ class _ExportExcelWigetState extends State<ExportExcelWiget> {
       await File(fileNamePath).copy(
           '${downloadPath!.path}/bloodLipids_${nickname}_$exportTime.xlsx');
       // 检测文件是否存在
-      if (await File('${downloadPath.path}/bloodLipids.xlsx').exists()) {
+      if (await File(
+              '${downloadPath.path}/bloodLipids_${nickname}_$exportTime.xlsx')
+          .exists()) {
         exportPath =
             '${downloadPath.path}/bloodLipids_${nickname}_$exportTime.xlsx';
         return true;
@@ -2050,6 +2053,8 @@ class _BloodFatMoreDataState extends State<BloodFatMoreData> {
             : getAppBar(1, true, widget.arguments["nickname"]),
         body: Container(
           color: Colors.white,
+          constraints:
+              BoxConstraints(minHeight: MediaQuery.of(context).size.height),
           child: ListView(shrinkWrap: true, children: [
             const SizedBox(height: 5),
             // 标题组件

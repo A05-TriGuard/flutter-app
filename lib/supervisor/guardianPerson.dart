@@ -5,7 +5,6 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
-//import './homePageSupervisor.dart';
 import '../account/token.dart';
 
 // -------------今日记录模块--------------------
@@ -40,11 +39,10 @@ class _TodayActivitiesState extends State<TodayActivities> {
   List<String> activitiesType = ["测量血压", "测量血糖", "测量血脂", "记录运动", "记录饮食"];
   List<Widget> activitiesWidget = [];
 
-  // TODO: 从服务器获取数据
+  //  从服务器获取数据
   Future<void> getDataFromServer() async {
     // 提取登录获取的token
     var token = await storage.read(key: 'token');
-    //print(value);
 
     //从后端获取数据
     final dio = Dio();
@@ -57,13 +55,10 @@ class _TodayActivitiesState extends State<TodayActivities> {
       );
       if (response.data["code"] == 200) {
         activities = response.data["data"]["activities"];
-        //print('response ${response.data}');
       } else {
-        print(response);
         activities = [];
       }
     } catch (e) {
-      print(e);
       activities = [];
     }
 
@@ -98,10 +93,10 @@ class _TodayActivitiesState extends State<TodayActivities> {
             time,
             textAlign: TextAlign.center,
             style: const TextStyle(
-                fontFamily: 'BalooBhai',
-                fontSize: 20,
-                //fontWeight: FontWeight.bold,
-                color: Colors.black),
+              fontFamily: 'BalooBhai',
+              fontSize: 20,
+              color: Colors.black,
+            ),
           ),
         ),
       ),
@@ -123,8 +118,7 @@ class _TodayActivitiesState extends State<TodayActivities> {
               ),
             ),
             child: Padding(
-              //padding: const EdgeInsets.fromLTRB(15, 5, 10, 5),
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               // 测量了什么？
               child: Text(
                 activity,
@@ -182,7 +176,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
             ),
             const SizedBox(height: 10),
             // 活动
-            // getActivityWidget(),
             Column(
               children: activitiesWidget,
             ),
@@ -214,7 +207,6 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 ),
                 const SizedBox(height: 10),
                 // 活动
-                // getActivityWidget(),
                 Column(
                   children: activitiesWidget,
                 ),
@@ -243,7 +235,9 @@ class _TodayActivitiesState extends State<TodayActivities> {
                 // 活动
                 Center(
                   child: LoadingAnimationWidget.staggeredDotsWave(
-                      color: Colors.pink, size: 25),
+                    color: Colors.pink,
+                    size: 25,
+                  ),
                 ),
                 const SizedBox(height: 20),
               ],
@@ -264,13 +258,8 @@ class GuardianPersonPage extends StatefulWidget {
   String nickname;
   final String image; */
   final Map arguments;
-  GuardianPersonPage({
+  const GuardianPersonPage({
     Key? key,
-    /* required this.accountId,
-    required this.email,
-    required this.username,
-    required this.nickname,
-    required this.image, */
     required this.arguments,
   }) : super(key: key);
 
@@ -295,23 +284,18 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
         "http://43.138.75.58:8080/api/ward/delete?wardId=${widget.arguments["accountId"]}",
       );
       if (response.data["code"] == 200) {
-        print("删除成功");
         return true;
       } else {
-        print(response);
+        return false;
       }
     } catch (e) {
-      print(e);
+      return false;
     }
-    print("删除失败");
-    return false;
   }
 
   // 修改成员昵称
   Future<bool> setNickname(int accountId) async {
     final Dio dio = Dio();
-
-    print("新昵称：${accountId} ${nicknameController.text}");
 
     try {
       var token = await storage.read(key: 'token');
@@ -325,23 +309,18 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
       );
 
       if (response.data['code'] == 200) {
-        print("修改昵称成功");
         return true;
       } else {
-        print("修改昵称失败");
+        return false;
       }
     } on DioException catch (error) {
       final response = error.response;
       if (response != null) {
-        print(response.data);
-        print("修改昵称失败1");
+        return false;
       } else {
-        print(error.requestOptions);
-        print(error.message);
-        print("修改昵称失败2");
+        return false;
       }
     }
-    return false;
   }
 
   // 获取监护对象标题
@@ -417,7 +396,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       constraints: const BoxConstraints(
                         minHeight: 30,
                       ),
-                      //color: Colors.blueAccent,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -427,7 +405,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                             constraints: const BoxConstraints(
                               minHeight: 30,
                             ),
-                            //  color: Colors.yellow,
                             alignment: Alignment.center,
                             child: const Text(
                               "昵称：",
@@ -448,11 +425,7 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                               maxWidth:
                                   MediaQuery.of(context).size.width * 0.55,
                             ),
-
                             alignment: Alignment.centerLeft,
-                            //color: Colors.greenAccent,
-                            //width: MediaQuery.of(context).size.width * 0.55,
-                            //color: Colors.yellow,
                             child: Text(
                               widget.arguments["nickname"],
                               textAlign: TextAlign.left,
@@ -467,7 +440,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                           Container(
                             constraints: const BoxConstraints(
                                 minHeight: 30, minWidth: 20),
-                            // color: Colors.red,
                             child: GestureDetector(
                               onTap: () {
                                 refreshActivitiesData = false;
@@ -490,7 +462,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                   // 编辑昵称时
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         // 昵称：______
                         Row(
@@ -499,10 +470,8 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                               height: 40,
                               child: Center(
                                 child: Text(
-                                  // "${count}.  ",
                                   "昵称：  ",
                                   textAlign: TextAlign.left,
-
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontFamily: "BalooBhai",
@@ -512,7 +481,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                               ),
                             ),
                             SizedBox(
-                              //color: Colors.greenAccent,
                               width: MediaQuery.of(context).size.width * 0.35,
                               height: 40,
                               child: Center(
@@ -522,7 +490,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                   style: const TextStyle(
                                     fontFamily: 'BalooBhai',
                                     fontSize: 16,
-                                    // fontWeight: FontWeight.bold,
                                     color: Colors.black,
                                   ),
                                   decoration: InputDecoration(
@@ -533,7 +500,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                     hintStyle: const TextStyle(
                                       fontFamily: 'BalooBhai',
                                       fontSize: 18,
-                                      //fontWeight: FontWeight.bold,
                                       color: Color.fromARGB(255, 116, 116, 116),
                                     ),
                                   ),
@@ -556,11 +522,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                                   setState(() {
                                     isEditingNickname = !isEditingNickname;
                                     refreshActivitiesData = false;
-
-                                    //nicknameController.text = "";
-                                    /*  nicknameController.text =
-                                                  nickname;
-                                              editNickname = !editNickname; */
                                   });
                                 },
                                 child: Container(
@@ -680,8 +641,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       constraints: const BoxConstraints(
                         minHeight: 30,
                       ),
-                      //alignment: Alignment.centerLeft,
-                      //color: Colors.greenAccent,
                       child: const Text(
                         "邮箱：",
                         textAlign: TextAlign.left,
@@ -697,7 +656,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       constraints: const BoxConstraints(
                         minHeight: 30,
                       ),
-                      //color: Colors.yellow,
                       alignment: Alignment.centerLeft,
                       width: MediaQuery.of(context).size.width * 0.6,
                       child: Text(
@@ -725,11 +683,10 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                   //删除
                   GestureDetector(
                     onTap: () async {
-                      print("删除${widget.arguments["accountId"]}");
-                      // Navigator.pushNamed(context, '/edit'); ____
                       bool status =
                           await deleteWard(widget.arguments["accountId"]);
                       if (status) {
+                        // ignore: use_build_context_synchronously
                         Navigator.pop(context);
                       }
                     },
@@ -759,23 +716,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                   //查看数据详情
                   GestureDetector(
                     onTap: () {
-                      print("查看数据详情${widget.arguments["accountId"]}");
-                      // Navigator.pushNamed(context, '/edit');
-                      /* Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => HomePage(
-                            accountId: widget.arguments["accountId"],
-                            groupId: -1,
-                            nickname: widget.arguments["nickname"],
-                            groupName: "",
-                          ),
-                        ),
-                      ).then((_) {
-                        print("哈哈哈");
-                        //widget.updateData();
-                      }); */
-
                       var args = {
                         "accountId": widget.arguments["accountId"],
                         "groupId": -1,
@@ -790,8 +730,9 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
                       height: 30,
                       decoration: BoxDecoration(
                         color: const Color.fromARGB(255, 183, 242, 255),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(10),
+                        ),
                         border: Border.all(
                           color: const Color.fromRGBO(0, 0, 0, 0.2),
                         ),
@@ -819,7 +760,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
 
   @override
   Widget build(BuildContext context) {
-    print("rebuild");
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -827,8 +767,6 @@ class _GuardianPersonPageState extends State<GuardianPersonPage> {
           style: TextStyle(
               fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
         ),
-        // flexibleSpace: header,
-        // toolbarHeight: 45,
         flexibleSpace: getHeader(MediaQuery.of(context).size.width,
             (MediaQuery.of(context).size.height * 0.1 + 11)),
       ),
