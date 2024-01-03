@@ -406,7 +406,10 @@ class _FoodDiaryState extends State<FoodDiary> {
     lunchRowList = createRecordRowList(lunchRecord, screenWidth * 0.6);
     dinnerRowList = createRecordRowList(dinnerRecord, screenWidth * 0.6);
     otherRowList = createRecordRowList(otherRecord, screenWidth * 0.6);
-    var calorieDiff = mealTarget[indToNut[0]] ?? 0 - nutritionCur[0];
+    var calorieDiff =
+        (mealTarget[indToNut[0]] ?? 0) - (allMealInfo["calories"] ?? 0);
+    var caloriePer =
+        (allMealInfo["calories"] ?? 0) / (mealTarget[indToNut[0]] ?? 0);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -771,7 +774,7 @@ class _FoodDiaryState extends State<FoodDiary> {
                                   CircularPercentIndicator(
                                     radius: 55,
                                     lineWidth: 4,
-                                    percent: 0.75,
+                                    percent: caloriePer,
                                     center: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -983,13 +986,18 @@ class FoodHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-      icon,
-      Text(
-        text,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-      ),
-    ]);
+    return Column(
+      children: [
+        Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          icon,
+          Text(
+            text,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+        ]),
+        const SizedBox(height: 10)
+      ],
+    );
   }
 }
 
@@ -1154,7 +1162,9 @@ class _NutritionRowState extends State<NutritionRow> {
                 lineHeight: 7,
                 percent: per > 1 ? 1 : per,
                 backgroundColor: Colors.black12,
-                progressColor: const Color.fromARGB(255, 163, 123, 228),
+                progressColor: per > 1
+                    ? const Color.fromARGB(255, 255, 0, 0)
+                    : const Color.fromARGB(255, 163, 123, 228),
               )
             ]),
             SizedBox(
