@@ -20,11 +20,11 @@ Widget getButtonSet(String IconPath, String text) {
           height: 30,
           width: 30,
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 8),
         Text(
           text,
-          style: TextStyle(
-            fontSize: 14,
+          style: const TextStyle(
+            fontSize: 15,
             color: Colors.black,
             fontFamily: 'BalooBhai',
           ),
@@ -42,7 +42,7 @@ Widget getText(String content) {
         textAlign: TextAlign.justify,
         style: const TextStyle(
           fontSize: 16,
-          fontFamily: "BalooBhai",
+          //fontFamily: "BalooBhai",
         ),
       ),
       const SizedBox(
@@ -239,7 +239,7 @@ class _UserInfoState extends State<UserInfo> {
   }
 }
 
-// 我的资料，监护人，目标，积分
+// 饮食目标 & 问题反馈 & 关于我们
 class UserWidget1 extends StatefulWidget {
   const UserWidget1({super.key});
 
@@ -248,78 +248,6 @@ class UserWidget1 extends StatefulWidget {
 }
 
 class _UserWidget1State extends State<UserWidget1> {
-  @override
-  Widget build(BuildContext context) {
-    return UnconstrainedBox(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.85,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(
-            color: const Color.fromRGBO(0, 0, 0, 0.2),
-          ),
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromRGBO(0, 0, 0, 0.2),
-              offset: Offset(0, 5),
-              blurRadius: 5.0,
-              spreadRadius: 0.0,
-            ),
-          ],
-        ),
-        //color: Colors.yellow,
-        alignment: Alignment.center,
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  print("饮食目标");
-                  Navigator.pushNamed(context, '/user/nutritiontarget');
-                },
-                child: getButtonSet("assets/icons/foodTarget.png", "饮食目标"),
-              ),
-              const SizedBox(
-                width: 20,
-              ),
-              GestureDetector(
-                onTap: () {
-                  print("我的资料");
-                },
-                child: getButtonSet("assets/icons/user.png", "我的资料"),
-              ),
-              /* GestureDetector(
-                onTap: () {
-                  print("我的资料");
-                },
-                child: getButtonSet("assets/icons/user.png", "我的资料"),
-              ),
-              GestureDetector(
-                onTap: () {
-                  print("我的资料");
-                },
-                child: getButtonSet("assets/icons/user.png", "我的资料"),
-              ), */
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// 我的资料，监护人，目标，积分
-class UserWidget2 extends StatefulWidget {
-  const UserWidget2({super.key});
-
-  @override
-  State<UserWidget2> createState() => _UserWidget2State();
-}
-
-class _UserWidget2State extends State<UserWidget2> {
   void showComplainInfo(BuildContext context) {
     OverlayEntry? overlayEntry;
 
@@ -328,12 +256,10 @@ class _UserWidget2State extends State<UserWidget2> {
         top: 0,
         left: 0,
         child: Material(
-          color: Colors.transparent,
-          child: Container(
+          color: Colors.black54,
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            //olor: Color.fromRGBO(255, 255, 255, 0.8),
-            //color: Colors.white,
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.8,
@@ -363,14 +289,12 @@ class _UserWidget2State extends State<UserWidget2> {
                         "问题反馈",
                         style: TextStyle(
                           fontSize: 20,
-                          fontFamily: "BalooBhai",
+                          //fontFamily: "BalooBhai",
+                          letterSpacing: 2,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-
+                      const SizedBox(height: 5),
                       //内容
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.35,
@@ -382,11 +306,12 @@ class _UserWidget2State extends State<UserWidget2> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               //问题反馈
-                              getText('1. 你可以通过以下的电子邮件反馈你在使用过程中遇到的问题，我们会尽快解决。'),
-                              getText('2. 你也可以在这里提出你的建议，我们会尽快改进。'),
-                              getText('3. beyzhexuan@gmail.com'),
-                              getText('4. mzx21@mails.tsinghua.edu.cn'),
-                              getText('5. 你的反馈是我们前进的动力，感谢你的支持。'),
+                              getText(
+                                  '1. 您可以通过以下电子邮件向我们反馈您在使用我们软件的过程中遇到的问题，我们会尽快为您解决。'),
+                              getText('beyzhexuan@gmail.com'),
+                              getText('mzx21@mails.tsinghua.edu.cn'),
+                              getText('2. 您也可以向我们提出建议，我们会认真考虑并加以改进。'),
+                              getText('5. 您的反馈是我们前进的动力，非常感谢您的支持。'),
                             ],
                           ),
                         ),
@@ -421,6 +346,14 @@ class _UserWidget2State extends State<UserWidget2> {
     Overlay.of(context).insert(overlayEntry);
   }
 
+  Widget getTitle(String text) {
+    return Text(
+      text,
+      style:
+          const TextStyle(fontWeight: FontWeight.bold, height: 2, fontSize: 17),
+    );
+  }
+
   void showAboutUsInfo(BuildContext context) {
     OverlayEntry? overlayEntry;
 
@@ -429,12 +362,10 @@ class _UserWidget2State extends State<UserWidget2> {
         top: 0,
         left: 0,
         child: Material(
-          color: Colors.transparent,
+          color: Colors.black54,
           child: Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            //olor: Color.fromRGBO(255, 255, 255, 0.8),
-            //color: Colors.white,
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.8,
@@ -466,6 +397,7 @@ class _UserWidget2State extends State<UserWidget2> {
                           fontSize: 20,
                           fontFamily: "BalooBhai",
                           fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
                         ),
                       ),
                       const SizedBox(
@@ -476,23 +408,29 @@ class _UserWidget2State extends State<UserWidget2> {
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.35,
                         //height: 175,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              //关于我们
-                              getText('我们的开发团队是由四位来自清华大学软件工程专业的学生组成。'),
-                              getText('开发团队成员：余超，魏科宇，林嘉纹，马喆轩'),
-                              getText(
-                                  '开发目的：为了帮助三高患者更好地管理自己的病情，并且通过运动或饮食来改善病情，甚至拜托病情，因此我们开发了这款APP。'),
-                              getText('开发时间：2023年9月-2023年12月'),
-                              getText(
-                                  '由于首次开发APP，若有任何让您感到不满意之处，敬请原谅，同时也感谢您对于我们的支持。'),
-                            ],
-                          ),
-                        ),
+                        child: Scrollbar(
+                            thickness: 10,
+                            scrollbarOrientation: ScrollbarOrientation.right,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  //关于我们
+                                  getText('我们的开发团队是由四位来自清华大学软件工程专业的学生组成。'),
+                                  getTitle("开发团队"),
+                                  getText('余超，魏科宇，林嘉纹，马喆轩'),
+                                  getTitle("初版开发时间"),
+                                  getText('2023年9月—2023年12月'),
+                                  getTitle("我们的初衷"),
+                                  getText(
+                                      '我们希望能够为三高患者提供一个功能较为全面的健康助手软件，帮助用户更好地监测自己的健康情况，结合运动和饮食管理缓解病情。\n'),
+                                  getText(
+                                      '由于这是我们首次开发软件，若有任何让您感到不满意之处，敬请见谅，同时也感谢您对于我们的支持。我们会持续改进，为您提供更好的用户体验。'),
+                                ],
+                              ),
+                            )),
                       ),
 
                       // 取消，确定
@@ -547,111 +485,40 @@ class _UserWidget2State extends State<UserWidget2> {
         //color: Colors.yellow,
         alignment: Alignment.center,
         child: Padding(
-            padding: const EdgeInsets.all(15),
-            child: Column(
-              children: [
-                /* Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
-                    ),
-                  ],
-                ),
-                */
-                /* const SizedBox(
-                  height: 10,
-                ),
-                */ /* Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "我的资料"),
-                    ),
-                  ],
-                ),
-            */
-                /* const SizedBox(
-                  height: 10,
-                ), */
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    /* GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                      },
-                      child: getButtonSet("assets/icons/user.png", "帮助中心"),
-                    ), */
-                    GestureDetector(
-                      onTap: () {
-                        showComplainInfo(context);
-                      },
-                      child: getButtonSet("assets/icons/complain.png", "问题反馈"),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        print("我的资料");
-                        showAboutUsInfo(context);
-                      },
-                      child: getButtonSet("assets/icons/about.png", "关于我们"),
-                    ),
-                    GestureDetector(
-                      onTap: () async {
-                        print("我的资料");
-                        await storage.write(key: "accountId", value: "-1");
-                        //Navigator.pop(context);
-                        Navigator.pushNamedAndRemoveUntil(
-                            context, '/', (route) => false);
-                      },
-                      child: getButtonSet("assets/icons/logout.png", "退出登录"),
-                    ),
-                  ],
-                ),
-              ],
-            )),
+          padding: const EdgeInsets.all(15),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/user/nutritiontarget');
+                },
+                child: getButtonSet("assets/icons/healthy-food.png", "饮食目标"),
+              ),
+              GestureDetector(
+                onTap: () {
+                  showComplainInfo(context);
+                },
+                child: getButtonSet("assets/icons/complain.png", "问题反馈"),
+              ),
+              GestureDetector(
+                onTap: () {
+                  showAboutUsInfo(context);
+                },
+                child: getButtonSet("assets/icons/about.png", "关于我们"),
+              ),
+              GestureDetector(
+                onTap: () async {
+                  await storage.write(key: "accountId", value: "-1");
+                  //Navigator.pop(context);
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/', (route) => false);
+                },
+                child: getButtonSet("assets/icons/logout.png", "退出登录"),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -662,72 +529,44 @@ class TriGuardReminder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return UnconstrainedBox(
-        child: Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        Container(
-          width: MediaQuery.of(context).size.width * 0.85,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-              color: const Color.fromRGBO(0, 0, 0, 0.2),
-            ),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: const [
-              BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.2),
-                offset: Offset(0, 5),
-                blurRadius: 5.0,
-                spreadRadius: 0.0,
-              ),
-            ],
-          ),
-          //color: Colors.yellow,
-          alignment: Alignment.center,
-          child: const Padding(
-            padding: const EdgeInsets.all(15),
-            child: Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                Text(
-                  "一定要照顾好自己，不要让我担心，你的身体比什么都重要。",
-                  textAlign: TextAlign.justify,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black,
-                    fontFamily: 'BalooBhai',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 0, 15, 15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                "——TriGuard团队",
-                textAlign: TextAlign.center,
-                style: TextStyle(
+    var screenWidth = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: screenWidth * 0.85,
+      alignment: Alignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          children: [
+            const Text(
+              "一定要照顾好自己，\n坚持良好的生活习惯，\n爱护自己，健康路上您不孤单。",
+              textAlign: TextAlign.center,
+              style: TextStyle(
                   fontSize: 16,
+                  height: 2,
                   color: Colors.black,
-                  fontFamily: 'BalooBhai',
-                ),
-              ),
-              const SizedBox(
-                width: 2,
-              ),
-              Image.asset("assets/icons/emoji-nice.png", height: 18, width: 18),
-            ],
-          ),
+                  letterSpacing: 1.5),
+            ),
+            const SizedBox(height: 10),
+            const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "—— TriGuard 团队",
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                )),
+            const SizedBox(height: 10),
+            Image.asset(
+              "assets/images/best-friends.png",
+              width: screenWidth * 0.52,
+            )
+          ],
         ),
-      ],
-    ));
+      ),
+    );
   }
 }
 
@@ -858,46 +697,44 @@ class _UserState extends State<User> {
           ),
         ), */
       appBar: getAppBar(0, false, "TriGuard"),
-      body: Container(
-        color: Colors.white,
-        constraints:
-            BoxConstraints(minHeight: MediaQuery.of(context).size.height),
-        child: ListView(shrinkWrap: true, children: [
-          // 标题组件
-          UnconstrainedBox(
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.85,
-              alignment: Alignment.center,
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  //SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  UserInfo(),
-                  SizedBox(
-                    height: 25,
-                  ),
-                  UserWidget1(),
-                  SizedBox(
-                    height: 25,
-                  ),
-                  UserWidget2(),
-                  SizedBox(
-                    height: 25,
-                  ),
-                  TriGuardReminder(),
-                  SizedBox(
-                    height: 25,
-                  ),
-                ],
+      body: SingleChildScrollView(
+        child: Container(
+          color: Colors.white,
+          constraints:
+              BoxConstraints(minHeight: MediaQuery.of(context).size.height),
+          child: ListView(shrinkWrap: true, children: [
+            // 标题组件
+            UnconstrainedBox(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                alignment: Alignment.center,
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    //SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    UserInfo(),
+                    SizedBox(
+                      height: 25,
+                    ),
+                    UserWidget1(),
+                    SizedBox(
+                      height: 25,
+                    ),
+                    TriGuardReminder(),
+                    SizedBox(
+                      height: 25,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          // 过滤器
-        ]),
+            // 过滤器
+          ]),
+        ),
       ),
       //),
     );
