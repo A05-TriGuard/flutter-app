@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 //import 'package:cached_video_player/cached_video_player.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:video_player/video_player.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -89,6 +90,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                                 _controller.value.isPlaying
                                     ? Icons.pause
                                     : Icons.play_arrow,
+                                color: Colors.white,
                               ),
                             )),
                       ],
@@ -158,8 +160,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             ),
           );
         } else {
-          return const Center(
-            child: CircularProgressIndicator(),
+          return Center(
+            child: LoadingAnimationWidget.staggeredDotsWave(
+                color: Colors.pink, size: 25),
           );
         }
       },

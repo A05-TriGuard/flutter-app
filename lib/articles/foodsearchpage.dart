@@ -272,14 +272,41 @@ class _FoodsearchPageState extends State<FoodsearchPage> {
                                       letterSpacing: 2),
                                 )),
                           ]),
-                      createTableRow("卡路里", foodInfo["calories"] ?? "..."),
                       createTableRow(
-                          "碳水化合物", foodInfo["carbohydrates"] ?? "..."),
-                      createTableRow("脂肪", foodInfo["lipids"] ?? "..."),
-                      createTableRow("胆固醇", foodInfo["cholesterol"] ?? "..."),
-                      createTableRow("蛋白质", foodInfo["proteins"] ?? "..."),
-                      createTableRow("纤维素", foodInfo["fiber"] ?? "..."),
-                      createTableRow("钠", foodInfo["sodium"] ?? "...")
+                          "卡路里",
+                          foodInfo["calories"] != null
+                              ? foodInfo["calories"].toString()
+                              : "..."),
+                      createTableRow(
+                          "碳水化合物",
+                          foodInfo["carbohydrates"] != null
+                              ? foodInfo["carbohydrates"].toString()
+                              : "..."),
+                      createTableRow(
+                          "脂肪",
+                          foodInfo["lipids"] != null
+                              ? foodInfo["lipids"].toString()
+                              : "..."),
+                      createTableRow(
+                          "胆固醇",
+                          foodInfo["cholesterol"] != null
+                              ? foodInfo["cholesterol"].toString()
+                              : "..."),
+                      createTableRow(
+                          "蛋白质",
+                          foodInfo["proteins"] != null
+                              ? foodInfo["proteins"].toString()
+                              : "..."),
+                      createTableRow(
+                          "纤维素",
+                          foodInfo["fiber"] != null
+                              ? foodInfo["fiber"].toString()
+                              : "..."),
+                      createTableRow(
+                          "钠",
+                          foodInfo["sodium"] != null
+                              ? foodInfo["sodium"].toString()
+                              : "...")
                     ],
                   ),
                 ),

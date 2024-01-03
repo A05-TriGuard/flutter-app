@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dio/dio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../component/icons.dart';
 import '../account/token.dart';
 import 'media.dart';
@@ -40,6 +41,8 @@ class _MomentState extends State<Moment> {
   String keyword = "";
   int pageCount = 1;
   int batchCount = 5;
+  int specPageCount = -1;
+  int specBatchCount = -1;
   bool _isLoading = false;
   bool refreshPage = false;
 
@@ -84,8 +87,9 @@ class _MomentState extends State<Moment> {
   // Moment API
   void fetchNShowPostList() async {
     curPostList.clear();
-
     var token = await storage.read(key: 'token');
+    var tgtPageCount = specPageCount > 0 ? specPageCount : pageCount;
+    var tgtBatchCount = specBatchCount > 0 ? specBatchCount : batchCount;
 
     try {
       final dio = Dio(); // Create Dio instance
@@ -94,10 +98,10 @@ class _MomentState extends State<Moment> {
       };
       final response = await dio.get(
           keyword != ""
-              ? 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter&keyword=$keyword&page=$pageCount&size=$batchCount'
-              : 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter&page=$pageCount&size=$batchCount',
+              ? 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter&keyword=$keyword&page=$tgtPageCount&size=$tgtBatchCount'
+              : 'http://43.138.75.58:8080/api/moment/list?class=${className[curSelClassInd]}&category=${categoryName[curSelCatInd]}&filter=$selectedFilter&page=$tgtPageCount&size=$tgtBatchCount',
           options: Options(headers: headers));
-
+      print("page: $tgtPageCount, batch: $tgtBatchCount");
       if (response.statusCode == 200) {
         //print(response.data);
         if (keyword != "") {
@@ -107,13 +111,21 @@ class _MomentState extends State<Moment> {
             keyword = "";
             searchController.clear();
             _isLoading = false;
+            specBatchCount = -1;
+            specPageCount = -1;
           });
         } else {
           setState(() {
             curPostList = response.data["data"];
             isLoading = false;
             _isLoading = false;
+            specBatchCount = -1;
+            specPageCount = -1;
           });
+
+          if (curPostList.isEmpty) {
+            pageCount -= 1;
+          }
         }
       } else {
         //print('Request failed with status: ${response.statusCode}');
@@ -130,8 +142,8 @@ class _MomentState extends State<Moment> {
       isLoading = true;
       //remainPosition = true;
       lastPosition = listViewController.offset;
-      pageCount = 1;
-      batchCount = postCount;
+      specPageCount = 1;
+      specBatchCount = postCount;
       refreshPage = true;
     });
     fetchNShowPostList();
@@ -607,7 +619,11 @@ class _MomentState extends State<Moment> {
                         // 帖子列表
                         Expanded(
                           child: isLoading
-                              ? const Center(child: CircularProgressIndicator())
+                              ? Center(
+                                  child:
+                                      LoadingAnimationWidget.staggeredDotsWave(
+                                          color: Colors.pink, size: 40),
+                                )
                               : Container(
                                   decoration: const BoxDecoration(
                                       color: Colors.black12),
@@ -977,17 +993,13 @@ class _PostTileState extends State<PostTile> {
                         fit: BoxFit.cover,
                         imageUrl:
                             "http://43.138.75.58:8080/static/${imageList[i]}",
-                        placeholder: (context, url) => const Center(
-                          child: CircularProgressIndicator(),
+                        placeholder: (context, url) => Center(
+                          child: LoadingAnimationWidget.staggeredDotsWave(
+                              color: Colors.pink, size: 25),
                         ),
                         errorWidget: (context, url, error) =>
                             const Icon(Icons.error),
                       ),
-
-                      // Image.network(
-                      //   imageList[i],
-                      //   fit: BoxFit.cover,
-                      // ),
                     ),
                     Container(
                       width: imageSize,
@@ -1016,19 +1028,13 @@ class _PostTileState extends State<PostTile> {
                             offset: Offset(1, 1),
                             blurRadius: 3)
                       ]),
-                  child:
-                      // Image.network(
-                      //   //imageList[i],
-                      //   //"https://cdn.mos.cms.futurecdn.net/iC7HBvohbJqExqvbKcV3pP.jpg",
-                      //   "http://43.138.75.58:8080/static/1702984086797IMG_20231216_004005.jpg",
-                      //   fit: BoxFit.cover,
-                      // ),
-                      CachedNetworkImage(
+                  child: CachedNetworkImage(
                     fit: BoxFit.cover,
                     imageUrl: "http://43.138.75.58:8080/static/${imageList[i]}",
                     //"http://43.138.75.58:8080/static/1702984086797IMG_20231216_004005.jpg",
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(),
+                    placeholder: (context, url) => Center(
+                      child: LoadingAnimationWidget.staggeredDotsWave(
+                          color: Colors.pink, size: 25),
                     ),
                     errorWidget: (context, url, error) =>
                         const Icon(Icons.error),
@@ -1137,7 +1143,8 @@ class _PostTileState extends State<PostTile> {
                           visible:
                               widget.curPost["accountId"] != widget.curUserId,
                           child: isLoadingFollow
-                              ? const CircularProgressIndicator()
+                              ? LoadingAnimationWidget.staggeredDotsWave(
+                                  color: Colors.pink, size: 25)
                               : InkWell(
                                   onTap: () {
                                     setState(() {
@@ -1493,7 +1500,8 @@ class _DeleteDialogState extends State<DeleteDialog> {
         children: [
           Visibility(
             visible: isLoading,
-            child: const CircularProgressIndicator(),
+            child: LoadingAnimationWidget.staggeredDotsWave(
+                color: Colors.pink, size: 25),
           ),
           const Text(
             "确认删除该帖子？",

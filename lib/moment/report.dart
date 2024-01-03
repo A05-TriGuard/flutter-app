@@ -69,20 +69,55 @@ class _ReportDialogState extends State<ReportDialog> {
   void reportPost() async {
     var token = await storage.read(key: 'token');
     var reportReason = inputController.value.text;
+    print(
+        'http://43.138.75.58:8080/api/moment/report?momentId=${widget.postId}&reason=$reportReason');
 
     try {
       final dio = Dio();
       final headers = {
         'Authorization': 'Bearer $token',
       };
-      final response = await dio.get(
+      final response = await dio.post(
           'http://43.138.75.58:8080/api/moment/report?momentId=${widget.postId}&reason=$reportReason',
           options: Options(headers: headers));
 
       if (response.statusCode == 200) {
         //print(response.data);
+        showNotice();
       }
     } catch (e) {/**/}
+  }
+
+  void showNotice() {
+    Navigator.pop(context);
+    var screenWidth = MediaQuery.of(context).size.width;
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Center(
+            child: Container(
+                width: screenWidth * 0.8,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black87),
+                    borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "非常感谢您的反馈，我们将对您的举报加以认真的研究和处理。",
+                      style: TextStyle(fontSize: 18, height: 2),
+                    ),
+                    const SizedBox(height: 10),
+                    Image.asset(
+                      "assets/icons/love-letter.png",
+                      height: 120,
+                    )
+                  ],
+                )),
+          );
+        });
   }
 
   @override
@@ -107,7 +142,6 @@ class _ReportDialogState extends State<ReportDialog> {
               TextButton(
                   onPressed: canReport
                       ? () {
-                          Navigator.pop(context);
                           reportPost();
                         }
                       : null,
