@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dio/dio.dart';
 import '../account/token.dart';
 import '../component/icons.dart';
@@ -576,8 +575,7 @@ class _FoodDiaryState extends State<FoodDiary> {
                 // 上面那栏
                 Container(
                   width: screenWidth * 0.9,
-                  height: 125,
-                  padding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
+                  padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(color: Colors.black, width: 0),
@@ -590,127 +588,119 @@ class _FoodDiaryState extends State<FoodDiary> {
                           blurRadius: 7)
                     ],
                   ),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: Column(children: [
+                    InkWell(
+                      onTap: () {
+                        selectDate(context);
+                      },
+                      child: Container(
+                          padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                          decoration: BoxDecoration(
+                              color: Colors.black12,
+                              borderRadius: BorderRadius.circular(20)),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                SizedBox(
+                                  child: Text(
+                                    selectedDate.month > 9
+                                        ? (selectedDate.day < 10
+                                            ? "${selectedDate.year}年${selectedDate.month}月0${selectedDate.day}日"
+                                            : "${selectedDate.year}年${selectedDate.month}月${selectedDate.day}日")
+                                        : ((selectedDate.day < 10
+                                            ? "${selectedDate.year}年0${selectedDate.month}月0${selectedDate.day}日"
+                                            : "${selectedDate.year}年0${selectedDate.month}月${selectedDate.day}日")),
+                                    style: const TextStyle(
+                                        letterSpacing: 2,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                Text(
+                                  weekDay[selectedDate.weekday],
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      letterSpacing: 5,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ])),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        InkWell(
+                            onTap: () {
+                              setState(() {
+                                haveRecord[0] = !haveRecord[0];
+                              });
+                            },
+                            onLongPress: () {
+                              showAddFoodDialog(context, "早餐");
+                            },
+                            child: FoodButton(
+                                width: screenWidth * 0.9 * 0.45,
+                                haveRecord: haveRecord[0],
+                                title: "  早餐",
+                                color: MyIcons().breakfastColor(),
+                                bnw: MyIcons().breakfastBnW())),
+                        InkWell(
+                            onTap: () {
+                              setState(() {
+                                haveRecord[1] = !haveRecord[1];
+                              });
+                            },
+                            onLongPress: () {
+                              showAddFoodDialog(context, "午餐");
+                            },
+                            child: FoodButton(
+                                width: screenWidth * 0.9 * 0.45,
+                                haveRecord: haveRecord[1],
+                                title: "  午餐",
+                                color: MyIcons().lunchColor(),
+                                bnw: MyIcons().lunchBnW())),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
                           onTap: () {
-                            selectDate(context);
+                            setState(() {
+                              haveRecord[2] = !haveRecord[2];
+                            });
                           },
-                          child: Container(
-                              width: screenWidth * 0.9 * 0.3,
-                              decoration: BoxDecoration(
-                                  color: Colors.black12,
-                                  border: Border.all(
-                                      color: Colors.black, width: 1.5),
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: Center(
-                                  child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                    SizedBox(
-                                      width: screenWidth * 0.9 * 0.3,
-                                      child: AutoSizeText(
-                                        selectedDate.month > 9
-                                            ? "${selectedDate.year}年${selectedDate.month}月"
-                                            : "${selectedDate.year}年0${selectedDate.month}月",
-                                        style: const TextStyle(
-                                            letterSpacing: 2,
-                                            fontWeight: FontWeight.w600),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    AutoSizeText(
-                                      selectedDate.day < 10
-                                          ? "0${selectedDate.day}"
-                                          : "${selectedDate.day}",
-                                      style: const TextStyle(
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.w900),
-                                    ),
-                                    AutoSizeText(
-                                      weekDay[selectedDate.weekday],
-                                      style: const TextStyle(
-                                          fontSize: 13,
-                                          letterSpacing: 5,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ]))),
+                          onLongPress: () {
+                            showAddFoodDialog(context, "晚餐");
+                          },
+                          child: FoodButton(
+                              width: screenWidth * 0.9 * 0.45,
+                              haveRecord: haveRecord[2],
+                              title: "  晚餐",
+                              color: MyIcons().dinnerColor(),
+                              bnw: MyIcons().dinnerBnW()),
                         ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    haveRecord[0] = !haveRecord[0];
-                                  });
-                                },
-                                onLongPress: () {
-                                  showAddFoodDialog(context, "早餐");
-                                },
-                                child: FoodButton(
-                                    width: screenWidth * 0.9 * 0.26,
-                                    haveRecord: haveRecord[0],
-                                    title: "  早餐",
-                                    color: MyIcons().breakfastColor(),
-                                    bnw: MyIcons().breakfastBnW())),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  haveRecord[2] = !haveRecord[2];
-                                });
-                              },
-                              onLongPress: () {
-                                showAddFoodDialog(context, "晚餐");
-                              },
-                              child: FoodButton(
-                                  width: screenWidth * 0.9 * 0.26,
-                                  haveRecord: haveRecord[2],
-                                  title: "  晚餐",
-                                  color: MyIcons().dinnerColor(),
-                                  bnw: MyIcons().dinnerBnW()),
-                            )
-                          ],
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    haveRecord[1] = !haveRecord[1];
-                                  });
-                                },
-                                onLongPress: () {
-                                  showAddFoodDialog(context, "午餐");
-                                },
-                                child: FoodButton(
-                                    width: screenWidth * 0.9 * 0.26,
-                                    haveRecord: haveRecord[1],
-                                    title: "  午餐",
-                                    color: MyIcons().lunchColor(),
-                                    bnw: MyIcons().lunchBnW())),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  haveRecord[3] = !haveRecord[3];
-                                });
-                              },
-                              onLongPress: () {
-                                showAddFoodDialog(context, "其他");
-                              },
-                              child: FoodButton(
-                                  width: screenWidth * 0.9 * 0.26,
-                                  haveRecord: haveRecord[3],
-                                  title: "  其他",
-                                  color: MyIcons().snackColor(),
-                                  bnw: MyIcons().snackBnW()),
-                            )
-                          ],
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              haveRecord[3] = !haveRecord[3];
+                            });
+                          },
+                          onLongPress: () {
+                            showAddFoodDialog(context, "其他");
+                          },
+                          child: FoodButton(
+                              width: screenWidth * 0.9 * 0.45,
+                              haveRecord: haveRecord[3],
+                              title: "  其他",
+                              color: MyIcons().snackColor(),
+                              bnw: MyIcons().snackBnW()),
                         )
-                      ]),
+                      ],
+                    )
+                  ]),
                 ),
                 const SizedBox(
                   height: 20,
@@ -967,9 +957,9 @@ class _FoodButtonState extends State<FoodButton> {
             color: widget.haveRecord
                 ? const Color.fromARGB(255, 252, 235, 253)
                 : Colors.transparent,
-            border: Border.all(color: Colors.black, width: 1.5),
-            borderRadius: BorderRadius.circular(15)),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+            border: Border.all(color: Colors.black, width: 1),
+            borderRadius: BorderRadius.circular(20)),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           widget.haveRecord ? widget.color : widget.bnw,
           Text(
             widget.title,

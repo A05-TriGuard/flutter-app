@@ -17,6 +17,7 @@ import '../homePage/bloodSugar/bloodSugarDetails.dart';
 import '../homePage/bloodFat/bloodFatDetails.dart';
 import '../homePage/bloodSugar/bloodSugarMoreData.dart';
 import '../homePage/bloodFat/bloodFatMoreData.dart';
+import '../account/cookieLogin.dart';
 
 // 活动
 import '../homePage/activity/activityEdit.dart';
@@ -42,7 +43,8 @@ import '../user/nutritiontarget.dart';
 import '../moment/moment.dart';
 
 Map routes = {
-  '/': (context) => const LoginPage(),
+  '/': (context) => const CookieLogin(),
+  '/login': (context) => const LoginPage(),
   '/resetPassword': (context) => const ResetPassword(),
 
   '/homePage': (context, {arguments}) => HomePage(arguments: arguments),

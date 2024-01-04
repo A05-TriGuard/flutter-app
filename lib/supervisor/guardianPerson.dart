@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:timeline_tile/timeline_tile.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:timeline_tile/timeline_tile.dart';
 
+import '../account/token.dart';
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
-import '../account/token.dart';
 
 // -------------今日记录模块--------------------
 // ignore: must_be_immutable

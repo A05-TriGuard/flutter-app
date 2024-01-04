@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:triguard/component/titleDate/titleDate.dart';
-import 'package:dio/dio.dart';
 
-import '../../component/header/header.dart';
 import '../../account/token.dart';
-import "../../other/other.dart";
+import '../../component/header/header.dart';
+import '../../other/other.dart';
 
 //
 typedef UpdateTimeCallback = void Function(DateTime newTime);

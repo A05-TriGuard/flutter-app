@@ -1,16 +1,15 @@
 //import 'dart:html';
-
-import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../account/token.dart';
+import './bloodSugarEdit.dart';
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/other.dart';
-import './bloodSugarEdit.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
 typedef UpdateDateCallback = void Function(DateTime newDate);

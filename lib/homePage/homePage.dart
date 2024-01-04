@@ -1,14 +1,15 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
-import 'package:dio/dio.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pie_chart/pie_chart.dart';
+import 'package:flutter/services.dart';
 
-import '../component/header/header.dart';
-import '../other/other.dart';
 import '../account/token.dart';
+import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
 import '../fooddiary/fooddiary.dart';
+import '../other/other.dart';
 
 // 标题抽象类
 class MyTitle extends StatefulWidget {
@@ -1718,8 +1719,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void testLogin() async {
+    var isLogout = await storage.read(key: 'isLogout');
+    //print("homepage: $isLogout");
+    if (isLogout == "1") {
+      await storage.write(key: "isLogout", value: "0");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    testLogin();
+
     final formattedDate =
         "${selectedDate.year}年${selectedDate.month}月${selectedDate.day}日 ${getWeekDay(selectedDate)}";
 
@@ -1731,6 +1742,18 @@ class _HomePageState extends State<HomePage> {
 
     return PopScope(
       canPop: widget.arguments["accountId"] == -1 ? false : true,
+      /* canPop: true,
+      onPopInvoked: (bool didPop) {
+        if (didPop) {
+          print("首页pop");
+          //退出app
+          if (widget.arguments["accountId"] == -1) {
+            SystemNavigator.pop();
+          } else {
+            Navigator.pop(context);
+          }
+        }
+      }, */
       child: Scaffold(
         // appbar
         appBar: getAppBar(

@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+
 import './token.dart';
 
 class LoginPage extends StatefulWidget {
@@ -68,21 +69,25 @@ class _LoginPageState extends State<LoginPage> {
           'username': username,
           'password': password,
         });
+        print("????????????????????????????????????");
+        print(response.data);
         // 登录成功后，移除加载动画
         overlayEntry?.remove();
 
-        print(response.data);
-
         if (response.data['code'] == 200) {
           print("登录成功");
+          await storage.write(
+              key: "token", value: response.data["data"]["token"]);
+          await storage.write(key: "username", value: username);
+          await storage.write(key: "password", value: password);
+          await storage.write(key: "isLogout", value: "0");
 
           setState(() {
             isLoginFailed = false;
           });
 
           // 保存token
-          await storage.write(
-              key: "token", value: response.data["data"]["token"]);
+
           await getAccountId().then((value) => Navigator.pushNamed(
               context, '/mainPages',
               arguments: {"accountId": -1}));
@@ -159,6 +164,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
+      canPop: true,
       onPopInvoked: (bool didPop) {
         if (didPop) {
           //退出app

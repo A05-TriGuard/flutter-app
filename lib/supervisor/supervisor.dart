@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:filter_list/filter_list.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
+import '../account/token.dart';
 import '../component/header/header.dart';
 import '../component/titleDate/titleDate.dart';
-import '../account/token.dart';
 
 typedef UpdateVisibleInvitationWidgetCallback = void Function(bool visible);
 typedef UpdateVisibleCreateGroupWidgetCallback = void Function(bool visible);
@@ -205,7 +206,9 @@ class _GuardianWidgetState extends State<GuardianWidget> {
               "email": result.first["email"],
               "username": result.first["username"],
               "nickname": result.first["nickname"],
-              "image": image,
+              //"image": image,
+              "image":
+                  'http://43.138.75.58:8080/static/${result.first["image"]}',
             };
             Navigator.pushNamed(context, '/supervisor/person',
                     arguments: arguments)
@@ -281,8 +284,10 @@ class _GuardianWidgetState extends State<GuardianWidget> {
                             "nickname": result.first["nickname"],
                             "username": result.first["username"],
                             "email": result.first["email"],
+                            // "image":
+                            // "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
                             "image":
-                                "https://www.renwu.org.cn/wp-content/uploads/2020/12/image-33.png",
+                                'http://43.138.75.58:8080/static/${result.first["image"]}',
                           };
                           Navigator.pushNamed(context, '/supervisor/person',
                                   arguments: arguments)
@@ -2568,7 +2573,13 @@ class _SupervisorState extends State<Supervisor> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: true,
+      onPopInvoked: (bool didPop) {
+        if (didPop) {
+          //退出app
+          SystemNavigator.pop();
+        }
+      },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: getAppBar(

@@ -3,6 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dio/dio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:flutter/services.dart';
 import '../component/icons.dart';
 import '../account/token.dart';
 import 'media.dart';
@@ -233,448 +234,466 @@ class _MomentState extends State<Moment> {
 
     createPostTileList(screenWidth - 80);
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (bool didPop) {
+        if (didPop) {
+          //退出app
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
 
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text(
-          "TriGuard",
-          style: TextStyle(
-              fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Color.fromRGBO(169, 171, 179, 1),
-                  width: 1,
-                ),
-              ),
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 250, 209, 252),
-                  Color.fromARGB(255, 255, 255, 255),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              )),
-        ),
-      ),
-
-      // 主体内容
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-              //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                const SizedBox(height: 20),
-                // 主题按钮
-                SizedBox(
-                  width: screenWidth * 0.85,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                          onTap: () {
-                            headerButtonAction(0);
-                          },
-                          child: ClassButton(
-                            title: className[0],
-                            icon: MyIcons().bloodLipidOutlined(),
-                            selected: classSelected[0],
-                            buttonWidth: screenWidth * 0.85 * 0.31,
-                          )),
-                      InkWell(
-                          onTap: () {
-                            headerButtonAction(1);
-                          },
-                          child: ClassButton(
-                            title: className[1],
-                            icon: MyIcons().bloodPressure2(),
-                            selected: classSelected[1],
-                            buttonWidth: screenWidth * 0.85 * 0.31,
-                          )),
-                      InkWell(
-                          onTap: () {
-                            headerButtonAction(2);
-                          },
-                          child: ClassButton(
-                            title: className[2],
-                            icon: MyIcons().bloodSugar(),
-                            selected: classSelected[2],
-                            buttonWidth: screenWidth * 0.85 * 0.31,
-                          )),
-                    ],
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text(
+            "TriGuard",
+            style: TextStyle(
+                fontFamily: 'BalooBhai', fontSize: 26, color: Colors.black),
+          ),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Color.fromRGBO(169, 171, 179, 1),
+                    width: 1,
                   ),
                 ),
-                const SizedBox(height: 15),
-                // 主要内容 & 发帖按钮
-                Stack(
-                  children: [
-                    // 主要内容
-                    SizedBox(
-                      height: screenHeight * 0.75,
-                      child: Column(children: [
-                        Visibility(
-                            visible: showHeader,
-                            child: Column(
-                              children: [
-                                // 主题 Header
-                                Stack(children: [
-                                  // 打底
-                                  Container(
-                                    height: 80,
-                                    color: Colors.transparent,
-                                  ),
-                                  // 后面白色阴影
-                                  Positioned(
-                                    top: 40,
-                                    child: Container(
-                                      width: screenWidth,
-                                      height: 40,
-                                      decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          boxShadow: [
-                                            BoxShadow(
-                                                color: Colors.black26,
-                                                offset: Offset(0, 3),
-                                                blurRadius: 3)
-                                          ]),
+                gradient: LinearGradient(
+                  colors: [
+                    Color.fromARGB(255, 250, 209, 252),
+                    Color.fromARGB(255, 255, 255, 255),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                )),
+          ),
+        ),
+
+        // 主体内容
+        body: SingleChildScrollView(
+          child: Center(
+            child: Column(
+                //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  const SizedBox(height: 20),
+                  // 主题按钮
+                  SizedBox(
+                    width: screenWidth * 0.85,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        InkWell(
+                            onTap: () {
+                              headerButtonAction(0);
+                            },
+                            child: ClassButton(
+                              title: className[0],
+                              icon: MyIcons().bloodLipidOutlined(),
+                              selected: classSelected[0],
+                              buttonWidth: screenWidth * 0.85 * 0.31,
+                            )),
+                        InkWell(
+                            onTap: () {
+                              headerButtonAction(1);
+                            },
+                            child: ClassButton(
+                              title: className[1],
+                              icon: MyIcons().bloodPressure2(),
+                              selected: classSelected[1],
+                              buttonWidth: screenWidth * 0.85 * 0.31,
+                            )),
+                        InkWell(
+                            onTap: () {
+                              headerButtonAction(2);
+                            },
+                            child: ClassButton(
+                              title: className[2],
+                              icon: MyIcons().bloodSugar(),
+                              selected: classSelected[2],
+                              buttonWidth: screenWidth * 0.85 * 0.31,
+                            )),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  // 主要内容 & 发帖按钮
+                  Stack(
+                    children: [
+                      // 主要内容
+                      SizedBox(
+                        height: screenHeight * 0.75,
+                        child: Column(children: [
+                          Visibility(
+                              visible: showHeader,
+                              child: Column(
+                                children: [
+                                  // 主题 Header
+                                  Stack(children: [
+                                    // 打底
+                                    Container(
+                                      height: 80,
+                                      color: Colors.transparent,
                                     ),
-                                  ),
-                                  // 标题那栏
-                                  Positioned(
-                                    left: 30,
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // 主题图标
-                                        Container(
-                                          padding: const EdgeInsets.all(15),
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                              boxShadow: const [
-                                                BoxShadow(
-                                                    color: Colors.black38,
-                                                    offset: Offset(3, 3),
-                                                    blurRadius: 5)
-                                              ]),
-                                          child: iconSelected[curSelClassInd],
-                                        ),
-                                        // 主题名称 & 分类
-                                        Container(
-                                          padding: const EdgeInsets.only(
-                                              left: 20, right: 40),
-                                          width: screenWidth - 100,
-                                          height: 70,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceAround,
-                                            children: [
-                                              // 主题名称
-                                              Text(
-                                                className[curSelClassInd],
-                                                style: const TextStyle(
-                                                    fontSize: 30,
-                                                    fontWeight: FontWeight.bold,
-                                                    letterSpacing: 2),
-                                              ),
-                                              // 话题分类
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: InkWell(
-                                                        onTap: () {
-                                                          setState(() {
-                                                            curSelCatInd = 0;
-                                                            lastPosition = 0.0;
-                                                            pageCount = 1;
-                                                            refreshPage = true;
-                                                          });
-                                                          fetchNShowPostList();
-                                                        },
-                                                        child: CategoryButton(
-                                                            curInd:
-                                                                curSelCatInd,
-                                                            catInd: 0,
-                                                            title: "饮食")),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 8,
-                                                  ),
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: InkWell(
-                                                        onTap: () {
-                                                          setState(() {
-                                                            curSelCatInd = 1;
-                                                            lastPosition = 0.0;
-                                                            pageCount = 1;
-                                                            refreshPage = true;
-                                                          });
-                                                          fetchNShowPostList();
-                                                        },
-                                                        child: CategoryButton(
-                                                            curInd:
-                                                                curSelCatInd,
-                                                            catInd: 1,
-                                                            title: "运动")),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 8,
-                                                  ),
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: InkWell(
-                                                        onTap: () {
-                                                          setState(() {
-                                                            curSelCatInd = 2;
-                                                            lastPosition = 0.0;
-                                                            pageCount = 1;
-                                                            refreshPage = true;
-                                                          });
-                                                          fetchNShowPostList();
-                                                        },
-                                                        child: CategoryButton(
-                                                            curInd:
-                                                                curSelCatInd,
-                                                            catInd: 2,
-                                                            title: "生活")),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 8,
-                                                  ),
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: InkWell(
-                                                        onTap: () {
-                                                          setState(() {
-                                                            curSelCatInd = 3;
-                                                            lastPosition = 0.0;
-                                                            pageCount = 1;
-                                                            refreshPage = true;
-                                                          });
-                                                          fetchNShowPostList();
-                                                        },
-                                                        child: CategoryButton(
-                                                            curInd:
-                                                                curSelCatInd,
-                                                            catInd: 3,
-                                                            title: "其他")),
-                                                  ),
-                                                ],
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                    // 后面白色阴影
+                                    Positioned(
+                                      top: 40,
+                                      child: Container(
+                                        width: screenWidth,
+                                        height: 40,
+                                        decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                  color: Colors.black26,
+                                                  offset: Offset(0, 3),
+                                                  blurRadius: 3)
+                                            ]),
+                                      ),
                                     ),
-                                  ),
-                                ]),
-                                // 筛选框 & 搜索框
-                                Container(
-                                  height: 50,
-                                  padding: const EdgeInsets.only(
-                                      left: 30, right: 30),
-                                  decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: Colors.black26,
-                                            offset: Offset(0, 0),
-                                            blurRadius: 3)
-                                      ]),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        // 筛选框
-                                        Container(
-                                          height: 30,
-                                          padding: const EdgeInsets.only(
-                                              left: 10, bottom: 5),
-                                          color: Colors.black12,
-                                          child: DropdownButton(
-                                            icon: const Icon(
-                                                Icons.arrow_drop_down),
-                                            iconSize: 30,
-                                            hint: Text(selectedFilter,
-                                                style: const TextStyle(
-                                                    fontSize: 18,
-                                                    color: Colors.black,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            style: const TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.black),
-                                            items: const [
-                                              DropdownMenuItem(
-                                                  value: "最新发布",
-                                                  child: Text("最新发布")),
-                                              DropdownMenuItem(
-                                                  value: "最受欢迎",
-                                                  child: Text("最受欢迎")),
-                                              DropdownMenuItem(
-                                                  value: "我的帖子",
-                                                  child: Text("我的帖子")),
-                                              DropdownMenuItem(
-                                                  value: "我的点赞",
-                                                  child: Text("我的点赞")),
-                                              DropdownMenuItem(
-                                                  value: "我的收藏",
-                                                  child: Text("我的收藏")),
-                                              DropdownMenuItem(
-                                                  value: "我的关注",
-                                                  child: Text("我的关注")),
-                                            ],
-                                            onChanged: (value) {
-                                              setState(() {
-                                                selectedFilter = value!;
-                                                lastPosition = 0.0;
-                                                isLoading = true;
-                                                pageCount = 1;
-                                                refreshPage = true;
-                                              });
-                                              fetchNShowPostList();
-                                            },
+                                    // 标题那栏
+                                    Positioned(
+                                      left: 30,
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // 主题图标
+                                          Container(
+                                            padding: const EdgeInsets.all(15),
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                boxShadow: const [
+                                                  BoxShadow(
+                                                      color: Colors.black38,
+                                                      offset: Offset(3, 3),
+                                                      blurRadius: 5)
+                                                ]),
+                                            child: iconSelected[curSelClassInd],
                                           ),
-                                        ),
-                                        // 搜索框
-                                        Expanded(
-                                          child: SizedBox(
-                                            width: screenWidth * 0.5,
-                                            height: 30,
-                                            child: TextField(
-                                              controller: searchController,
-                                              onTap: () {},
-                                              decoration: InputDecoration(
-                                                  hintText: "关键词搜索",
-                                                  hintStyle: const TextStyle(
-                                                      color: Colors.black26,
+                                          // 主题名称 & 分类
+                                          Container(
+                                            padding: const EdgeInsets.only(
+                                                left: 20, right: 40),
+                                            width: screenWidth - 100,
+                                            height: 70,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                // 主题名称
+                                                Text(
+                                                  className[curSelClassInd],
+                                                  style: const TextStyle(
+                                                      fontSize: 30,
                                                       fontWeight:
-                                                          FontWeight.w800,
-                                                      fontSize: 16),
-                                                  contentPadding:
-                                                      const EdgeInsets.only(
-                                                          left: 10),
-                                                  enabledBorder:
-                                                      const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        color: Colors.black),
-                                                  ),
-                                                  focusedBorder:
-                                                      const OutlineInputBorder(
-                                                          borderSide:
-                                                              BorderSide(
-                                                                  color: Color
-                                                                      .fromARGB(
-                                                                          255,
-                                                                          250,
-                                                                          209,
-                                                                          252),
-                                                                  width: 2)),
-                                                  suffixIcon: IconButton(
-                                                    onPressed: () {
-                                                      keyword =
-                                                          searchController.text;
-                                                      pageCount = 1;
-                                                      refreshPage = true;
-                                                      fetchNShowPostList();
-                                                      FocusScope.of(context)
-                                                          .requestFocus(
-                                                              FocusNode());
-                                                    },
-                                                    icon: Image.asset(
-                                                        "assets/icons/searchWhite.png",
-                                                        width: 10),
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            right: 0),
-                                                  )),
-                                              textAlign: TextAlign.left,
+                                                          FontWeight.bold,
+                                                      letterSpacing: 2),
+                                                ),
+                                                // 话题分类
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Expanded(
+                                                      flex: 1,
+                                                      child: InkWell(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              curSelCatInd = 0;
+                                                              lastPosition =
+                                                                  0.0;
+                                                              pageCount = 1;
+                                                              refreshPage =
+                                                                  true;
+                                                            });
+                                                            fetchNShowPostList();
+                                                          },
+                                                          child: CategoryButton(
+                                                              curInd:
+                                                                  curSelCatInd,
+                                                              catInd: 0,
+                                                              title: "饮食")),
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 8,
+                                                    ),
+                                                    Expanded(
+                                                      flex: 1,
+                                                      child: InkWell(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              curSelCatInd = 1;
+                                                              lastPosition =
+                                                                  0.0;
+                                                              pageCount = 1;
+                                                              refreshPage =
+                                                                  true;
+                                                            });
+                                                            fetchNShowPostList();
+                                                          },
+                                                          child: CategoryButton(
+                                                              curInd:
+                                                                  curSelCatInd,
+                                                              catInd: 1,
+                                                              title: "运动")),
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 8,
+                                                    ),
+                                                    Expanded(
+                                                      flex: 1,
+                                                      child: InkWell(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              curSelCatInd = 2;
+                                                              lastPosition =
+                                                                  0.0;
+                                                              pageCount = 1;
+                                                              refreshPage =
+                                                                  true;
+                                                            });
+                                                            fetchNShowPostList();
+                                                          },
+                                                          child: CategoryButton(
+                                                              curInd:
+                                                                  curSelCatInd,
+                                                              catInd: 2,
+                                                              title: "生活")),
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 8,
+                                                    ),
+                                                    Expanded(
+                                                      flex: 1,
+                                                      child: InkWell(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              curSelCatInd = 3;
+                                                              lastPosition =
+                                                                  0.0;
+                                                              pageCount = 1;
+                                                              refreshPage =
+                                                                  true;
+                                                            });
+                                                            fetchNShowPostList();
+                                                          },
+                                                          child: CategoryButton(
+                                                              curInd:
+                                                                  curSelCatInd,
+                                                              catInd: 3,
+                                                              title: "其他")),
+                                                    ),
+                                                  ],
+                                                )
+                                              ],
                                             ),
                                           ),
-                                        )
-                                      ]),
-                                )
-                              ],
-                            )),
-                        // 灰边
-                        Container(
-                          height: 7,
-                          decoration:
-                              const BoxDecoration(color: Colors.black12),
-                        ),
-                        // 帖子列表
-                        Expanded(
-                          child: isLoading
-                              ? Center(
-                                  child:
-                                      LoadingAnimationWidget.staggeredDotsWave(
-                                          color: Colors.pink, size: 40),
-                                )
-                              : Container(
-                                  decoration: const BoxDecoration(
-                                      color: Colors.black12),
-                                  child: ListView.builder(
-                                      physics: const BouncingScrollPhysics(),
-                                      scrollDirection: Axis.vertical,
-                                      controller: listViewController,
-                                      shrinkWrap: true,
-                                      itemCount: postTileList.length,
-                                      itemBuilder:
-                                          (BuildContext context, index) {
-                                        return postTileList[index];
-                                      }),
-                                ),
-                        )
-                      ]),
-                    ),
-                    // 发帖按钮
-                    Positioned(
-                      top: screenHeight * 0.55,
-                      left: screenWidth * 0.81,
-                      child: FloatingActionButton(
-                        onPressed: () {
-                          showDialog(
-                              barrierColor: Colors.black87,
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  content: Post(
-                                    width: screenWidth * 0.4,
-                                    updatePostList: updatePostList,
-                                    getSelectedProperty: getSelectedProperty,
+                                        ],
+                                      ),
+                                    ),
+                                  ]),
+                                  // 筛选框 & 搜索框
+                                  Container(
+                                    height: 50,
+                                    padding: const EdgeInsets.only(
+                                        left: 30, right: 30),
+                                    decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Colors.black26,
+                                              offset: Offset(0, 0),
+                                              blurRadius: 3)
+                                        ]),
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          // 筛选框
+                                          Container(
+                                            height: 30,
+                                            padding: const EdgeInsets.only(
+                                                left: 10, bottom: 5),
+                                            color: Colors.black12,
+                                            child: DropdownButton(
+                                              icon: const Icon(
+                                                  Icons.arrow_drop_down),
+                                              iconSize: 30,
+                                              hint: Text(selectedFilter,
+                                                  style: const TextStyle(
+                                                      fontSize: 18,
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                              style: const TextStyle(
+                                                  fontSize: 18,
+                                                  color: Colors.black),
+                                              items: const [
+                                                DropdownMenuItem(
+                                                    value: "最新发布",
+                                                    child: Text("最新发布")),
+                                                DropdownMenuItem(
+                                                    value: "最受欢迎",
+                                                    child: Text("最受欢迎")),
+                                                DropdownMenuItem(
+                                                    value: "我的帖子",
+                                                    child: Text("我的帖子")),
+                                                DropdownMenuItem(
+                                                    value: "我的点赞",
+                                                    child: Text("我的点赞")),
+                                                DropdownMenuItem(
+                                                    value: "我的收藏",
+                                                    child: Text("我的收藏")),
+                                                DropdownMenuItem(
+                                                    value: "我的关注",
+                                                    child: Text("我的关注")),
+                                              ],
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  selectedFilter = value!;
+                                                  lastPosition = 0.0;
+                                                  isLoading = true;
+                                                  pageCount = 1;
+                                                  refreshPage = true;
+                                                });
+                                                fetchNShowPostList();
+                                              },
+                                            ),
+                                          ),
+                                          // 搜索框
+                                          Expanded(
+                                            child: SizedBox(
+                                              width: screenWidth * 0.5,
+                                              height: 30,
+                                              child: TextField(
+                                                controller: searchController,
+                                                onTap: () {},
+                                                decoration: InputDecoration(
+                                                    hintText: "关键词搜索",
+                                                    hintStyle: const TextStyle(
+                                                        color: Colors.black26,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        fontSize: 16),
+                                                    contentPadding:
+                                                        const EdgeInsets.only(
+                                                            left: 10),
+                                                    enabledBorder:
+                                                        const OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.black),
+                                                    ),
+                                                    focusedBorder:
+                                                        const OutlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        250,
+                                                                        209,
+                                                                        252),
+                                                                width: 2)),
+                                                    suffixIcon: IconButton(
+                                                      onPressed: () {
+                                                        keyword =
+                                                            searchController
+                                                                .text;
+                                                        pageCount = 1;
+                                                        refreshPage = true;
+                                                        fetchNShowPostList();
+                                                        FocusScope.of(context)
+                                                            .requestFocus(
+                                                                FocusNode());
+                                                      },
+                                                      icon: Image.asset(
+                                                          "assets/icons/searchWhite.png",
+                                                          width: 10),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              right: 0),
+                                                    )),
+                                                textAlign: TextAlign.left,
+                                              ),
+                                            ),
+                                          )
+                                        ]),
+                                  )
+                                ],
+                              )),
+                          // 灰边
+                          Container(
+                            height: 7,
+                            decoration:
+                                const BoxDecoration(color: Colors.black12),
+                          ),
+                          // 帖子列表
+                          Expanded(
+                            child: isLoading
+                                ? Center(
+                                    child: LoadingAnimationWidget
+                                        .staggeredDotsWave(
+                                            color: Colors.pink, size: 40),
+                                  )
+                                : Container(
+                                    decoration: const BoxDecoration(
+                                        color: Colors.black12),
+                                    child: ListView.builder(
+                                        physics: const BouncingScrollPhysics(),
+                                        scrollDirection: Axis.vertical,
+                                        controller: listViewController,
+                                        shrinkWrap: true,
+                                        itemCount: postTileList.length,
+                                        itemBuilder:
+                                            (BuildContext context, index) {
+                                          return postTileList[index];
+                                        }),
                                   ),
-                                );
-                              });
-                        },
-                        foregroundColor:
-                            const Color.fromARGB(255, 250, 209, 252),
-                        backgroundColor: Colors.white,
-                        splashColor: const Color.fromARGB(255, 250, 209, 252),
-                        elevation: 10,
-                        tooltip: "发布帖子",
-                        child: const Icon(
-                          Icons.add,
-                          size: 50,
-                        ),
+                          )
+                        ]),
                       ),
-                    )
-                  ],
-                ),
-              ]),
+                      // 发帖按钮
+                      Positioned(
+                        top: screenHeight * 0.55,
+                        left: screenWidth * 0.81,
+                        child: FloatingActionButton(
+                          onPressed: () {
+                            showDialog(
+                                barrierColor: Colors.black87,
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    content: Post(
+                                      width: screenWidth * 0.4,
+                                      updatePostList: updatePostList,
+                                      getSelectedProperty: getSelectedProperty,
+                                    ),
+                                  );
+                                });
+                          },
+                          foregroundColor:
+                              const Color.fromARGB(255, 250, 209, 252),
+                          backgroundColor: Colors.white,
+                          splashColor: const Color.fromARGB(255, 250, 209, 252),
+                          elevation: 10,
+                          tooltip: "发布帖子",
+                          child: const Icon(
+                            Icons.add,
+                            size: 50,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ]),
+          ),
         ),
       ),
     );

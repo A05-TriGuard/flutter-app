@@ -1,22 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 
-import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter_echarts/flutter_echarts.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 import '../../account/token.dart';
+import '../bloodPressure/bloodPressureEdit.dart'
+    hide armButtonTypes, feelingButtonTypes;
 import '../../component/header/header.dart';
 import '../../component/titleDate/titleDate.dart';
 import '../../other/other.dart';
-import '../bloodPressure/bloodPressureEdit.dart'
-    hide armButtonTypes, feelingButtonTypes;
 
 const List<String> method = <String>['手机号', '邮箱'];
 typedef UpdateDateCallback = void Function(DateTime newDate);

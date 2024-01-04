@@ -7,30 +7,24 @@ import 'package:image_picker/image_picker.dart';
 import '../component/header/header.dart';
 import '../account/token.dart';
 
-Widget getButtonSet(String IconPath, String text) {
-  return Container(
-    //height: 100,
-    //width: 100,
-    //color: Colors.yellow,
-    child: Column(
-      children: [
-        Image.asset(
-          //"assets/icons/supervisor.png",
-          IconPath,
-          height: 30,
-          width: 30,
+Widget getButtonSet(String iconPath, String text) {
+  return Column(
+    children: [
+      Image.asset(
+        iconPath,
+        height: 30,
+        width: 30,
+      ),
+      const SizedBox(height: 8),
+      Text(
+        text,
+        style: const TextStyle(
+          fontSize: 15,
+          color: Colors.black,
+          fontFamily: 'BalooBhai',
         ),
-        const SizedBox(height: 8),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 15,
-            color: Colors.black,
-            fontFamily: 'BalooBhai',
-          ),
-        ),
-      ],
-    ),
+      ),
+    ],
   );
 }
 
@@ -42,7 +36,6 @@ Widget getText(String content) {
         textAlign: TextAlign.justify,
         style: const TextStyle(
           fontSize: 16,
-          //fontFamily: "BalooBhai",
         ),
       ),
       const SizedBox(
@@ -72,12 +65,11 @@ class UserInfo extends StatefulWidget {
 }
 
 class _UserInfoState extends State<UserInfo> {
-  String username = "admin";
-  String id = "12345678900";
-  String email = "admin@qq.com";
+  String username = "未知用户";
+  String id = "----";
+  String email = "--@qq.com";
   String selectedImagePath = "";
-  String latestProfilePic =
-      "https://png.pngtree.com/png-vector/20220705/ourmid/pngtree-loading-icon-vector-transparent-png-image_5687537.png";
+  String latestProfilePic = "";
   XFile? pickedImage;
 
   Future<void> getUserInfo() async {
@@ -95,9 +87,8 @@ class _UserInfoState extends State<UserInfo> {
       id = (response.data["data"]["id"]).toString();
       email = response.data["data"]["email"];
       latestProfilePic = response.data["data"]["profile"] == null
-          ? "https://static.vecteezy.com/system/resources/previews/020/765/399/non_2x/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
+          ? ""
           : "http://43.138.75.58:8080/static/${response.data["data"]["profile"]}";
-      //print("username: $username id: $id email: $email ");
     } else {
       print("获取用户信息失败");
     }
@@ -142,7 +133,6 @@ class _UserInfoState extends State<UserInfo> {
             return UnconstrainedBox(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
-                //color: Colors.yellow,
                 alignment: Alignment.center,
                 child: Row(
                   children: [
@@ -151,18 +141,28 @@ class _UserInfoState extends State<UserInfo> {
                       alignment: Alignment.bottomRight,
                       children: [
                         //头像
-                        CircleAvatar(
-                            radius: 40,
-                            backgroundColor: Colors.black45,
-                            child: CircleAvatar(
-                              radius: 39,
-                              backgroundColor: Colors.white,
-                              backgroundImage: NetworkImage(latestProfilePic),
-                            )),
+                        latestProfilePic == ""
+                            ? const CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.black45,
+                                child: CircleAvatar(
+                                  radius: 39,
+                                  backgroundColor: Colors.white,
+                                  backgroundImage:
+                                      AssetImage("assets/images/white.jpg"),
+                                ))
+                            : CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.black45,
+                                child: CircleAvatar(
+                                  radius: 39,
+                                  backgroundColor: Colors.white,
+                                  backgroundImage:
+                                      NetworkImage(latestProfilePic),
+                                )),
                         //更换头像
                         GestureDetector(
                           onTap: () async {
-                            print("更换头像");
                             pickedImage = await ImagePicker()
                                 .pickImage(source: ImageSource.gallery);
                             if (pickedImage != null) {
@@ -176,7 +176,6 @@ class _UserInfoState extends State<UserInfo> {
                             width: 25,
                             height: 25,
                             decoration: const BoxDecoration(
-                              //borderRadius: BorderRadius.circular(15),
                               shape: BoxShape.circle,
                               color: Color.fromARGB(255, 59, 59, 59),
                             ),
@@ -207,7 +206,6 @@ class _UserInfoState extends State<UserInfo> {
                               fontSize: 25,
                               color: Colors.black,
                               fontFamily: 'BalooBhai',
-                              //fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -263,9 +261,7 @@ class _UserWidget1State extends State<UserWidget1> {
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.8,
-                //height: 300,
                 height: MediaQuery.of(context).size.height * 0.6,
-                // color: Colors.white,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
@@ -278,7 +274,6 @@ class _UserWidget1State extends State<UserWidget1> {
                     ),
                   ],
                 ),
-
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -289,7 +284,6 @@ class _UserWidget1State extends State<UserWidget1> {
                         "问题反馈",
                         style: TextStyle(
                           fontSize: 20,
-                          //fontFamily: "BalooBhai",
                           letterSpacing: 2,
                           fontWeight: FontWeight.bold,
                         ),
@@ -298,7 +292,6 @@ class _UserWidget1State extends State<UserWidget1> {
                       //内容
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.35,
-                        //height: 175,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
                           child: Column(
@@ -310,6 +303,12 @@ class _UserWidget1State extends State<UserWidget1> {
                                   '1. 您可以通过以下电子邮件向我们反馈您在使用我们软件的过程中遇到的问题，我们会尽快为您解决。'),
                               getText('beyzhexuan@gmail.com'),
                               getText('mzx21@mails.tsinghua.edu.cn'),
+                              getText('limjiawenbrenda221@gmail.com'),
+                              getText('linjw21@mails.tsinghua.edu.cn'),
+                              getText('2374530749@qq.com'),
+                              getText('yuc21@mails.tsinghua.edu.cn'),
+                              getText('1914253416@qq.com'),
+                              getText('weiky21@mails.tsinghua.edu.cn'),
                               getText('2. 您也可以向我们提出建议，我们会认真考虑并加以改进。'),
                               getText('5. 您的反馈是我们前进的动力，非常感谢您的支持。'),
                             ],
@@ -466,7 +465,7 @@ class _UserWidget1State extends State<UserWidget1> {
   Widget build(BuildContext context) {
     return UnconstrainedBox(
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.85,
+        width: MediaQuery.of(context).size.width * 0.9,
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
@@ -482,7 +481,6 @@ class _UserWidget1State extends State<UserWidget1> {
             ),
           ],
         ),
-        //color: Colors.yellow,
         alignment: Alignment.center,
         child: Padding(
           padding: const EdgeInsets.all(15),
@@ -510,9 +508,12 @@ class _UserWidget1State extends State<UserWidget1> {
               GestureDetector(
                 onTap: () async {
                   await storage.write(key: "accountId", value: "-1");
+                  await storage.write(key: "username", value: "");
+                  await storage.write(key: "password", value: "");
+                  await storage.write(key: "isLogout", value: "1");
                   //Navigator.pop(context);
                   Navigator.pushNamedAndRemoveUntil(
-                      context, '/', (route) => false);
+                      context, '/login', (route) => false);
                 },
                 child: getButtonSet("assets/icons/logout.png", "退出登录"),
               )
@@ -580,163 +581,57 @@ class User extends StatefulWidget {
 class _UserState extends State<User> {
   bool returnLogin = false;
 
-  void _showBackDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Are you sure?'),
-          content: const Text(
-            'Are you sure you want to leave this page?',
-          ),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Nevermind'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Leave'),
-              onPressed: () {
-                Navigator.pop(context);
-                //Navigator.pop(context);
-                SystemNavigator.pop();
-                //exit(0);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return
-        // PopScope(
-        //   canPop: returnLogin,
-        //   onPopInvoked: (bool didPop) {
-        //     if (didPop) {
-        //       return;
-        //     }
-        //     print("确定退出？");
-        //     _showBackDialog();
-        //     // TODO: 弹出确认退出的对话框
-        //   },
-        //   child:
-        Scaffold(
-      /* appBar: AppBar(
-          title: const Text(
-            "我的",
-            style: TextStyle(
-                fontFamily: 'BalooBhai',
-                fontSize: 20,
-                color: Colors.black,
-                fontWeight: FontWeight.bold),
-          ),
-          // flexibleSpace: header,
-          // toolbarHeight: 45,
-             flexibleSpace: getHeader(MediaQuery.of(context).size.width,
-              (MediaQuery.of(context).size.height * 0.1 + 11)), 
-          automaticallyImplyLeading: false,
-
-          actions: [
-            GestureDetector(
-              onTap: () {
-                print("设置");
-              },
-              child: Container(
-                margin: const EdgeInsets.only(right: 10),
-                child: const Row(
-                  children: [
-                    Text("设置",
-                        style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.black,
-                            fontFamily: 'BalooBhai',
-                            fontWeight: FontWeight.bold)),
-                    Icon(
-                      Icons.settings,
-                      size: 30,
-                      color: Colors.black,
-                    ),
-                  ],
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (bool didPop) {
+        if (didPop) {
+          //退出app
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        appBar: getAppBar(0, false, "TriGuard"),
+        body: SingleChildScrollView(
+          child: Container(
+            color: Colors.white,
+            constraints:
+                BoxConstraints(minHeight: MediaQuery.of(context).size.height),
+            child: ListView(shrinkWrap: true, children: [
+              // 标题组件
+              UnconstrainedBox(
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  alignment: Alignment.center,
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 20,
+                      ),
+                      UserInfo(),
+                      SizedBox(
+                        height: 25,
+                      ),
+                      UserWidget1(),
+                      SizedBox(
+                        height: 25,
+                      ),
+                      TriGuardReminder(),
+                      SizedBox(
+                        height: 25,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ), */
-      /*
-          // ==================== 别删 =============================
-         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text("用户"),
-              //退出登录的按钮
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    returnLogin = true;
-                  });
-                  Navigator.pop(context);
-                  //Navigator.pushNamed(context, '/');
-                  //Navigator.pushReplacement(context, routes['/']!);
-                },
-                child: Text("退出登录"),
-              ),
-            ],
+              // 过滤器
+            ]),
           ),
-        ), */
-      appBar: getAppBar(0, false, "TriGuard"),
-      body: SingleChildScrollView(
-        child: Container(
-          color: Colors.white,
-          constraints:
-              BoxConstraints(minHeight: MediaQuery.of(context).size.height),
-          child: ListView(shrinkWrap: true, children: [
-            // 标题组件
-            UnconstrainedBox(
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                alignment: Alignment.center,
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    //SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    UserInfo(),
-                    SizedBox(
-                      height: 25,
-                    ),
-                    UserWidget1(),
-                    SizedBox(
-                      height: 25,
-                    ),
-                    TriGuardReminder(),
-                    SizedBox(
-                      height: 25,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // 过滤器
-          ]),
         ),
       ),
-      //),
     );
   }
 }

@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+
 import '../component/header/header.dart';
 
 const List<String> method = <String>['手机号', '邮箱'];
